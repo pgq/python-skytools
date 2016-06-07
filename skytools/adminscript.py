@@ -54,8 +54,8 @@ class AdminScript(skytools.DBScript):
             helpstr = ""
             if n_args:
                 helpstr = ": " + " ".join(args[1:])
-            self.log.error("command '%s' got %d args, but expects %d%s"
-                    % (cmd, len(cmdargs), n_args, helpstr))
+            self.log.error("command '%s' got %d args, but expects %d%s",
+                           cmd, len(cmdargs), n_args, helpstr)
             sys.exit(1)
 
         # run command
@@ -77,7 +77,7 @@ class AdminScript(skytools.DBScript):
                       fieldfmt = {}):
         """Display multirow query as a table."""
 
-        self.log.debug("display_table: %s" % skytools.quote_statement(sql, args))
+        self.log.debug("display_table: %s", skytools.quote_statement(sql, args))
         curs = db.cursor()
         curs.execute(sql, args)
         rows = curs.fetchall()
@@ -115,14 +115,14 @@ class AdminScript(skytools.DBScript):
 
     def exec_stmt(self, db, sql, args):
         """Run regular non-query SQL on db."""
-        self.log.debug("exec_stmt: %s" % skytools.quote_statement(sql, args))
+        self.log.debug("exec_stmt: %s", skytools.quote_statement(sql, args))
         curs = db.cursor()
         curs.execute(sql, args)
         db.commit()
 
     def exec_query(self, db, sql, args):
         """Run regular query SQL on db."""
-        self.log.debug("exec_query: %s" % skytools.quote_statement(sql, args))
+        self.log.debug("exec_query: %s", skytools.quote_statement(sql, args))
         curs = db.cursor()
         curs.execute(sql, args)
         res = curs.fetchall()

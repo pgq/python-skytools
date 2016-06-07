@@ -330,13 +330,13 @@ class Syncer(skytools.DBScript):
         self.check_consumer(setup_curs, queue_name, consumer_name)
 
         # lock table in separate connection
-        self.log.info('Locking %s' % table_name)
+        self.log.info('Locking %s', table_name)
         self.set_lock_timeout(lock_curs)
         lock_time = time.time()
         lock_curs.execute("LOCK TABLE %s IN SHARE MODE" % skytools.quote_fqident(table_name))
 
         # now wait until consumer has updated target table until locking
-        self.log.info('Syncing %s' % table_name)
+        self.log.info('Syncing %s', table_name)
 
         # consumer must get further than this tick
         tick_id = self.force_tick(setup_curs, queue_name)
@@ -356,7 +356,7 @@ class Syncer(skytools.DBScript):
             if len(res) == 0:
                 raise Exception('No such consumer: %s/%s' % (queue_name, consumer_name))
             row = res[0]
-            self.log.debug("tpos=%s now=%s lag=%s ok=%s" % (tpos, row[1], row[2], row[0]))
+            self.log.debug("tpos=%s now=%s lag=%s ok=%s", tpos, row[1], row[2], row[0])
             if row[0]:
                 break
 
@@ -392,27 +392,27 @@ class Syncer(skytools.DBScript):
     def check_consumer(self, curs, queue_name, consumer_name):
         """ Before locking anything check if consumer is working ok.
         """
-        self.log.info("Queue: %s Consumer: %s" % (queue_name, consumer_name))
+        self.log.info("Queue: %s Consumer: %s", queue_name, consumer_name)
 
         curs.execute('select current_database()')
-        self.log.info('Actual db: %s' % curs.fetchone()[0])
+        self.log.info('Actual db: %s', curs.fetchone()[0])
 
         # get ticker lag
         q = "select extract(epoch from ticker_lag) from pgq.get_queue_info(%s);"
         curs.execute(q, [queue_name])
         ticker_lag = curs.fetchone()[0]
-        self.log.info("Ticker lag: %s" % ticker_lag)
+        self.log.info("Ticker lag: %s", ticker_lag)
         # get consumer lag
         q = "select extract(epoch from lag) from pgq.get_consumer_info(%s, %s);"
         curs.execute(q, [queue_name, consumer_name])
         res = curs.fetchall()
         if len(res) == 0:
-            self.log.error('check_consumer: No such consumer: %s/%s' % (queue_name, consumer_name))
+            self.log.error('check_consumer: No such consumer: %s/%s', queue_name, consumer_name)
             sys.exit(1)
         consumer_lag = res[0][0]
 
         # check that lag is acceptable
-        self.log.info("Consumer lag: %s" % consumer_lag)
+        self.log.info("Consumer lag: %s", consumer_lag)
         if consumer_lag > ticker_lag + 10:
             self.log.error('Consumer lagging too much, cannot proceed')
             sys.exit(1)
@@ -497,7 +497,7 @@ class Checker(Syncer):
         """Checker init."""
         Syncer.__init__(self, 'data_checker', args)
         self.set_single_loop(1)
-        self.log.info('Checker starting %s' % str(args))
+        self.log.info('Checker starting %s', str(args))
 
         self.lock_timeout = self.cf.getfloat('lock_timeout', 10)
 
@@ -536,9 +536,9 @@ class Checker(Syncer):
                 cstr2 = "dbname=%s host=%s %s" % (d_db, d_host, extra_connstr)
                 where = where_expr % dst_row
 
-                self.log.info('Source: db=%s host=%s queue=%s consumer=%s' % (
-                                  s_db, s_host, queue_name, consumer_name))
-                self.log.info('Target: db=%s host=%s where=%s' % (d_db, d_host, where))
+                self.log.info('Source: db=%s host=%s queue=%s consumer=%s',
+                                  s_db, s_host, queue_name, consumer_name)
+                self.log.info('Target: db=%s host=%s where=%s', d_db, d_host, where)
 
                 for tbl in self.table_list:
                     src_db, dst_db = self.sync_table(cstr1, cstr2, queue_name, consumer_name, tbl)
@@ -565,7 +565,7 @@ class Checker(Syncer):
         src_curs = src_db.cursor()
         dst_curs = dst_db.cursor()
 
-        self.log.info('Counting %s' % tbl)
+        self.log.info('Counting %s', tbl)
 
         q = "select count(1) as cnt, sum(hashtext(t.*::text)) as chksum from only _TABLE_ t where %s;" %  where
         q = self.cf.get('compare_sql', q)
@@ -574,26 +574,26 @@ class Checker(Syncer):
         f = "%(cnt)d rows, checksum=%(chksum)s"
         f = self.cf.get('compare_fmt', f)
 
-        self.log.debug("srcdb: " + q)
+        self.log.debug("srcdb: %s", q)
         src_curs.execute(q)
         src_row = src_curs.fetchone()
         src_str = f % src_row
-        self.log.info("srcdb: %s" % src_str)
+        self.log.info("srcdb: %s", src_str)
 
-        self.log.debug("dstdb: " + q)
+        self.log.debug("dstdb: %s", q)
         dst_curs.execute(q)
         dst_row = dst_curs.fetchone()
         dst_str = f % dst_row
-        self.log.info("dstdb: %s" % dst_str)
+        self.log.info("dstdb: %s", dst_str)
 
         src_db.commit()
         dst_db.commit()
 
         if src_str != dst_str:
-            self.log.warning("%s: Results do not match!" % tbl)
+            self.log.warning("%s: Results do not match!", tbl)
             return False
         else:
-            self.log.info("%s: OK!" % tbl)
+            self.log.info("%s: OK!", tbl)
             return True
 
 

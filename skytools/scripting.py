@@ -587,14 +587,14 @@ class BaseScript(object):
             sys.exit(1)
         except MemoryError, d:
             try: # complex logging may not succeed
-                self.log.exception("Job %s out of memory, exiting" % self.job_name)
+                self.log.exception("Job %s out of memory, exiting", self.job_name)
             except MemoryError:
                 self.log.fatal("Out of memory")
             sys.exit(1)
         except SystemExit, d:
             self.send_stats()
             if prefer_looping and self.looping and self.loop_delay > 0:
-                self.log.info("got SystemExit(%s), exiting" % str(d))
+                self.log.info("got SystemExit(%s), exiting", str(d))
             self.reset()
             raise d
         except KeyboardInterrupt, d:
@@ -790,7 +790,7 @@ class DBScript(BaseScript):
             if pos >= 0:
                 filtered_connstr = connstr[:pos] + ' [...]'
 
-            self.log.debug("Connect '%s' to '%s'" % (cache, filtered_connstr))
+            self.log.debug("Connect '%s' to '%s'", cache, filtered_connstr)
             dbc = DBCachedConn(cache, connstr, params['max_age'], setup_func = self.connection_hook)
             self.db_cache[cache] = dbc
 
@@ -874,7 +874,7 @@ class DBScript(BaseScript):
     def _exec_cmd(self, curs, sql, args, quiet = False, prefix = None):
         """Internal tool: Run SQL on cursor."""
         if self.options.verbose:
-            self.log.debug("exec_cmd: %s" % skytools.quote_statement(sql, args))
+            self.log.debug("exec_cmd: %s", skytools.quote_statement(sql, args))
 
         _pfx = ""
         if prefix:
@@ -888,22 +888,22 @@ class DBScript(BaseScript):
                 msg = row['ret_note']
             except KeyError:
                 self.log.error("Query does not conform to exec_cmd API:")
-                self.log.error("SQL: %s" % skytools.quote_statement(sql, args))
-                self.log.error("Row: %s" % repr(row.copy()))
+                self.log.error("SQL: %s", skytools.quote_statement(sql, args))
+                self.log.error("Row: %s", repr(row.copy()))
                 sys.exit(1)
             level = code / 100
             if level == 1:
-                self.log.debug("%s%d %s" % (_pfx, code, msg))
+                self.log.debug("%s%d %s", _pfx, code, msg)
             elif level == 2:
                 if quiet:
-                    self.log.debug("%s%d %s" % (_pfx, code, msg))
+                    self.log.debug("%s%d %s", _pfx, code, msg)
                 else:
-                    self.log.info("%s%s" % (_pfx, msg,))
+                    self.log.info("%s%s", _pfx, msg)
             elif level == 3:
-                self.log.warning("%s%s" % (_pfx, msg,))
+                self.log.warning("%s%s", _pfx, msg)
             else:
-                self.log.error("%s%s" % (_pfx, msg,))
-                self.log.debug("Query was: %s" % skytools.quote_statement(sql, args))
+                self.log.error("%s%s", _pfx, msg)
+                self.log.debug("Query was: %s", skytools.quote_statement(sql, args))
                 ok = False
         return (ok, rows)
 
@@ -991,7 +991,7 @@ class DBScript(BaseScript):
             except elist, e:
                 if not sql_retry or tried >= sql_retry_max_count or time.time() - stime >= sql_retry_max_time:
                     raise
-                self.log.info("Job %s got error on connection %s: %s" % (self.job_name, dbname, e))
+                self.log.info("Job %s got error on connection %s: %s", self.job_name, dbname, e)
             except:
                 raise
             # y = a + bx , apply cap

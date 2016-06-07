@@ -6,7 +6,6 @@ unsafe-load-any-extension = no
 disable =
 	superfluous-parens,
 	wildcard-import,
-	logging-not-lazy,
 	unused-wildcard-import,
 	bad-builtin,
 	redefined-builtin,
