@@ -33,6 +33,11 @@ from __future__ import division, absolute_import, print_function
 import sys
 import struct
 
+try:
+    from skytools._chashtext import hashtext_old, hashtext_new
+except ImportError:
+    hashtext_old = hashtext_new = None
+
 __all__ = ["hashtext_old", "hashtext_new"]
 
 # pad for last partial block
@@ -151,14 +156,7 @@ def hashtext_new_py(k):
     return int(c)
 
 
-try:
-    from skytools._chashtext import hashtext_old, hashtext_new
-except ImportError:
+if not hashtext_old:
     hashtext_old = hashtext_old_py
     hashtext_new = hashtext_new_py
 
-
-# run doctest
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

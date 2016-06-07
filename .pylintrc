@@ -4,8 +4,6 @@ unsafe-load-any-extension = no
 
 [MESSAGES CONTROL]
 disable =
-	wrong-import-position,
-	wrong-import-order,
 	no-self-use,
 	missing-docstring,
 	bare-except,

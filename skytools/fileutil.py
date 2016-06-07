@@ -161,7 +161,3 @@ def win32_write_atomic(fn, data, bakext=None, mode='b'):
 if sys.platform == 'win32':
     write_atomic = win32_write_atomic
 
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-

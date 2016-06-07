@@ -2,8 +2,6 @@
 
 from __future__ import division, absolute_import, print_function
 
-__all__ = ['set_tcp_keepalive', 'set_nonblocking', 'set_cloexec']
-
 import sys
 import os
 import socket
@@ -139,8 +137,4 @@ def set_cloexec(fd, onoff=True):
     else:
         flags &= ~fcntl.FD_CLOEXEC
     fcntl.fcntl(fd, fcntl.F_SETFD, flags)
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
 

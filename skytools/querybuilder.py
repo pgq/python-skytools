@@ -16,6 +16,11 @@ from __future__ import division, absolute_import, print_function
 
 import skytools
 
+try:
+    import plpy
+except ImportError:
+    plpy = None
+
 __all__ = [
     'QueryBuilder', 'PLPyQueryBuilder', 'PLPyQuery', 'plpy_exec',
     "run_query", "run_query_row", "run_lookup", "run_exists",
@@ -419,16 +424,7 @@ class fake_plpy(object):
         print("DBG: plpy.error(%s)" % repr(msg))
 
 # make plpy available
-try:
-    import plpy
-except ImportError:
+if not plpy:
     plpy = fake_plpy()
     GD = {}
-
-
-# launch doctest
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-
 

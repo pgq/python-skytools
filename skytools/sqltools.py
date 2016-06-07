@@ -636,6 +636,3 @@ def mk_delete_sql(row, tbl, pkey_list, field_map = None):
     whe_str = " and ".join(whe_list)
     return "delete from only %s where %s;" % (skytools.quote_fqident(tbl), whe_str)
 
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

@@ -515,6 +515,3 @@ def merge_connect_string(cstr_arg_list):
         buf.append("%s=%s" % (k, v))
     return ' '.join(buf)
 
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

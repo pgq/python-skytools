@@ -104,7 +104,3 @@ def safe_utf8_decode(s):
         ok = False
     return (ok, u2)
 
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-

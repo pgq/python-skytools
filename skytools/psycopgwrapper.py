@@ -56,9 +56,6 @@ Plain .fetchall() / .fetchone() give exact same result.
 
 from __future__ import division, absolute_import, print_function
 
-__all__ = ['connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
-           'I_REPEATABLE_READ', 'I_SERIALIZABLE']
-
 import skytools
 from skytools.sockutil import set_tcp_keepalive
 
@@ -66,6 +63,8 @@ import psycopg2.extensions
 import psycopg2.extras
 from psycopg2 import Error as DBError
 
+__all__ = ['connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
+           'I_REPEATABLE_READ', 'I_SERIALIZABLE']
 
 I_AUTOCOMMIT = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 I_READ_COMMITTED = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED

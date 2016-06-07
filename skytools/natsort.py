@@ -53,9 +53,3 @@ def natsorted_icase(lst):
     natsort_icase(lst)
     return lst
 
-
-# run doctest
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-

@@ -174,7 +174,3 @@ def datetime_to_timestamp(dt, local_time=True):
         delta = dt - UTC_NOTZ_EPOCH
         return delta.total_seconds()
 
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-

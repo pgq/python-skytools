@@ -3,6 +3,30 @@
 
 from __future__ import division, absolute_import, print_function
 
+if __name__ == 'disabled':
+    # import everything immediately (make pylint think so)
+    from skytools.quoting import *
+    from skytools.sqltools import *
+    from skytools.scripting import *
+
+    from skytools.adminscript import *
+    from skytools.config import *
+    from skytools.dbservice import *
+    from skytools.dbstruct import *
+    from skytools.fileutil import *
+    from skytools.gzlog import *
+    from skytools.hashtext import *
+    from skytools.natsort import *
+    from skytools.parsing import *
+    from skytools.psycopgwrapper import *
+    from skytools.querybuilder import *
+    from skytools.skylog import *
+    from skytools.sockutil import *
+    from skytools.timeutil import *
+    from skytools.utf8 import *
+else:
+    import skytools.apipkg as _apipkg
+
 __version__ = '3.3'
 
 _symbols = {
@@ -148,79 +172,6 @@ _symbols = {
 __all__ = _symbols.keys()
 _symbols['__version__'] = 'skytools.installer_config:package_version'
 
-if 1:
-    # lazy-import exported vars
-    import skytools.apipkg as _apipkg
-    _apipkg.initpkg(__name__, _symbols, {'apipkg': _apipkg})
-else:
-    # import everything immediately
-    from skytools.quoting import *
-    from skytools.sqltools import *
-    from skytools.scripting import *
+# lazy-import exported vars
+_apipkg.initpkg(__name__, _symbols, {'apipkg': _apipkg})
 
-    from skytools.adminscript import *
-    from skytools.config import *
-    from skytools.dbservice import *
-    from skytools.dbstruct import *
-    from skytools.fileutil import *
-    from skytools.gzlog import *
-    from skytools.hashtext import *
-    from skytools.natsort import *
-    from skytools.parsing import *
-    from skytools.psycopgwrapper import *
-    from skytools.querybuilder import *
-    from skytools.skylog import *
-    from skytools.sockutil import *
-    from skytools.timeutil import *
-    from skytools.utf8 import *
-"""
-else:
-    from skytools.quoting import *
-    from skytools.sqltools import *
-    from skytools.scripting import *
-
-    # compare apipkg list to submodule exports
-    xall = []
-    import skytools.adminscript
-    import skytools.config
-    import skytools.dbservice
-    import skytools.dbstruct
-    import skytools.fileutil
-    import skytools.gzlog
-    import skytools.hashtext
-    import skytools.natsort
-    import skytools.parsing
-    import skytools.psycopgwrapper
-    import skytools.querybuilder
-    import skytools.quoting
-    import skytools.scripting
-    import skytools.skylog
-    import skytools.sockutil
-    import skytools.sqltools
-    import skytools.timeutil
-    import skytools.utf8
-    xall = (  skytools.adminscript.__all__
-            + skytools.config.__all__
-            + skytools.dbservice.__all__
-            + skytools.dbstruct.__all__
-            + skytools.fileutil.__all__
-            + skytools.gzlog.__all__
-            + skytools.hashtext.__all__
-            + skytools.natsort.__all__
-            + skytools.parsing.__all__
-            + skytools.psycopgwrapper.__all__
-            + skytools.querybuilder.__all__
-            + skytools.quoting.__all__
-            + skytools.scripting.__all__
-            + skytools.skylog.__all__
-            + skytools.sockutil.__all__
-            + skytools.sqltools.__all__
-            + skytools.timeutil.__all__
-            + skytools.utf8.__all__ )
-    for k in __all__:
-        if k not in xall:
-            print('%s missing from __all__?' % k)
-    for k in xall:
-        if k not in __all__:
-            print('%s missing from top-level?' % k)
-"""

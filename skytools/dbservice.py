@@ -7,17 +7,17 @@ import skytools
 
 from skytools import dbdict
 
+try:
+    import plpy
+except ImportError:
+    pass
+
 __all__ = ['DBService', 'ServiceContext',
     'get_record', 'get_record_list',
     'make_record', 'make_record_array',
     'TableAPI',
     #'log_result', 'transform_fields'
 ]
-
-try:
-    import plpy
-except ImportError:
-    pass
 
 def transform_fields(rows, key_fields, name_field, data_field):
     """Convert multiple-rows per key input array

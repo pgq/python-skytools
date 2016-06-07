@@ -7,6 +7,11 @@ from __future__ import division, absolute_import, print_function
 import re
 import json
 
+try:
+    from skytools._cquoting import *
+except ImportError:
+    from skytools._pyquoting import *
+
 __all__ = [
     # _pyqoting / _cquoting
     "quote_literal", "quote_copy", "quote_bytea_raw",
@@ -19,11 +24,6 @@ __all__ = [
     "json_encode", "json_decode",
     "make_pgarray",
 ]
-
-try:
-    from skytools._cquoting import *
-except ImportError:
-    from skytools._pyquoting import *
 
 #
 # SQL quoting
@@ -226,7 +226,3 @@ def make_pgarray(lst):
     items = [_quote_pgarray_elem(v) for v in lst]
     return '{' + ','.join(items) + '}'
 
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
