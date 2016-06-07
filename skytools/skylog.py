@@ -3,11 +3,13 @@
 
 from __future__ import division, absolute_import, print_function
 
-import logging
-import logging.handlers
 import os
 import socket
 import time
+
+import logging
+import logging.handlers
+from logging import LoggerAdapter
 
 import skytools
 
@@ -353,43 +355,11 @@ class SysLogHostnameHandler(SysLogHandler):
         return msg
 
 
-try:
-    from logging import LoggerAdapter
-except ImportError:
-    # LoggerAdapter is missing from python 2.5
-    class LoggerAdapter(object):
-        def __init__(self, logger, extra):
-            self.logger = logger
-            self.extra = extra
-        def process(self, msg, kwargs):
-            kwargs["extra"] = self.extra
-            return msg, kwargs
-        def debug(self, msg, *args, **kwargs):
-            msg, kwargs = self.process(msg, kwargs)
-            self.logger.debug(msg, *args, **kwargs)
-        def info(self, msg, *args, **kwargs):
-            msg, kwargs = self.process(msg, kwargs)
-            self.logger.info(msg, *args, **kwargs)
-        def warning(self, msg, *args, **kwargs):
-            msg, kwargs = self.process(msg, kwargs)
-            self.logger.warning(msg, *args, **kwargs)
-        def error(self, msg, *args, **kwargs):
-            msg, kwargs = self.process(msg, kwargs)
-            self.logger.error(msg, *args, **kwargs)
-        def exception(self, msg, *args, **kwargs):
-            msg, kwargs = self.process(msg, kwargs)
-            kwargs["exc_info"] = 1
-            self.logger.error(msg, *args, **kwargs)
-        def critical(self, msg, *args, **kwargs):
-            msg, kwargs = self.process(msg, kwargs)
-            self.logger.critical(msg, *args, **kwargs)
-        def log(self, level, msg, *args, **kwargs):
-            msg, kwargs = self.process(msg, kwargs)
-            self.logger.log(level, msg, *args, **kwargs)
-
 # add missing aliases (that are in Logger class)
-LoggerAdapter.fatal = LoggerAdapter.critical
-LoggerAdapter.warn = LoggerAdapter.warning
+if not hasattr(LoggerAdapter, 'fatal'):
+    LoggerAdapter.fatal = LoggerAdapter.critical
+if not hasattr(LoggerAdapter, 'warn'):
+    LoggerAdapter.warn = LoggerAdapter.warning
 
 class SkyLogger(LoggerAdapter):
     def __init__(self, logger, extra):

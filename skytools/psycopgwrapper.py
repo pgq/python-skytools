@@ -59,12 +59,12 @@ from __future__ import division, absolute_import, print_function
 __all__ = ['connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
            'I_REPEATABLE_READ', 'I_SERIALIZABLE']
 
+import skytools
+from skytools.sockutil import set_tcp_keepalive
+
 import psycopg2.extensions
 import psycopg2.extras
-import skytools
-
 from psycopg2 import Error as DBError
-from skytools.sockutil import set_tcp_keepalive
 
 
 I_AUTOCOMMIT = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
