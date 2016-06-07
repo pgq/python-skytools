@@ -364,10 +364,10 @@ def parse_statements(sql, standard_quoting = False):
             sql = "".join(tokens)
             if _copy_from_stdin_rc.match(sql):
                 raise Exception("copy from stdin not supported")
-            yield ("".join(tokens))
+            yield "".join(tokens)
             tokens = []
     if len(tokens) > 0:
-        yield ("".join(tokens))
+        yield "".join(tokens)
     if pcount != 0:
         raise Exception("syntax error - unbalanced parenthesis")
 

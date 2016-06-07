@@ -86,7 +86,7 @@ def hashtext_old_py(k):
     a, b, c = mix_old(a + a2, b + b2, c + c2)
 
     # convert to signed int
-    if (c & 0x80000000):
+    if c & 0x80000000:
         c = -0x100000000 + c
 
     return int(c)
@@ -101,7 +101,7 @@ def hashtext_old_py(k):
 FMT_NEW = struct.Struct("=LLL")
 
 def rol32(x,k):
-    return (((x)<<(k)) | (uint32(x)>>(32-(k))))
+    return ((x)<<(k)) | (uint32(x)>>(32-(k)))
 
 def mix_new(a,b,c):
     a -= c;  a ^= rol32(c, 4);  c += b
@@ -144,7 +144,7 @@ def hashtext_new_py(k):
     a, b, c = final_new(a + a2, b + b2, c + c2)
 
     # convert to signed int
-    if (c & 0x80000000):
+    if c & 0x80000000:
         c = -0x100000000 + c
 
     return int(c)

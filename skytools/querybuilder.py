@@ -400,7 +400,7 @@ def run_exists(cur, sql, params = None, **kwargs):
     """
     params = params or kwargs
     val = run_lookup(cur, sql, params)
-    return not (val is None)
+    return val is not None
 
 
 # fake plpy for testing

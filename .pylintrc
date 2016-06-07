@@ -4,7 +4,6 @@ unsafe-load-any-extension = no
 
 [MESSAGES CONTROL]
 disable =
-	superfluous-parens,
 	wildcard-import,
 	unused-wildcard-import,
 	bad-builtin,
