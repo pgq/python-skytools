@@ -18,6 +18,14 @@ typedef int Py_ssize_t;
 #define strcasecmp stricmp
 #endif
 
+#if PY_MAJOR_VERSION >= 3
+#define PyString_FromStringAndSize(s,l) PyUnicode_FromStringAndSize(s,l)
+#define PyString_FromString(s) PyUnicode_FromString(s)
+#define PyString_InternInPlace(p) PyUnicode_InternInPlace(p)
+#endif
+
+#include "get_buffer.h"
+
 /*
  * Common buffer management.
  */
@@ -107,60 +115,6 @@ static PyObject *buf_pystr(struct Buf *buf, unsigned start_pos, unsigned char *n
 		buf_set_target(buf, newpos);
 	res = PyString_FromStringAndSize((char *)buf->ptr + start_pos, buf->pos - start_pos);
 	buf_free(buf);
-	return res;
-}
-
-/*
- * Get string data
- */
-
-static Py_ssize_t get_buffer(PyObject *obj, unsigned char **buf_p, PyObject **tmp_obj_p)
-{
-	PyBufferProcs *bfp;
-	PyObject *str = NULL;
-	Py_ssize_t res;
-
-	/* check for None */
-	if (obj == Py_None) {
-		PyErr_Format(PyExc_TypeError, "None is not allowed here");
-		return -1;
-	}
-
-	/* is string or unicode ? */
-	if (PyString_Check(obj) || PyUnicode_Check(obj)) {
-		if (PyString_AsStringAndSize(obj, (char**)buf_p, &res) < 0)
-			return -1;
-		return res;
-	}
-
-	/* try to get buffer */
-	bfp = obj->ob_type->tp_as_buffer;
-	if (bfp && bfp->bf_getsegcount && bfp->bf_getreadbuffer) {
-		if (bfp->bf_getsegcount(obj, NULL) == 1)
-			return bfp->bf_getreadbuffer(obj, 0, (void**)buf_p);
-	}
-
-	/*
-	 * Not a string-like object, run str() or it.
-	 */
-
-	/* are we in recursion? */
-	if (tmp_obj_p == NULL) {
-		PyErr_Format(PyExc_TypeError, "Cannot convert to string - get_buffer() recusively failed");
-		return -1;
-	}
-
-	/* do str() then */
-	str = PyObject_Str(obj);
-	res = -1;
-	if (str != NULL) {
-		res = get_buffer(str, buf_p, NULL);
-		if (res >= 0) {
-			*tmp_obj_p = str;
-		} else {
-			Py_CLEAR(str);
-		}
-	}
 	return res;
 }
 
@@ -426,28 +380,35 @@ static PyObject *unquote_literal(PyObject *self, PyObject *args)
         Py_ssize_t src_len = 0;
 	int stdstr = 0;
 	PyObject *value = NULL;
+	PyObject *tmp = NULL;
+	PyObject *res = NULL;
+
         if (!PyArg_ParseTuple(args, "O|i", &value, &stdstr))
                 return NULL;
-	if (PyString_AsStringAndSize(value, (char **)&src, &src_len) < 0)
+
+	src_len = get_buffer(value, &src, &tmp);
+	if (src_len < 0)
 		return NULL;
+
 	if (src_len == 4 && strcasecmp((char *)src, "null") == 0) {
 		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	if (src_len >= 2 && src[0] == '$' && src[src_len - 1] == '$')
-		return do_dolq(src, src_len);
-	if (src_len < 2 || src[src_len - 1] != '\'')
-		goto badstr;
-	if (src[0] == '\'') {
+		res = Py_None;
+	} else if (src_len >= 2 && src[0] == '$' && src[src_len - 1] == '$') {
+		res = do_dolq(src, src_len);
+	} else if (src_len < 2 || src[src_len - 1] != '\'') {
+		/* seems invalid, return as-is */
+		Py_INCREF(value);
+		res = value;
+	} else if (src[0] == '\'') {
 		src++; src_len -= 2;
-		return stdstr ? do_sql_std(src, src_len) : do_sql_ext(src, src_len);
+		res = stdstr ? do_sql_std(src, src_len) : do_sql_ext(src, src_len);
 	} else if (src_len > 2 && (src[0] | 0x20) == 'e' && src[1] == '\'') {
 		src += 2; src_len -= 3;
-		return do_sql_ext(src, src_len);
+		res = do_sql_ext(src, src_len);
 	}
-badstr:
-	Py_INCREF(value);
-	return value;
+	if (tmp)
+		Py_CLEAR(tmp);
+	return res;
 }
 
 /* C unescape */
@@ -596,7 +557,11 @@ static PyObject *encode_dictlike(PyObject *data)
 	if (!buf_init(&buf, 1024))
 		return NULL;
 
+#if PY_MAJOR_VERSION >= 3
+	iter = PyObject_CallMethod(data, "items", NULL);
+#else
 	iter = PyObject_CallMethod(data, "iteritems", NULL);
+#endif
 	if (iter == NULL) {
 		buf_free(&buf);
 		return NULL;
@@ -713,8 +678,14 @@ static PyObject *db_urldecode(PyObject *self, PyObject *args)
 	PyObject *dict = NULL, *key = NULL, *value = NULL;
 	struct Buf buf;
 
+#if PY_MAJOR_VERSION >= 3
+        if (!PyArg_ParseTuple(args, "s#", &src, &src_len))
+                return NULL;
+#else
         if (!PyArg_ParseTuple(args, "t#", &src, &src_len))
                 return NULL;
+#endif
+
 	if (!buf_init(&buf, src_len))
 		return NULL;
 
@@ -779,6 +750,7 @@ cquoting_methods[] = {
 	{ NULL }
 };
 
+#if PY_MAJOR_VERSION < 3
 PyMODINIT_FUNC
 init_cquoting(void)
 {
@@ -786,4 +758,26 @@ init_cquoting(void)
 	module = Py_InitModule("_cquoting", cquoting_methods);
 	PyModule_AddStringConstant(module, "__doc__", "fast quoting for skytools");
 }
+#else
+static struct PyModuleDef modInfo = {
+	PyModuleDef_HEAD_INIT,
+	"_cquoting",
+	NULL,
+	-1,
+	cquoting_methods,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
+
+PyMODINIT_FUNC
+PyInit__cquoting(void)
+{
+	PyObject *module;
+	module = PyModule_Create(&modInfo);
+	PyModule_AddStringConstant(module, "__doc__", "fast quoting for skytools");
+	return module;
+}
+#endif
 

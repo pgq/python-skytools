@@ -11,9 +11,14 @@ typedef int Py_ssize_t;
 #define PY_SSIZE_T_MIN INT_MIN
 #endif
 
+#if PY_MAJOR_VERSION >= 3
+#define PyInt_FromLong(v) PyLong_FromLong(v)
+#endif
+
 #include <stdint.h>
 #include <string.h>
 
+#include "get_buffer.h"
 
 typedef uint32_t (*hash_fn_t)(const void *src, unsigned src_len);
 
@@ -320,60 +325,6 @@ static uint32_t hash_new_hashtext(const void *_k, unsigned keylen)
 }
 
 /*
- * Get string data from Python object.
- */
-
-static Py_ssize_t get_buffer(PyObject *obj, unsigned char **buf_p, PyObject **tmp_obj_p)
-{
-	PyBufferProcs *bfp;
-	PyObject *str = NULL;
-	Py_ssize_t res;
-
-	/* check for None */
-	if (obj == Py_None) {
-		PyErr_Format(PyExc_TypeError, "None is not allowed");
-		return -1;
-	}
-
-	/* is string or unicode ? */
-	if (PyString_Check(obj) || PyUnicode_Check(obj)) {
-		if (PyString_AsStringAndSize(obj, (char**)buf_p, &res) < 0)
-			return -1;
-		return res;
-	}
-
-	/* try to get buffer */
-	bfp = obj->ob_type->tp_as_buffer;
-	if (bfp && bfp->bf_getsegcount && bfp->bf_getreadbuffer) {
-		if (bfp->bf_getsegcount(obj, NULL) == 1)
-			return bfp->bf_getreadbuffer(obj, 0, (void**)buf_p);
-	}
-
-	/*
-	 * Not a string-like object, run str() or it.
-	 */
-
-	/* are we in recursion? */
-	if (tmp_obj_p == NULL) {
-		PyErr_Format(PyExc_TypeError, "Cannot convert to string - get_buffer() recusively failed");
-		return -1;
-	}
-
-	/* do str() then */
-	str = PyObject_Str(obj);
-	res = -1;
-	if (str != NULL) {
-		res = get_buffer(str, buf_p, NULL);
-		if (res >= 0) {
-			*tmp_obj_p = str;
-		} else {
-			Py_CLEAR(str);
-		}
-	}
-	return res;
-}
-
-/*
  * Common argument parsing.
  */
 
@@ -418,6 +369,7 @@ static PyMethodDef methods[] = {
 	{ NULL }
 };
 
+#if PY_MAJOR_VERSION < 3
 PyMODINIT_FUNC
 init_chashtext(void)
 {
@@ -425,4 +377,25 @@ init_chashtext(void)
 	module = Py_InitModule("_chashtext", methods);
 	PyModule_AddStringConstant(module, "__doc__", "String hash functions");
 }
+#else
+static struct PyModuleDef modInfo = {
+	PyModuleDef_HEAD_INIT,
+	"_chashtext",
+	NULL,
+	-1,
+	methods,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
 
+PyMODINIT_FUNC
+PyInit__chashtext(void)
+{
+	PyObject *module;
+	module = PyModule_Create(&modInfo);
+	PyModule_AddStringConstant(module, "__doc__", "String hash functions");
+	return module;
+}
+#endif
