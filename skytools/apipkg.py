@@ -9,22 +9,48 @@ import os
 import sys
 from types import ModuleType
 
-__version__ = '1.2.dev6'
 
-def initpkg(pkgname, exportdefs, attr=None):
+__version__ = '1.4'
+
+
+def _py_abspath(path):
+    """
+    special version of abspath
+    that will leave paths from jython jars alone
+    """
+    if path.startswith('__pyclasspath__'):
+
+        return path
+    else:
+        return os.path.abspath(path)
+
+
+def distribution_version(name):
+    """try to get the version of the named distribution,
+    returs None on failure"""
+    from pkg_resources import get_distribution, DistributionNotFound
+    try:
+        dist = get_distribution(name)
+    except DistributionNotFound:
+        pass
+    else:
+        return dist.version
+
+
+def initpkg(pkgname, exportdefs, attr=None, eager=False):
     """ initialize given package from the export definitions. """
     oldmod = sys.modules.get(pkgname)
     d = {}
     f = getattr(oldmod, '__file__', None)
     if f:
-        f = os.path.abspath(f)
+        f = _py_abspath(f)
     d['__file__'] = f
     if hasattr(oldmod, '__version__'):
         d['__version__'] = oldmod.__version__
     if hasattr(oldmod, '__loader__'):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
-        d['__path__'] = [os.path.abspath(p) for p in oldmod.__path__]
+        d['__path__'] = [_py_abspath(p) for p in oldmod.__path__]
     if '__doc__' not in exportdefs and getattr(oldmod, '__doc__', None):
         d['__doc__'] = oldmod.__doc__
     if attr:
@@ -32,7 +58,13 @@ def initpkg(pkgname, exportdefs, attr=None):
     if hasattr(oldmod, "__dict__"):
         oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
-    sys.modules[pkgname]  = mod
+    sys.modules[pkgname] = mod
+    # eagerload in bypthon to avoid their monkeypatching breaking packages
+    if 'bpython' in sys.modules or eager:
+        for module in sys.modules.values():
+            if isinstance(module, ApiModule):
+                len(module.__dict__)
+
 
 def importobj(modpath, attrname):
     module = __import__(modpath, None, None, ['__doc__'])
@@ -45,6 +77,7 @@ def importobj(modpath, attrname):
         retval = getattr(retval, x)
     return retval
 
+
 class ApiModule(ModuleType):
     __doc = None
     def __docget(self):
@@ -53,6 +86,7 @@ class ApiModule(ModuleType):
         except AttributeError:
             if '__doc__' in self.__map__:
                 return self.__makeattr('__doc__')
+
     def __docset(self, value):
         self.__doc = value
     __doc__ = property(__docget, __docset)
@@ -64,11 +98,11 @@ class ApiModule(ModuleType):
         self.__implprefix__ = implprefix or name
         if attr:
             for name, val in attr.items():
-                #print "setting", self.__name__, name, val
+                # print "setting", self.__name__, name, val
                 setattr(self, name, val)
         for name, importspec in importspec.items():
             if isinstance(importspec, dict):
-                subname = '%s.%s'%(self.__name__, name)
+                subname = '%s.%s' % (self.__name__, name)
                 apimod = ApiModule(subname, importspec, implprefix)
                 sys.modules[subname] = apimod
                 setattr(self, name, apimod)
@@ -80,7 +114,7 @@ class ApiModule(ModuleType):
                     modpath = implprefix + modpath
 
                 if not attrname:
-                    subname = '%s.%s'%(self.__name__, name)
+                    subname = '%s.%s' % (self.__name__, name)
                     apimod = makeAliasModule(subname, modpath)
                     sys.modules[subname] = apimod
                     if '.' not in name:
@@ -100,7 +134,7 @@ class ApiModule(ModuleType):
 
     def __makeattr(self, name):
         """lazily compute value for name or raise AttributeError if unknown."""
-        #print "makeattr", self.__name__, name
+        # print "makeattr", self.__name__, name
         target = None
         if '__onfirstaccess__' in self.__map__:
             target = self.__map__.pop('__onfirstaccess__')
@@ -118,13 +152,15 @@ class ApiModule(ModuleType):
             try:
                 del self.__map__[name]
             except KeyError:
-                pass # in a recursive-import situation a double-del can happen
+                pass  # in a recursive-import situation a double-del can happen
             return result
 
     __getattr__ = __makeattr
 
+    @property
     def __dict__(self):
-        # force all the content of the module to be loaded when __dict__ is read
+        # force all the content of the module
+        # to be loaded when __dict__ is read
         dictdescr = ModuleType.__dict__['__dict__']
         mdict = dictdescr.__get__(self)
         if mdict is not None:
@@ -135,7 +171,6 @@ class ApiModule(ModuleType):
                 except AttributeError:
                     pass
         return mdict
-    __dict__ = property(__dict__)
 
 
 def makeAliasModule(modname, modpath, attrname=None):
@@ -158,7 +193,10 @@ def makeAliasModule(modname, modpath, attrname=None):
             return '<AliasModule %r for %r>' % (modname, x)
 
         def __getattribute__(self, name):
-            return getattr(getmod(), name)
+            try:
+                return getattr(getmod(), name)
+            except ImportError:
+                return None
 
         def __setattr__(self, name, value):
             setattr(getmod(), name, value)
@@ -166,4 +204,4 @@ def makeAliasModule(modname, modpath, attrname=None):
         def __delattr__(self, name):
             delattr(getmod(), name)
 
-    return AliasModule(modname)
+    return AliasModule(str(modname))
