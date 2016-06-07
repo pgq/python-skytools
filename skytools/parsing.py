@@ -334,7 +334,7 @@ def sql_tokenizer(sql, standard_quoting = False, ignore_whitespace = False,
         else:
             yield (typ, tk)
 
-_copy_from_stdin_re = "copy.*from\s+stdin"
+_copy_from_stdin_re = r"copy.*from\s+stdin"
 _copy_from_stdin_rc = None
 def parse_statements(sql, standard_quoting = False):
     """Parse multi-statement string into separate statements.

@@ -18,7 +18,6 @@ disable =
 	no-init,
 	redefined-outer-name,
 	super-init-not-called,
-	anomalous-backslash-in-string,
 	global-variable-not-assigned,
 	pointless-statement,
 
