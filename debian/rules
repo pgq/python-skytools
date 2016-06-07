@@ -1,5 +1,26 @@
 #! /usr/bin/make -f
 
 %:
-	dh $@ --with python2
+	dh $@ --with python2,python3
+
+override_dh_auto_build:
+	dh_auto_build
+	set -e; for python in $$(py3versions -r); do \
+		$$python setup.py build; \
+	done
+
+override_dh_auto_clean:
+	dh_auto_clean
+	find -name \*.pyc -print0 | xargs -0r rm -f
+	find -name __pycache__ -print0 | xargs -0r rm -rf
+	rm -rf build
+
+override_dh_auto_install:
+	#dh_auto_install
+	python2 setup.py install --root=$(CURDIR)/debian/tmp \
+		--no-compile -O0 --install-layout=deb
+	set -e; for python in $$(py3versions -r); do \
+		$$python setup.py install --root=$(CURDIR)/debian/tmp \
+			--no-compile -O0 --install-layout=deb; \
+	done
 
