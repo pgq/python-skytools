@@ -79,7 +79,7 @@ class ApiModule(ModuleType):
 
                 if not attrname:
                     subname = '%s.%s'%(self.__name__, name)
-                    apimod = AliasModule(subname, modpath)
+                    apimod = makeAliasModule(subname, modpath)
                     sys.modules[subname] = apimod
                     if '.' not in name:
                         setattr(self, name, apimod)
@@ -136,7 +136,7 @@ class ApiModule(ModuleType):
     __dict__ = property(__dict__)
 
 
-def AliasModule(modname, modpath, attrname=None):
+def makeAliasModule(modname, modpath, attrname=None):
     mod = []
 
     def getmod():
