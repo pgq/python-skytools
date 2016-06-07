@@ -1,0 +1,84 @@
+[MASTER]
+persistent = no
+unsafe-load-any-extension = no
+
+[MESSAGES CONTROL]
+disable =
+	non-parent-init-called,
+	superfluous-parens,
+	wildcard-import,
+	logging-not-lazy,
+	unused-wildcard-import,
+	bad-builtin,
+	redefined-builtin,
+	attribute-defined-outside-init,
+	unnecessary-semicolon,
+	expression-not-assigned,
+	dangerous-default-value,
+	unidiomatic-typecheck,
+	no-member,
+	redefined-variable-type,
+	arguments-differ,
+	no-init,
+	redefined-outer-name,
+	super-init-not-called,
+	anomalous-backslash-in-string,
+	global-variable-not-assigned,
+	pointless-statement,
+
+	line-too-long,
+	wrong-import-position,
+	wrong-import-order,
+	trailing-whitespace,
+	no-self-use,
+	multiple-imports,
+	missing-docstring,
+	old-style-class,
+	singleton-comparison,
+	deprecated-lambda,
+	unneeded-not,
+	unused-import,
+	bare-except,
+	broad-except,
+	using-constant-test,
+
+	ungrouped-imports,
+	too-many-public-methods,
+	too-many-lines,
+	pointless-string-statement,
+	too-many-branches,
+	too-many-instance-attributes,
+	too-many-return-statements,
+	invalid-name,
+	too-many-arguments,
+	too-many-locals,
+	unused-argument,
+	unused-variable,
+	fixme,
+	too-many-statements,
+	multiple-statements,
+	bad-whitespace,
+	global-statement,
+	protected-access,
+	too-few-public-methods,
+	bad-indentation,
+	bad-continuation
+
+[REPORTS]
+
+# Set the output format. Available formats are text, parseable, colorized, msvs
+# (visual studio) and html. You can also give a reporter class, eg
+# mypackage.mymodule.MyReporterClass.
+output-format=colorized
+
+# Put messages in a separate file for each module / package specified on the
+# command line instead of printing them on stdout. Reports (if any) will be
+# written in a file name "pylint_global.[txt|html]".
+files-output=no
+
+# Tells whether to display a full report or only the messages
+reports=no
+
+[FORMAT]
+max-line-length = 120
+
