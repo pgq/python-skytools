@@ -48,7 +48,7 @@ class TableRepair(object):
         if apply_fixes:
             self.apply_cursor = dst_curs
 
-        self.log.info('Checking %s' % self.table_name)
+        self.log.info('Checking %s', self.table_name)
 
         copy_tbl = self.gen_copy_tbl(src_curs, dst_curs, where)
 
@@ -56,17 +56,17 @@ class TableRepair(object):
         dump_dst = "%s.%s.dst" % (pfx, self.table_name)
         fix = "%s.%s.fix" % (pfx, self.table_name)
 
-        self.log.info("Dumping src table: %s" % self.table_name)
+        self.log.info("Dumping src table: %s", self.table_name)
         self.dump_table(copy_tbl, src_curs, dump_src)
         src_db.commit()
-        self.log.info("Dumping dst table: %s" % self.table_name)
+        self.log.info("Dumping dst table: %s", self.table_name)
         self.dump_table(copy_tbl, dst_curs, dump_dst)
         dst_db.commit()
 
-        self.log.info("Sorting src table: %s" % self.table_name)
+        self.log.info("Sorting src table: %s", self.table_name)
         self.do_sort(dump_src, dump_src + '.sorted')
 
-        self.log.info("Sorting dst table: %s" % self.table_name)
+        self.log.info("Sorting dst table: %s", self.table_name)
         self.do_sort(dump_dst, dump_dst + '.sorted')
 
         self.dump_compare(dump_src + ".sorted", dump_dst + ".sorted", fix)
@@ -127,7 +127,7 @@ class TableRepair(object):
             tbl_expr += ' where ' + where
         tbl_expr = "COPY (%s) TO STDOUT" % tbl_expr
 
-        self.log.debug("using copy expr: %s" % tbl_expr)
+        self.log.debug("using copy expr: %s", tbl_expr)
 
         return tbl_expr
 
@@ -135,7 +135,7 @@ class TableRepair(object):
         """Dump table to disk."""
         f = open(fn, "w", 64*1024)
         curs.copy_expert(copy_cmd, f)
-        self.log.info('%s: Got %d bytes' % (self.table_name, f.tell()))
+        self.log.info('%s: Got %d bytes', self.table_name, f.tell())
         f.close()
 
     def get_row(self, ln):
@@ -150,7 +150,7 @@ class TableRepair(object):
 
     def dump_compare(self, src_fn, dst_fn, fix):
         """Dump + compare single table."""
-        self.log.info("Comparing dumps: %s" % self.table_name)
+        self.log.info("Comparing dumps: %s", self.table_name)
         f1 = open(src_fn, "r", 64*1024)
         f2 = open(dst_fn, "r", 64*1024)
         src_ln = f1.readline()
@@ -188,9 +188,9 @@ class TableRepair(object):
                 if dst_ln: self.total_dst += 1
 
         self.log.info("finished %s: src: %d rows, dst: %d rows,"\
-                    " missed: %d inserts, %d updates, %d deletes" % (
+                    " missed: %d inserts, %d updates, %d deletes",
                 self.table_name, self.total_src, self.total_dst,
-                self.cnt_insert, self.cnt_update, self.cnt_delete))
+                self.cnt_insert, self.cnt_update, self.cnt_delete)
 
     def got_missed_insert(self, src_row, fn):
         """Create sql for missed insert."""
@@ -238,7 +238,7 @@ class TableRepair(object):
 
     def show_fix(self, q, desc, fn):
         """Print/write/apply repair sql."""
-        self.log.debug("missed %s: %s" % (desc, q))
+        self.log.debug("missed %s: %s", desc, q)
         open(fn, "a").write("%s\n" % q)
 
         if self.apply_fixes:
