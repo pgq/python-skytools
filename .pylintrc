@@ -4,8 +4,6 @@ unsafe-load-any-extension = no
 
 [MESSAGES CONTROL]
 disable =
-	wildcard-import,
-	unused-wildcard-import,
 	dangerous-default-value,
 	redefined-variable-type,
 
@@ -37,6 +35,8 @@ disable =
 	global-statement,
 	protected-access,
 	too-few-public-methods,
+	wildcard-import,
+	unused-wildcard-import,
 	bad-indentation,
 	bad-continuation
 
