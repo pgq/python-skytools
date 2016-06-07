@@ -30,7 +30,7 @@ def quote_literal(s):
     Python implementation.
     """
 
-    if s == None:
+    if s is None:
         return "null"
     s = str(s).replace("'", "''")
     s2 = s.replace("\\", "\\\\")
@@ -44,7 +44,7 @@ def quote_copy(s):
     Python implementation.
     """
 
-    if s == None:
+    if s is None:
         return "\\N"
     s = str(s)
     s = s.replace("\\", "\\\\")
@@ -60,7 +60,7 @@ def quote_bytea_raw(s):
     Python implementation.
     """
     global _bytea_map
-    if s == None:
+    if s is None:
         return None
     if 1 and _bytea_map is None:
         _bytea_map = {}

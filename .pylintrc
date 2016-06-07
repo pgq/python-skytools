@@ -14,7 +14,6 @@ disable =
 	wrong-import-order,
 	no-self-use,
 	missing-docstring,
-	singleton-comparison,
 	unused-import,
 	bare-except,
 	broad-except,

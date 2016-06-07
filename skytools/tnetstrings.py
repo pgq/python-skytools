@@ -17,7 +17,7 @@ def dump(data):
         return dump_dict(data)
     elif isinstance(data, list):
         return dump_list(data)
-    elif data == None:
+    elif data is None:
         return '0:~'
     elif isinstance(data, bool):
         out = repr(data).lower()

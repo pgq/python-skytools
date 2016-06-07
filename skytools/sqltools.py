@@ -284,7 +284,7 @@ def _gen_list_insert(tbl, row, fields, qfields):
 def magic_insert(curs, tablename, data, fields = None, use_insert = 0, quoted_table = False):
     r"""Copy/insert a list of dict/list data to database.
 
-    If curs == None, then the copy or insert statements are returned
+    If curs is None, then the copy or insert statements are returned
     as string.  For list of dict the field list is optional, as its
     possible to guess them from dict keys.
 
@@ -297,14 +297,14 @@ def magic_insert(curs, tablename, data, fields = None, use_insert = 0, quoted_ta
 
     # decide how to process
     if hasattr(data[0], 'keys'):
-        if fields == None:
+        if fields is None:
             fields = data[0].keys()
         if use_insert:
             row_func = _gen_dict_insert
         else:
             row_func = _gen_dict_copy
     else:
-        if fields == None:
+        if fields is None:
             raise Exception("Non-dict data needs field list")
         if use_insert:
             row_func = _gen_list_insert
@@ -319,7 +319,7 @@ def magic_insert(curs, tablename, data, fields = None, use_insert = 0, quoted_ta
 
     # init processing
     buf = StringIO()
-    if curs == None and use_insert == 0:
+    if curs is None and use_insert == 0:
         fmt = "COPY %s (%s) FROM STDIN;\n"
         buf.write(fmt % (qtablename, ",".join(qfields)))
 
@@ -329,7 +329,7 @@ def magic_insert(curs, tablename, data, fields = None, use_insert = 0, quoted_ta
         buf.write("\n")
 
     # if user needs only string, return it
-    if curs == None:
+    if curs is None:
         if use_insert == 0:
             buf.write("\\.\n")
         return buf.getvalue()

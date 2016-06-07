@@ -83,7 +83,7 @@ class Config(object):
         try:
             return self.cf.get(self.main_section, key)
         except ConfigParser.NoOptionError:
-            if default == None:
+            if default is None:
                 raise Exception("Config value not set: " + key)
             return default
 
@@ -92,7 +92,7 @@ class Config(object):
         try:
             return self.cf.getint(self.main_section, key)
         except ConfigParser.NoOptionError:
-            if default == None:
+            if default is None:
                 raise Exception("Config value not set: " + key)
             return default
 
@@ -101,7 +101,7 @@ class Config(object):
         try:
             return self.cf.getboolean(self.main_section, key)
         except ConfigParser.NoOptionError:
-            if default == None:
+            if default is None:
                 raise Exception("Config value not set: " + key)
             return default
 
@@ -110,7 +110,7 @@ class Config(object):
         try:
             return self.cf.getfloat(self.main_section, key)
         except ConfigParser.NoOptionError:
-            if default == None:
+            if default is None:
                 raise Exception("Config value not set: " + key)
             return default
 
@@ -125,7 +125,7 @@ class Config(object):
                 res.append(v.strip())
             return res
         except ConfigParser.NoOptionError:
-            if default == None:
+            if default is None:
                 raise Exception("Config value not set: " + key)
             return default
 
@@ -151,7 +151,7 @@ class Config(object):
                 res[k] = v
             return res
         except ConfigParser.NoOptionError:
-            if default == None:
+            if default is None:
                 raise Exception("Config value not set: " + key)
             return default
 
@@ -201,7 +201,7 @@ class Config(object):
             except ConfigParser.NoOptionError:
                 pass
 
-        if default == None:
+        if default is None:
             raise Exception("Config value not set: " + orig_key)
         return default
 

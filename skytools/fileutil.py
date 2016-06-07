@@ -110,7 +110,7 @@ def win32_detect_pid(pid):
 
     # query pid exit code
     h = OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid)
-    if h == None:
+    if h is None:
         err = k.GetLastError()
         if err == ERROR_INVALID_PARAMETER:
             return False
