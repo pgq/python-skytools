@@ -1,3 +1,6 @@
+
+from __future__ import division, absolute_import, print_function
+
 # Note this implementation is more strict than necessary to demonstrate
 # minimum restrictions on types allowed in dictionaries.
 

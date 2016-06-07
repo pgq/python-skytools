@@ -12,6 +12,8 @@ See L{plpy_exec} for examples.
 
 """
 
+from __future__ import division, absolute_import, print_function
+
 import skytools
 
 __all__ = [ 
@@ -126,11 +128,11 @@ class QueryBuilder:
     >>> q = QueryBuilder("update orders set total = {total} where id = {id}", args)
     >>> q.add(" and optional = {non_exist}")
     >>> q.add(" and final = {success}")
-    >>> print q.get_sql(PARAM_INLINE)
+    >>> print(q.get_sql(PARAM_INLINE))
     update orders set total = '45' where id = '556' and final = 't'
-    >>> print q.get_sql(PARAM_DBAPI)
+    >>> print(q.get_sql(PARAM_DBAPI))
     update orders set total = %s where id = %s and final = %s
-    >>> print q.get_sql(PARAM_PLPY)
+    >>> print(q.get_sql(PARAM_PLPY))
     update orders set total = $1 where id = $2 and final = $3
     """
 
@@ -404,12 +406,12 @@ def run_exists(cur, sql, params = None, **kwargs):
 # fake plpy for testing
 class fake_plpy:
     def prepare(self, sql, types):
-        print "DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types))
+        print("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
         return ('PLAN', sql, types)
     def execute(self, plan, args = []):
-        print "DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args))
+        print("DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args)))
     def error(self, msg):
-        print "DBG: plpy.error(%s)" % repr(msg)
+        print("DBG: plpy.error(%s)" % repr(msg))
 
 # make plpy available
 try:

@@ -1,6 +1,8 @@
 
 """Database tools."""
 
+from __future__ import division, absolute_import, print_function
+
 import os
 from cStringIO import StringIO
 import skytools

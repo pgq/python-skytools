@@ -54,6 +54,8 @@ Plain .fetchall() / .fetchone() give exact same result.
 
 """
 
+from __future__ import division, absolute_import, print_function
+
 __all__ = ['connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
            'I_REPEATABLE_READ', 'I_SERIALIZABLE']
 

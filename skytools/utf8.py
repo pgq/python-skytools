@@ -17,6 +17,8 @@ talking with other software that uses stricter parsers.
 (False, u'X\ufffdY')
 """
 
+from __future__ import division, absolute_import, print_function
+
 import re, codecs
 
 __all__ = ['safe_utf8_decode']

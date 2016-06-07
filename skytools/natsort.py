@@ -3,6 +3,8 @@
 Compares numeric parts numerically.
 """
 
+from __future__ import division, absolute_import, print_function
+
 # Based on idea at http://code.activestate.com/recipes/285264/
 # Works with both Python 2.x and 3.x
 # Ignores leading zeroes: 001 and 01 are considered equal

@@ -1,6 +1,8 @@
 
 """Nicer config class."""
 
+from __future__ import division, absolute_import, print_function
+
 import os, os.path, ConfigParser, socket
 
 import skytools

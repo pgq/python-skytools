@@ -1,6 +1,8 @@
 
 """Tools for Python database scripts."""
 
+from __future__ import division, absolute_import, print_function
+
 _symbols = {
     # skytools.adminscript
     'AdminScript': 'skytools.adminscript:AdminScript',
@@ -214,7 +216,7 @@ else:
             + skytools.utf8.__all__ )
     for k in __all__:
         if k not in xall:
-            print '%s missing from __all__?' % k
+            print('%s missing from __all__?' % k)
     for k in xall:
         if k not in __all__:
-            print '%s missing from top-level?' % k
+            print('%s missing from top-level?' % k)

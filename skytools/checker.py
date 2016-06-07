@@ -1,7 +1,7 @@
-#! /usr/bin/env python
-
 """Catch moment when tables are in sync on master and slave.
 """
+
+from __future__ import division, absolute_import, print_function
 
 import sys, time, os, subprocess
 

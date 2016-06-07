@@ -1,6 +1,8 @@
 """Extra tests for quoting module.
 """
 
+from __future__ import division, absolute_import, print_function
+
 import sys, time
 import skytools.psycopgwrapper
 import skytools._cquoting, skytools._pyquoting

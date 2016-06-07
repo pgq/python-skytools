@@ -10,6 +10,8 @@ datetime_to_timestamp:
 
 """
 
+from __future__ import division, absolute_import, print_function
+
 import re
 import time
 from datetime import datetime, timedelta, tzinfo

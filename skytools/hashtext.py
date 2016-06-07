@@ -6,12 +6,12 @@ hashtext_new() - used since PostgreSQL 8.4
 
 >>> import skytools._chashtext
 >>> for i in range(3):
-...     print [hashtext_new_py('x' * (i*5 + j)) for j in range(5)]
+...     print([hashtext_new_py('x' * (i*5 + j)) for j in range(5)])
 [-1477818771, 1074944137, -1086392228, -1992236649, -1379736791]
 [-370454118, 1489915569, -66683019, -2126973000, 1651296771]
 [755764456, -1494243903, 631527812, 28686851, -9498641]
 >>> for i in range(3):
-...     print [hashtext_old_py('x' * (i*5 + j)) for j in range(5)]
+...     print([hashtext_old_py('x' * (i*5 + j)) for j in range(5)])
 [-863449762, 37835117, 294739542, -320432768, 1007638138]
 [1422906842, -261065348, 59863994, -162804943, 1736144510]
 [-682756517, 317827663, -495599455, -1411793989, 1739997714]
@@ -27,6 +27,8 @@ True
 >>> p == c
 True
 """
+
+from __future__ import division, absolute_import, print_function
 
 import sys, struct
 

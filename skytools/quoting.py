@@ -2,6 +2,8 @@
 
 """Various helpers for string quoting/unquoting."""
 
+from __future__ import division, absolute_import, print_function
+
 import re
 
 __all__ = [

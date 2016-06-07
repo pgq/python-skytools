@@ -3,6 +3,7 @@
 PLPY helper module for applying row events from pgq.logutriga().
 """
 
+from __future__ import division, absolute_import, print_function
 
 try:
     import plpy
