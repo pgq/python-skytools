@@ -1,0 +1,4 @@
+include modules/*.h
+include tests/*.py
+include .pylintrc tox.ini MANIFEST.in
+include README.rst
