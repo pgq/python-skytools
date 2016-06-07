@@ -401,7 +401,7 @@ class CopyPipe(object):
         self.buf.truncate()
 
 
-def full_copy(tablename, src_curs, dst_curs, column_list = [], condition = None,
+def full_copy(tablename, src_curs, dst_curs, column_list = (), condition = None,
         dst_tablename = None, dst_column_list = None,
         write_hook = None, flush_hook = None):
     """COPY table from one db to another."""

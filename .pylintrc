@@ -4,7 +4,6 @@ unsafe-load-any-extension = no
 
 [MESSAGES CONTROL]
 disable =
-	dangerous-default-value,
 	redefined-variable-type,
 
 	line-too-long,

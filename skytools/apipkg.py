@@ -11,7 +11,7 @@ from types import ModuleType
 
 __version__ = '1.2.dev6'
 
-def initpkg(pkgname, exportdefs, attr=dict()):
+def initpkg(pkgname, exportdefs, attr=None):
     """ initialize given package from the export definitions. """
     oldmod = sys.modules.get(pkgname)
     d = {}
@@ -27,7 +27,8 @@ def initpkg(pkgname, exportdefs, attr=dict()):
         d['__path__'] = [os.path.abspath(p) for p in oldmod.__path__]
     if '__doc__' not in exportdefs and getattr(oldmod, '__doc__', None):
         d['__doc__'] = oldmod.__doc__
-    d.update(attr)
+    if attr:
+        d.update(attr)
     if hasattr(oldmod, "__dict__"):
         oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)

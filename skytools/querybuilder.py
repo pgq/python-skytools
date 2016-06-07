@@ -340,7 +340,7 @@ def plpy_exec(gd, sql, args, all_keys_required = True):
     DBG: plpy.prepare('select $1, $2, $3', ['text', 'int4', 'text'])
     DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['1', '2', '1'])
     >>> res = plpy_exec(None, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
-    DBG: plpy.execute("select '1', '2', '1'", [])
+    DBG: plpy.execute("select '1', '2', '1'", ())
     >>> res = plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3', 'arg2': '4'})
     DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['3', '4', '3'])
     >>> res = plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3'})
@@ -413,7 +413,7 @@ class fake_plpy(object):
     def prepare(self, sql, types):
         print("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
         return ('PLAN', sql, types)
-    def execute(self, plan, args = []):
+    def execute(self, plan, args = ()):
         print("DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args)))
     def error(self, msg):
         print("DBG: plpy.error(%s)" % repr(msg))

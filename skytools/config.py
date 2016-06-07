@@ -20,7 +20,7 @@ class Config(object):
      - Accepts defaults in get() functions.
      - List value support.
     """
-    def __init__(self, main_section, filename, sane_config = 1, user_defs = {}, override = {}, ignore_defs = False):
+    def __init__(self, main_section, filename, sane_config = 1, user_defs = None, override = None, ignore_defs = False):
         """Initialize Config and read from file.
 
         @param sane_config:  chooses between ConfigParser/SafeConfigParser.
@@ -43,12 +43,13 @@ class Config(object):
             if filename:
                 self.defs['config_dir'] = os.path.dirname(filename)
                 self.defs['config_file'] = filename
-            self.defs.update(user_defs)
+            if user_defs:
+                self.defs.update(user_defs)
 
         self.main_section = main_section
         self.filename = filename
         self.sane_config = sane_config
-        self.override = override
+        self.override = override or {}
         if sane_config:
             self.cf = ConfigParser.SafeConfigParser()
         else:
@@ -184,7 +185,7 @@ class Config(object):
             s = default
         return skytools.hsize_to_bytes(s)
 
-    def get_wildcard(self, key, values=[], default=None):
+    def get_wildcard(self, key, values=(), default=None):
         """Reads a wildcard property from conf and returns its string value, if not set then default."""
 
         orig_key = key

@@ -1044,7 +1044,7 @@ class DBScript(BaseScript):
 
 class DBCachedConn(object):
     """Cache a db connection."""
-    def __init__(self, name, loc, max_age = DEF_CONN_AGE, verbose = False, setup_func=None, channels=[]):
+    def __init__(self, name, loc, max_age = DEF_CONN_AGE, verbose = False, setup_func=None, channels=()):
         self.name = name
         self.loc = loc
         self.conn = None
@@ -1060,7 +1060,7 @@ class DBCachedConn(object):
             return None
         return self.conn.cursor().fileno()
 
-    def get_connection(self, isolation_level = -1, listen_channel_list = []):
+    def get_connection(self, isolation_level = -1, listen_channel_list = ()):
 
         # default isolation_level is READ COMMITTED
         if isolation_level < 0:

@@ -73,8 +73,8 @@ class AdminScript(skytools.DBScript):
             res = [r[keycol] for r in rows]
         return res
 
-    def display_table(self, db, desc, sql, args = [], fields = [],
-                      fieldfmt = {}):
+    def display_table(self, db, desc, sql, args = (), fields = (),
+                      fieldfmt = None):
         """Display multirow query as a table."""
 
         self.log.debug("display_table: %s", skytools.quote_statement(sql, args))
@@ -84,6 +84,8 @@ class AdminScript(skytools.DBScript):
         db.commit()
         if len(rows) == 0:
             return 0
+        if not fieldfmt:
+            fieldfmt = {}
 
         if not fields:
             fields = [f[0] for f in curs.description]
