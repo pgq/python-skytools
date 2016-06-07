@@ -72,8 +72,8 @@ def hashtext_old_py(k):
     while remain >= 12:
         a2, b2, c2 = FMT_OLD.unpack_from(k, pos)
         a, b, c = mix_old(a + a2, b + b2, c + c2)
-        pos += 12;
-        remain -= 12;
+        pos += 12
+        remain -= 12
 
     # handle the last 11 bytes
     a2, b2, c2 = FMT_OLD.unpack_from(k[pos:] + PADDING, 0)
@@ -132,8 +132,8 @@ def hashtext_new_py(k):
     while remain >= 12:
         a2, b2, c2 = FMT_NEW.unpack_from(k, pos)
         a, b, c = mix_new(a + a2, b + b2, c + c2)
-        pos += 12;
-        remain -= 12;
+        pos += 12
+        remain -= 12
 
     # handle the last 11 bytes
     a2, b2, c2 = FMT_NEW.unpack_from(k[pos:] + PADDING, 0)

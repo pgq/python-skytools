@@ -10,7 +10,6 @@ disable =
 	bad-builtin,
 	redefined-builtin,
 	attribute-defined-outside-init,
-	unnecessary-semicolon,
 	expression-not-assigned,
 	dangerous-default-value,
 	unidiomatic-typecheck,
