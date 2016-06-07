@@ -27,7 +27,6 @@ disable =
 	old-style-class,
 	singleton-comparison,
 	deprecated-lambda,
-	unneeded-not,
 	unused-import,
 	bare-except,
 	broad-except,

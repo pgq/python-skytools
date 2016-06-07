@@ -768,10 +768,10 @@ class DBScript(BaseScript):
             params['isolation_level'] = 0
         elif params.get('autocommit', 0):
             params['isolation_level'] = 0
-        elif not 'isolation_level' in params:
+        elif 'isolation_level' not in params:
             params['isolation_level'] = skytools.I_READ_COMMITTED
 
-        if not 'max_age' in params:
+        if 'max_age' not in params:
             params['max_age'] = max_age
 
         if cache in self.db_cache:
