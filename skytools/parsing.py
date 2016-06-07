@@ -6,8 +6,6 @@ from __future__ import division, absolute_import, print_function
 import re
 import skytools
 
-from skytools.testing import ordered_dict
-
 __all__ = [
     "parse_pgarray", "parse_logtriga_sql", "parse_tabbed_table",
     "parse_statements", 'sql_tokenizer', 'parse_sqltriga_sql',
@@ -194,6 +192,8 @@ def parse_sqltriga_sql(op, sql, pklist=None, splitkeys=False):
 
     Returns dict of col->data pairs.
 
+    >>> from skytools.testing import ordered_dict
+
     Insert event:
     >>> row = parse_logtriga_sql('I', '(id, data) values (1, null)')
     >>> ordered_dict(row)
@@ -237,7 +237,8 @@ def parse_tabbed_table(txt):
 
     Very primitive.
 
-    Example:
+    Test:
+    >>> from skytools.testing import ordered_dict
     >>> [ordered_dict(d) for d in parse_tabbed_table('col1\tcol2\nval1\tval2\n')]
     [OrderedDict([('col1', 'val1'), ('col2', 'val2')])]
     """

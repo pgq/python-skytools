@@ -59,8 +59,6 @@ from __future__ import division, absolute_import, print_function
 __all__ = ['connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
            'I_REPEATABLE_READ', 'I_SERIALIZABLE']
 
-import sys
-import socket
 import psycopg2.extensions
 import psycopg2.extras
 import skytools

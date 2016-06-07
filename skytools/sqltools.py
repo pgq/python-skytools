@@ -7,11 +7,6 @@ import os
 from cStringIO import StringIO
 import skytools
 
-try:
-    import plpy
-except ImportError:
-    pass
-
 __all__ = [
     "fq_name_parts", "fq_name", "get_table_oid", "get_table_pkeys",
     "get_table_columns", "exists_schema", "exists_table", "exists_type",

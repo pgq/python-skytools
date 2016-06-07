@@ -3,11 +3,9 @@
 
 from __future__ import division, absolute_import, print_function
 
-import re
 import skytools
 
 from skytools import dbdict
-from skytools.testing import ordered_dict
 
 __all__ = ['DBService', 'ServiceContext',
     'get_record', 'get_record_list',
@@ -26,6 +24,7 @@ def transform_fields(rows, key_fields, name_field, data_field):
     to one-row, multiple-column output array.  The input arrays
     must be sorted by the key fields.
 
+    >>> from skytools.testing import ordered_dict
     >>> rows = []
     >>> rows.append({'time': '22:00', 'metric': 'count', 'value': 100})
     >>> rows.append({'time': '22:00', 'metric': 'dur', 'value': 7})
