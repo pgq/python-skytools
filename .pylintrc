@@ -8,7 +8,6 @@ disable =
 	unused-wildcard-import,
 	attribute-defined-outside-init,
 	dangerous-default-value,
-	no-member,
 	redefined-variable-type,
 
 	line-too-long,

@@ -125,7 +125,7 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
     # if non-daemon, avoid skylog if script is running on console.
     # set use_skylog=2 to disable.
     if not is_daemon and use_skylog == 1:
-        if os.isatty(sys.stdout.fileno()):
+        if sys.stdout.isatty():
             use_skylog = 0
 
     # load logging config if needed
@@ -315,8 +315,9 @@ class BaseScript(object):
 
     def print_version(self):
         service = self.service_name
-        if getattr(self, '__version__', None):
-            service += ' version %s' % self.__version__
+        ver = getattr(self, '__version__', None)
+        if ver:
+            service += ' version %s' % ver
         print('%s, Skytools version %s' % (service, skytools.__version__))
 
     def print_ini(self):

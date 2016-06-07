@@ -3,6 +3,8 @@
 
 from __future__ import division, absolute_import, print_function
 
+__version__ = '3.3'
+
 _symbols = {
     # skytools.adminscript
     'AdminScript': 'skytools.adminscript:AdminScript',

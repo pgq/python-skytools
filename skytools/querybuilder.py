@@ -52,6 +52,7 @@ class QArg(object):
 # and append operations.
 class DList(object):
     """Simple double-linked list."""
+    __slots__ = ('next', 'prev')
     def __init__(self):
         self.next = self
         self.prev = self
@@ -68,7 +69,7 @@ class DList(object):
         obj.next = obj.prev = None
 
     def empty(self):
-        return self.next == self
+        return self.next is self
 
     def pop(self):
         """Remove and return first element."""
@@ -79,9 +80,11 @@ class DList(object):
         return obj
 
 
-class CachedPlan(object):
+class CachedPlan(DList):
     """Wrapper around prepared plan."""
+    __slots__ = ('key', 'plan')
     def __init__(self, key, plan):
+        super(CachedPlan, self).__init__()
         self.key = key # (sql, (types))
         self.plan = plan
 
@@ -116,7 +119,8 @@ class PlanCache(object):
         # remove plans if too much
         while len(self.plan_map) > self.maxplans:
             pc = self.plan_list.pop()
-            del self.plan_map[pc.key]
+            if isinstance(pc, CachedPlan):
+                del self.plan_map[pc.key]
 
         return plan
 
