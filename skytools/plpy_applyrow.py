@@ -4,10 +4,11 @@ PLPY helper module for applying row events from pgq.logutriga().
 """
 
 
-import plpy
+try:
+    import plpy
+except ImportError:
+    pass
 
-import pkgloader
-pkgloader.require('skytools', '3.0')
 import skytools
 
 ## TODO: automatic fkey detection
