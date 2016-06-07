@@ -103,11 +103,11 @@ def get_record_lists(tbl, field):
     """ Create dictionary of lists from given list using field as grouping criteria
         Used for master detail operatons to group detail records according to master id
     """
-    dict = dbdict()
+    records = dbdict()
     for rec in tbl:
-        id = str( rec[field] )
-        dict.setdefault( id, [] ).append(rec)
-    return dict
+        master_id = str( rec[field] )
+        records.setdefault( master_id, [] ).append(rec)
+    return records
 
 def _make_record_convert(row):
     """Converts complex values."""
@@ -132,20 +132,20 @@ def make_record_array(rowlist):
     """
     return '{' + ','.join( [make_record(row) for row in rowlist] ) +  '}'
 
-def get_result_items(list, name):
+def get_result_items(rec_list, name):
     """ Get return values from result
     """
-    for r in list:
+    for r in rec_list:
         if r['res_code'] == name:
             return get_record_list(r['res_rows'])
     return None
 
-def log_result(log, list):
+def log_result(log, rec_list):
     """ Sends dbservice execution logs to logfile
     """
-    msglist = get_result_items(list, "_status")
+    msglist = get_result_items(rec_list, "_status")
     if msglist is None:
-        if list:
+        if rec_list:
             log.warning('Unhandled output result: _status res_code not present.')
     else:
         for msg in msglist:
@@ -575,14 +575,14 @@ class ServiceContext(DBService):
 
     # miscellaneous
 
-    def field_copy(self, dict, *keys):
+    def field_copy(self, rec, *keys):
         """ Used to copy subset of fields from one record into another
             example: dbs.copy(record, hosting) "start_date", "key_colo", "key_rack")
         """
         retval = dbdict()
         for key in keys:
-            if key in dict:
-                retval[key] = dict[key]
+            if key in rec:
+                retval[key] = rec[key]
         return retval
 
     def field_set(self, **fields):

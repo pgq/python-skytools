@@ -447,15 +447,15 @@ def dedent(doc):
     return '\n'.join(res)
 
 
-def hsize_to_bytes (input):
+def hsize_to_bytes(input_str):
     """ Convert sizes from human format to bytes (string to integer) """
 
-    assert isinstance (input, str)
-    m = re.match (r"^([0-9]+) *([KMGTPEZY]?)B?$", input.strip(), re.IGNORECASE)
-    if not m: raise ValueError ("cannot parse: %s" % input)
+    assert isinstance (input_str, str)
+    m = re.match (r"^([0-9]+) *([KMGTPEZY]?)B?$", input_str.strip(), re.IGNORECASE)
+    if not m: raise ValueError ("cannot parse: %s" % input_str)
     units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-    bytes = int(m.group(1)) * 1024 ** units.index(m.group(2).upper())
-    return bytes
+    nbytes = int(m.group(1)) * 1024 ** units.index(m.group(2).upper())
+    return nbytes
 
 #
 # Connect string parsing

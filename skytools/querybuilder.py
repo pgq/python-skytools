@@ -152,10 +152,10 @@ class QueryBuilder:
         if sqlexpr:
             self.add(sqlexpr, required = True)
 
-    def add(self, expr, type = "text", required = False):
+    def add(self, expr, sql_type = "text", required = False):
         """Add SQL fragment to query.
         """
-        self._add_expr('', expr, self._params, type, required)
+        self._add_expr('', expr, self._params, sql_type, required)
 
     def get_sql(self, param_type = PARAM_INLINE):
         """Return generated SQL (thus far) as string.
@@ -169,7 +169,7 @@ class QueryBuilder:
         tmp = [str(part) for part in self._sql_parts]
         return "".join(tmp)
 
-    def _add_expr(self, pfx, expr, params, type, required):
+    def _add_expr(self, pfx, expr, params, sql_type, required):
         parts = []
         types = []
         values = []
@@ -203,7 +203,7 @@ class QueryBuilder:
                 ktype = k[tpos+1 : ]
             else:
                 kparam = k
-                ktype = type
+                ktype = sql_type
 
             # params==None means params are checked later
             if params is not None and kparam not in params:

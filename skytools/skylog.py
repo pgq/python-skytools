@@ -273,7 +273,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         self.stat_cache = {}
         self.last_stat_flush = time.time()
 
-    def send_to_logdb(self, service, type, msg):
+    def send_to_logdb(self, service, level, msg):
         """Actual sending is done here."""
 
         if self.sock is None:
@@ -282,7 +282,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         if self.sock:
             logcur = self.sock.cursor()
             query = "select * from log.add(%s, %s, %s)"
-            logcur.execute(query, [type, service, msg])
+            logcur.execute(query, [level, service, msg])
 
 
 # fix unicode bug in SysLogHandler

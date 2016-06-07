@@ -235,20 +235,20 @@ class TableRepair:
         if self.apply_fixes:
             self.apply_cursor.execute(q)
 
-    def addeq(self, list, f, v):
+    def addeq(self, dst_list, f, v):
         """Add quoted SET."""
         vq = skytools.quote_literal(v)
         s = "%s = %s" % (f, vq)
-        list.append(s)
+        dst_list.append(s)
 
-    def addcmp(self, list, f, v):
+    def addcmp(self, dst_list, f, v):
         """Add quoted comparison."""
         if v is None:
             s = "%s is null" % f
         else:
             vq = skytools.quote_literal(v)
             s = "%s = %s" % (f, vq)
-        list.append(s)
+        dst_list.append(s)
 
     def cmp_data(self, src_row, dst_row):
         """Compare data field-by-field."""

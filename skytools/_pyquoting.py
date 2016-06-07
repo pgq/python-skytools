@@ -77,7 +77,7 @@ def quote_bytea_raw(s):
 # Database specific urlencode and urldecode.
 #
 
-def db_urlencode(dict):
+def db_urlencode(dict_val):
     """Database specific urlencode.
 
     Encode None as key without '='.  That means that in "foo&bar=",
@@ -87,7 +87,7 @@ def db_urlencode(dict):
     """
 
     elem_list = []
-    for k, v in dict.items():
+    for k, v in dict_val.items():
         if v is None:
             elem = urllib.quote_plus(str(k))
         else:

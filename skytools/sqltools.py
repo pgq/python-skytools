@@ -214,11 +214,11 @@ class Snapshot(object):
     False
     """
 
-    def __init__(self, str):
+    def __init__(self, str_val):
         "Create snapshot from string."
 
-        self.sn_str = str
-        tmp = str.split(':')
+        self.sn_str = str_val
+        tmp = str_val.split(':')
         if len(tmp) != 3:
             raise Exception('Unknown format for snapshot')
         self.xmin = int(tmp[0])
@@ -526,9 +526,9 @@ class DBLanguage(DBObject):
         """Does PL exists."""
         return exists_language(curs, self.name)
 
-def db_install(curs, list, log = None):
+def db_install(curs, obj_list, log = None):
     """Installs list of objects into db."""
-    for obj in list:
+    for obj in obj_list:
         if not obj.exists(curs):
             obj.create(curs, log)
         else:

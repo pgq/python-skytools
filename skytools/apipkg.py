@@ -124,15 +124,15 @@ class ApiModule(ModuleType):
     def __dict__(self):
         # force all the content of the module to be loaded when __dict__ is read
         dictdescr = ModuleType.__dict__['__dict__']
-        dict = dictdescr.__get__(self)
-        if dict is not None:
+        mdict = dictdescr.__get__(self)
+        if mdict is not None:
             hasattr(self, 'some')
             for name in self.__all__:
                 try:
                     self.__makeattr(name)
                 except AttributeError:
                     pass
-        return dict
+        return mdict
     __dict__ = property(__dict__)
 
 
