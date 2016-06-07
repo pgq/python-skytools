@@ -70,9 +70,9 @@ def safe_replace(exc):
     c2 = REPLACEMENT_SYMBOL
 
     # we could assume latin1
-    if 0:
-        c1 = exc.object[exc.start]
-        c2 = unichr(ord(c1))
+    #if 0:
+    #    c1 = exc.object[exc.start]
+    #    c2 = unichr(ord(c1))
 
     return c2, exc.start + 1
 

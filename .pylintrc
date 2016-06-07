@@ -8,7 +8,6 @@ disable =
 	missing-docstring,
 	bare-except,
 	broad-except,
-	using-constant-test,
 	unused-variable,
 
 	too-many-public-methods,
