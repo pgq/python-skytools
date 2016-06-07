@@ -86,7 +86,7 @@ class _CompatRow(psycopg2.extras.DictRow):
     def copy(self):
         """Return regular dict."""
         return skytools.dbdict(self.iteritems())
-    
+
     def iterkeys(self):
         return self._index.iterkeys()
 
@@ -120,7 +120,7 @@ def connect_database(connstr, keepalive = True,
                      tcp_keepcnt = 4,           # 9
                      tcp_keepintvl = 15):       # 75
     """Create a db connection with connect_timeout and TCP keepalive.
-    
+
     Default connect_timeout is 15, to change put it directly into dsn.
 
     The extra tcp_* options are Linux-specific, see `man 7 tcp` for details.

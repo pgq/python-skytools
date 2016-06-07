@@ -15,7 +15,7 @@ __all__ = [
     "unquote_literal",
 ]
 
-# 
+#
 # SQL quoting
 #
 
@@ -39,7 +39,7 @@ def quote_literal(s):
 
 def quote_copy(s):
     """Quoting for copy command.  None is converted to \\N.
-    
+
     Python implementation.
     """
 
@@ -55,7 +55,7 @@ def quote_copy(s):
 _bytea_map = None
 def quote_bytea_raw(s):
     """Quoting for bytea parser.  Returns None as None.
-    
+
     Python implementation.
     """
     global _bytea_map

@@ -24,7 +24,7 @@ try:
 except ImportError:
     from skytools._pyquoting import *
 
-# 
+#
 # SQL quoting
 #
 
@@ -142,7 +142,7 @@ def unescape_copy(val):
 
 def unquote_ident(val):
     """Unquotes possibly quoted SQL identifier.
-    
+
     >>> unquote_ident('Foo')
     'foo'
     >>> unquote_ident('"Wei "" rd"')

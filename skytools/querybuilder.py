@@ -16,7 +16,7 @@ from __future__ import division, absolute_import, print_function
 
 import skytools
 
-__all__ = [ 
+__all__ = [
     'QueryBuilder', 'PLPyQueryBuilder', 'PLPyQuery', 'plpy_exec',
     "run_query", "run_query_row", "run_lookup", "run_exists",
 ]
@@ -296,7 +296,7 @@ class PLPyQueryBuilder(QueryBuilderCore):
 
 class PLPyQuery(object):
     """Static, cached PL/Python query that uses QueryBuilder formatting.
-    
+
     See L{plpy_exec} for simple usage.
     """
     def __init__(self, sql):

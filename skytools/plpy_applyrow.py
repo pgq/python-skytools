@@ -63,7 +63,7 @@ def applyrow(tblname, ev_type, new_row,
 
     - [IUD]: If row referenced by fkey does not exist, event is not applied
     - If pkey does not exist but alt_pkey does, row is not applied.
-    
+
     @param tblname: table name, schema-qualified
     @param ev_type: [IUD]:pkey1,pkey2
     @param alt_pkey_cols: list of alternatice columns to consuder

@@ -280,7 +280,7 @@ class TableRepair(object):
 
     def cmp_keys(self, src_row, dst_row):
         """Compare primary keys of the rows.
-        
+
         Returns 1 if src > dst, -1 if src < dst and 0 if src == dst"""
 
         # None means table is done.  tag it larger than any existing row.
@@ -442,7 +442,7 @@ class Syncer(skytools.DBScript):
 
 class Checker(Syncer):
     """Checks that tables in two databases are in sync.
-    
+
     Config options::
 
         ## data_checker ##

@@ -45,7 +45,7 @@ def natsort_icase(lst):
 
 def natsorted_icase(lst):
     """Return copy of list, sorted in natural order, case-sensitive.
-    
+
     >>> natsorted_icase(['Ver-1.1', 'vEr-1.11', '', 'veR-1.0'])
     ['', 'veR-1.0', 'Ver-1.1', 'vEr-1.11']
     """

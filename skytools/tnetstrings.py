@@ -12,7 +12,7 @@ def dump(data):
         out = '%f' % data
         return '%d:%s^' % (len(out), out)
     elif isinstance(data, str):
-        return '%d:' % len(data) + data + ',' 
+        return '%d:' % len(data) + data + ','
     elif isinstance(data, dict):
         return dump_dict(data)
     elif isinstance(data, list):
@@ -92,9 +92,9 @@ def parse_dict(data):
     while extra:
         key, value, extra = parse_pair(extra)
         result[key] = value
-  
+
     return result
-    
+
 
 
 def dump_dict(data):

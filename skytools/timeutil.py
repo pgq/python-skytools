@@ -85,7 +85,7 @@ _iso_rc = None
 
 def parse_iso_timestamp(s, default_tz = None):
     """Parse ISO timestamp to datetime object.
-    
+
     YYYY-MM-DD[ T]HH:MM[:SS[.ss]][-+HH[:MM]]
 
     Assumes that second fractions are zero-trimmed from the end,

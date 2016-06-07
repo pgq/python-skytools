@@ -84,9 +84,9 @@ def safe_utf8_decode(s):
     Acts like str.decode('utf8', 'replace') but also fixes
     UTF16 surrogates and NUL bytes, which Python's default
     decoder does not do.
-    
+
     @param s: utf8-encoded byte string
-    @return: tuple of (was_valid_utf8, unicode_string) 
+    @return: tuple of (was_valid_utf8, unicode_string)
     """
 
     # decode with error detection
@@ -97,7 +97,7 @@ def safe_utf8_decode(s):
     except UnicodeDecodeError:
         u = s.decode('utf8', 'safe_replace')
         ok = False
-    
+
     u2 = sanitize_unicode(u)
     if u is not u2:
         ok = False
