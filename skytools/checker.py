@@ -14,6 +14,12 @@ class TableRepair(object):
         self.table_name = table_name
         self.fq_table_name = skytools.quote_fqident(table_name)
         self.log = log
+
+        self.pkey_list = []
+        self.common_fields = []
+        self.apply_fixes = False
+        self.apply_cursor = None
+
         self.reset()
 
     def reset(self):

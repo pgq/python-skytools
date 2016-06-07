@@ -109,6 +109,7 @@ class _CompatCursor(psycopg2.extras.DictCursor):
 class _CompatConnection(psycopg2.extensions.connection):
     """Connection object that uses _CompatCursor."""
     my_name = '?'
+    server_version = None
     def cursor(self, name = None):
         if name:
             return super(_CompatConnection, self).cursor(cursor_factory=_CompatCursor, name=name)
@@ -139,7 +140,7 @@ def connect_database(connstr, keepalive = True,
     set_tcp_keepalive(fd, keepalive, tcp_keepidle, tcp_keepcnt, tcp_keepintvl)
 
     # fill .server_version on older psycopg
-    if not hasattr(db, 'server_version'):
+    if not getattr(db, 'server_version'):
         iso = db.isolation_level
         db.set_isolation_level(0)
         curs.execute('show server_version_num')

@@ -168,6 +168,8 @@ class DBService(object):
     ERROR = "error"         # error found but execution continues until check then error is raised
     FATAL = "fatal"         # execution is terminated at once and all found errors returned
 
+    rows_found = 0
+
     def __init__(self, context, global_dict = None):
         """ This object must be initiated in the beginning of each db service
         """

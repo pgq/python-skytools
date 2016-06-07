@@ -125,7 +125,9 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
     # if non-daemon, avoid skylog if script is running on console.
     # set use_skylog=2 to disable.
     if not is_daemon and use_skylog == 1:
-        if sys.stdout.isatty():
+        # pylint gets spooked by it's own stdout wrapper and refuses to shut down
+        # about it.  'noqa' tells prospector to ignore all warnings here.
+        if sys.stdout.isatty():   # noqa
             use_skylog = 0
 
     # load logging config if needed
@@ -251,6 +253,9 @@ class BaseScript(object):
 
     # setup logger here, this allows override by subclass
     log = logging.getLogger('skytools.BaseScript')
+
+    # start time
+    started = 0
 
     def __init__(self, service_name, args):
         """Script setup.

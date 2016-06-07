@@ -71,6 +71,7 @@ def parse_pgarray(array):
 
 class _logtriga_parser(object):
     """Parses logtriga/sqltriga partial SQL to values."""
+    pklist = None
     def tokenizer(self, sql):
         """Token generator."""
         for typ, tok in sql_tokenizer(sql, ignore_whitespace = True):

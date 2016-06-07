@@ -45,6 +45,7 @@ def importobj(modpath, attrname):
     return retval
 
 class ApiModule(ModuleType):
+    __doc = None
     def __docget(self):
         try:
             return self.__doc
