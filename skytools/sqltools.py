@@ -570,8 +570,10 @@ def installer_apply_file(db, filename, log):
 def mk_insert_sql(row, tbl, pkey_list = None, field_map = None):
     """Generate INSERT statement from dict data.
 
-    >>> mk_insert_sql({'id': '1', 'data': None}, 'tbl')
-    "insert into public.tbl (data, id) values (null, '1');"
+    >>> from collections import OrderedDict
+    >>> row = OrderedDict([('id',1), ('data', None)])
+    >>> mk_insert_sql(row, 'tbl')
+    "insert into public.tbl (id, data) values ('1', null);"
     """
 
     col_list = []

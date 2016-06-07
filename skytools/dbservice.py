@@ -6,6 +6,7 @@
 import re, skytools
 
 from skytools import dbdict
+from skytools.testing import ordered_dict
 
 __all__ = ['DBService', 'ServiceContext',
     'get_record', 'get_record_list',
@@ -29,8 +30,8 @@ def transform_fields(rows, key_fields, name_field, data_field):
     >>> rows.append({'time': '22:00', 'metric': 'dur', 'value': 7})
     >>> rows.append({'time': '23:00', 'metric': 'count', 'value': 200})
     >>> rows.append({'time': '23:00', 'metric': 'dur', 'value': 5})
-    >>> transform_fields(rows, ['time'], 'metric', 'value')
-    [{'count': 100, 'dur': 7, 'time': '22:00'}, {'count': 200, 'dur': 5, 'time': '23:00'}]
+    >>> [ordered_dict(row) for row in transform_fields(rows, ['time'], 'metric', 'value')]
+    [OrderedDict([('count', 100), ('dur', 7), ('time', '22:00')]), OrderedDict([('count', 200), ('dur', 5), ('time', '23:00')])]
     """
     cur_key = None
     cur_row = None

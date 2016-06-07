@@ -19,13 +19,6 @@ __all__ = [
     "run_query", "run_query_row", "run_lookup", "run_exists",
 ]
 
-# make plpy available
-try:
-    import plpy
-except ImportError:
-    pass
-
-
 PARAM_INLINE = 0 # quote_literal()
 PARAM_DBAPI = 1  # %()s
 PARAM_PLPY = 2   # $n
@@ -418,11 +411,17 @@ class fake_plpy:
     def error(self, msg):
         print "DBG: plpy.error(%s)" % repr(msg)
 
+# make plpy available
+try:
+    import plpy
+except ImportError:
+    plpy = fake_plpy()
+    GD = {}
+
+
 # launch doctest
 if __name__ == '__main__':
     import doctest
-    plpy = fake_plpy()
-    GD = {}
     doctest.testmod()
 
 

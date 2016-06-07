@@ -674,7 +674,7 @@ class SeqStruct(BaseStruct):
         # load table struct
         self.object_list = self._load_elem(curs, seq_name, args, TSeq)
 
-def test():
+def manual_check():
     from skytools import connect_database
     db = connect_database("dbname=fooz")
     curs = db.cursor()
@@ -687,5 +687,5 @@ def test():
     s.create(curs, T_PKEY)
 
 if __name__ == '__main__':
-    test()
+    manual_check()
 

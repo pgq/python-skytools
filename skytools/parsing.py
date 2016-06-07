@@ -4,6 +4,8 @@
 import re
 import skytools
 
+from skytools.testing import ordered_dict
+
 __all__ = [
     "parse_pgarray", "parse_logtriga_sql", "parse_tabbed_table",
     "parse_statements", 'sql_tokenizer', 'parse_sqltriga_sql',
@@ -190,31 +192,36 @@ def parse_sqltriga_sql(op, sql, pklist=None, splitkeys=False):
     Returns dict of col->data pairs.
 
     Insert event:
-    >>> parse_logtriga_sql('I', '(id, data) values (1, null)')
-    {'data': None, 'id': '1'}
+    >>> row = parse_logtriga_sql('I', '(id, data) values (1, null)')
+    >>> ordered_dict(row)
+    OrderedDict([('data', None), ('id', '1')])
 
     Update event:
-    >>> parse_logtriga_sql('U', "data='foo' where id = 1")
-    {'data': 'foo', 'id': '1'}
+    >>> row = parse_logtriga_sql('U', "data='foo' where id = 1")
+    >>> ordered_dict(row)
+    OrderedDict([('data', 'foo'), ('id', '1')])
 
     Delete event:
-    >>> parse_logtriga_sql('D', "id = 1 and id2 = 'str''val'")
-    {'id2': "str'val", 'id': '1'}
+    >>> row = parse_logtriga_sql('D', "id = 1 and id2 = 'str''val'")
+    >>> ordered_dict(row)
+    OrderedDict([('id', '1'), ('id2', "str'val")])
 
     If you set the splitkeys parameter, it will return two dicts, one for key
     fields and one for data fields.
 
     Insert event:
-    >>> parse_logtriga_sql('I', '(id, data) values (1, null)', splitkeys=True)
-    ({}, {'data': None, 'id': '1'})
+    >>> keys, row = parse_logtriga_sql('I', '(id, data) values (1, null)', splitkeys=True)
+    >>> keys, ordered_dict(row)
+    ({}, OrderedDict([('data', None), ('id', '1')]))
 
     Update event:
     >>> parse_logtriga_sql('U', "data='foo' where id = 1", splitkeys=True)
     ({'id': '1'}, {'data': 'foo'})
 
     Delete event:
-    >>> parse_logtriga_sql('D', "id = 1 and id2 = 'str''val'", splitkeys=True)
-    ({'id2': "str'val", 'id': '1'}, {})
+    >>> keys, row = parse_logtriga_sql('D', "id = 1 and id2 = 'str''val'", splitkeys=True)
+    >>> (ordered_dict(keys), row)
+    (OrderedDict([('id', '1'), ('id2', "str'val")]), {})
 
     """
     return _logtriga_parser().parse_sql(op, sql, pklist, splitkeys=splitkeys)
@@ -228,8 +235,8 @@ def parse_tabbed_table(txt):
     Very primitive.
 
     Example:
-    >>> parse_tabbed_table('col1\tcol2\nval1\tval2\n')
-    [{'col2': 'val2', 'col1': 'val1'}]
+    >>> [ordered_dict(d) for d in parse_tabbed_table('col1\tcol2\nval1\tval2\n')]
+    [OrderedDict([('col1', 'val1'), ('col2', 'val2')])]
     """
 
     txt = txt.replace("\r\n", "\n")
