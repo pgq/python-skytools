@@ -314,7 +314,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         """
         msg = self._custom_format(record)
         # Message is a string. Convert to bytes as required by RFC 5424
-        if type(msg) is unicode:
+        if isinstance(msg, unicode):
             msg = msg.encode('utf-8')
             ## this puts BOM in wrong place
             #if codecs:

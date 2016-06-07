@@ -5,21 +5,21 @@ from __future__ import division, absolute_import, print_function
 # minimum restrictions on types allowed in dictionaries.
 
 def dump(data):
-    if type(data) is long or type(data) is int:
+    if isinstance(data, (long, int)):
         out = str(data)
         return '%d:%s#' % (len(out), out)
-    elif type(data) is float:
+    elif isinstance(data, float):
         out = '%f' % data
         return '%d:%s^' % (len(out), out)
-    elif type(data) is str:
+    elif isinstance(data, str):
         return '%d:' % len(data) + data + ',' 
-    elif type(data) is dict:
+    elif isinstance(data, dict):
         return dump_dict(data)
-    elif type(data) is list:
+    elif isinstance(data, list):
         return dump_list(data)
     elif data == None:
         return '0:~'
-    elif type(data) is bool:
+    elif isinstance(data, bool):
         out = repr(data).lower()
         return '%d:%s!' % (len(out), out)
     else:
@@ -85,7 +85,7 @@ def parse_dict(data):
     if len(data) == 0: return {}
 
     key, value, extra = parse_pair(data)
-    assert type(key) is str, "Keys can only be strings."
+    assert isinstance(key, str), "Keys can only be strings."
 
     result = {key: value}
 

@@ -47,7 +47,7 @@ def set_tcp_keepalive(fd, keepalive = True,
         s = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
 
     # skip if unix socket
-    if type(s.getsockname()) != type(()):
+    if not isinstance(s.getsockname(), tuple):
         return
 
     # no keepalive?
