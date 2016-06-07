@@ -150,7 +150,7 @@ if 1:
     # lazy-import exported vars
     import skytools.apipkg as _apipkg
     _apipkg.initpkg(__name__, _symbols, {'apipkg': _apipkg})
-elif 1:
+else:
     # import everything immediately
     from skytools.quoting import *
     from skytools.sqltools import *
@@ -171,6 +171,7 @@ elif 1:
     from skytools.sockutil import *
     from skytools.timeutil import *
     from skytools.utf8 import *
+"""
 else:
     from skytools.quoting import *
     from skytools.sqltools import *
@@ -220,3 +221,4 @@ else:
     for k in xall:
         if k not in __all__:
             print('%s missing from top-level?' % k)
+"""
