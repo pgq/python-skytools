@@ -5,6 +5,14 @@ __pycache__
 *.so
 *.egg-info
 
+*.debhelper
+*.log
+*.substvars
+*-stamp
+debian/files
+debian/python-skytools
+debian/python3-skytools
+
 .tox
 .coverage
 MANIFEST
