@@ -4,6 +4,10 @@ unsafe-load-any-extension = no
 
 [MESSAGES CONTROL]
 disable =
+	redefined-builtin,
+	deprecated-method,
+	deprecated-module,
+
 	no-self-use,
 	missing-docstring,
 	bare-except,
