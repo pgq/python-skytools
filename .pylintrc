@@ -17,7 +17,6 @@ disable =
 	no-init,
 	redefined-outer-name,
 	super-init-not-called,
-	global-variable-not-assigned,
 
 	line-too-long,
 	wrong-import-position,

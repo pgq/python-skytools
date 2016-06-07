@@ -117,7 +117,7 @@ def _load_log_config(fn, defs):
 
 def _init_log(job_name, service_name, cf, log_level, is_daemon):
     """Logging setup happens here."""
-    global _log_init_done, _log_config_done
+    global _log_config_done
 
     got_skylog = 0
     use_skylog = cf.getint("use_skylog", default_skylog)
