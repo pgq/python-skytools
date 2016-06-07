@@ -121,7 +121,7 @@ class PlanCache:
         return plan
 
 
-class QueryBuilder:
+class QueryBuilderCore(object):
     """Helper for query building.
 
     >>> args = {'success': 't', 'total': 45, 'ccy': 'EEK', 'id': 556}
@@ -231,6 +231,7 @@ class QueryBuilder:
             self._arg_value_list.extend(values)
         self._nargs = nargs
 
+class QueryBuilder(QueryBuilderCore):
     def execute(self, curs):
         """Client-side query execution on DB-API 2.0 cursor.
 
@@ -244,7 +245,7 @@ class QueryBuilder:
         args = self._params
         return curs.execute(q, args)
 
-class PLPyQueryBuilder(QueryBuilder):
+class PLPyQueryBuilder(QueryBuilderCore):
 
     def __init__(self, sqlexpr, params, plan_cache = None, sqls = None):
         """Init the object.
@@ -256,7 +257,7 @@ class PLPyQueryBuilder(QueryBuilder):
                             to query.  Usually either C{GD} or C{SD} should be given here.
         @param sqls:        list object where to append executed sqls (used for debugging)
         """
-        QueryBuilder.__init__(self, sqlexpr, params)
+        super(PLPyQueryBuilder, self).__init__(sqlexpr, params)
         self._sqls = sqls
 
         if plan_cache is not None:

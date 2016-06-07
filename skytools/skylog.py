@@ -204,7 +204,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         except:
             self.sock = self.makeSocket()
 
-    def makeSocket(self):
+    def makeSocket(self, timeout=1):
         """Create server connection.
         In this case its not socket but database connection."""
 

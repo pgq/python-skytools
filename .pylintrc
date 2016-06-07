@@ -10,7 +10,6 @@ disable =
 	dangerous-default-value,
 	no-member,
 	redefined-variable-type,
-	arguments-differ,
 	no-init,
 	redefined-outer-name,
 
