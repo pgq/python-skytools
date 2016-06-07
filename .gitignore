@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+*.swp
+*.o
+*.so
+*.egg-info
+
+.tox
+.coverage
+MANIFEST
+build
+tmp
