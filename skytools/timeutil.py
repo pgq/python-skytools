@@ -37,6 +37,8 @@ class FixedOffsetTimezone(tzinfo):
     __slots__ = ('__offset', '__name')
 
     def __init__(self, offset):
+        super(FixedOffsetTimezone, self).__init__()
+
         self.__offset = timedelta(minutes = offset)
 
         # numeric tz name

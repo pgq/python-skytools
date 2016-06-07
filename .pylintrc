@@ -16,7 +16,6 @@ disable =
 	arguments-differ,
 	no-init,
 	redefined-outer-name,
-	super-init-not-called,
 
 	line-too-long,
 	wrong-import-position,

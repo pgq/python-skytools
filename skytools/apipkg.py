@@ -56,7 +56,7 @@ class ApiModule(ModuleType):
     __doc__ = property(__docget, __docset)
 
     def __init__(self, name, importspec, implprefix=None, attr=None):
-        self.__name__ = name
+        super(ApiModule, self).__init__(name)
         self.__all__ = [x for x in importspec if x != '__onfirstaccess__']
         self.__map__ = {}
         self.__implprefix__ = implprefix or name
