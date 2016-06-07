@@ -13,7 +13,3 @@ def ordered_dict(d):
     """
     return OrderedDict(sorted(d.items()))
 
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-
