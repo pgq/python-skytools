@@ -531,7 +531,8 @@ class ServiceContext(DBService):
         """
         tapi =  TableAPI(self, tablename, self._changelog(fields))
         row = row or dbdict()
-        fields and row.update(fields)
+        if fields:
+            row.update(fields)
         return tapi.do( row )
 
     def tapi_do_set(self, tablename, rows, **fields):
@@ -542,7 +543,8 @@ class ServiceContext(DBService):
         tapi = TableAPI(self, tablename, self._changelog(fields))
         results, updates, inserts = [], [], []
         for row in rows:
-            fields and row.update(fields)
+            if fields:
+                row.update(fields)
             if row[self.OP] == self.DELETE:
                 results.append( tapi.do( row ) )
             elif row[self.OP] == self.UPDATE:
