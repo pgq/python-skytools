@@ -13,7 +13,6 @@ disable =
 	wrong-import-position,
 	wrong-import-order,
 	no-self-use,
-	multiple-imports,
 	missing-docstring,
 	singleton-comparison,
 	unused-import,

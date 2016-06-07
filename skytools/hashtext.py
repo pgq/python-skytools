@@ -30,7 +30,8 @@ True
 
 from __future__ import division, absolute_import, print_function
 
-import sys, struct
+import sys
+import struct
 
 __all__ = ["hashtext_old", "hashtext_new"]
 

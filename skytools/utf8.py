@@ -19,7 +19,8 @@ talking with other software that uses stricter parsers.
 
 from __future__ import division, absolute_import, print_function
 
-import re, codecs
+import re
+import codecs
 
 __all__ = ['safe_utf8_decode']
 

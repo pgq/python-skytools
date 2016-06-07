@@ -3,7 +3,10 @@
 
 from __future__ import division, absolute_import, print_function
 
-import sys, time, os, subprocess
+import sys
+import time
+import os
+import subprocess
 
 import skytools
 

@@ -7,7 +7,8 @@ Here is pure Python that should match C code in _cquoting.
 
 from __future__ import division, absolute_import, print_function
 
-import urllib, re
+import urllib
+import re
 
 __all__ = [
     "quote_literal", "quote_copy", "quote_bytea_raw",

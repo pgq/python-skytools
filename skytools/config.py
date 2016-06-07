@@ -3,7 +3,10 @@
 
 from __future__ import division, absolute_import, print_function
 
-import os, os.path, ConfigParser, socket
+import os
+import os.path
+import ConfigParser
+import socket
 
 import skytools
 

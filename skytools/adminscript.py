@@ -3,8 +3,8 @@
 
 from __future__ import division, absolute_import, print_function
 
-import sys, inspect
-
+import sys
+import inspect
 import skytools
 
 __all__ = ['AdminScript']
