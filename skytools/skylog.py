@@ -67,7 +67,7 @@ def set_service_name(service_name, job_name):
 _OldLogRecord = logging.LogRecord
 class _NewLogRecord(_OldLogRecord):
     def __init__(self, *args):
-        _OldLogRecord.__init__(self, *args)
+        super(_NewLogRecord, self).__init__(*args)
         self.__dict__.update(_log_extra)
 logging.LogRecord = _NewLogRecord
 

@@ -4,7 +4,6 @@ unsafe-load-any-extension = no
 
 [MESSAGES CONTROL]
 disable =
-	non-parent-init-called,
 	superfluous-parens,
 	wildcard-import,
 	logging-not-lazy,
