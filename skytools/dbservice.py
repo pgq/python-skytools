@@ -95,10 +95,9 @@ def get_record_list(array):
     if array is None:
         return []
 
-    if isinstance(array, list):
-        return map(get_record, array)
-    else:
-        return map(get_record, skytools.parse_pgarray(array))
+    if not isinstance(array, list):
+        array = skytools.parse_pgarray(array)
+    return [get_record(el) for el in array]
 
 def get_record_lists(tbl, field):
     """ Create dictionary of lists from given list using field as grouping criteria
@@ -131,7 +130,7 @@ def make_record_array(rowlist):
     """ Takes list of records got from plpy execute and turns it into postgers aray string.
         Used to send data out of db service layer.
     """
-    return '{' + ','.join( map(make_record, rowlist) ) +  '}'
+    return '{' + ','.join( [make_record(row) for row in rowlist] ) +  '}'
 
 def get_result_items(list, name):
     """ Get return values from result

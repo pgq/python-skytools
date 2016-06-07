@@ -6,7 +6,6 @@ unsafe-load-any-extension = no
 disable =
 	wildcard-import,
 	unused-wildcard-import,
-	bad-builtin,
 	redefined-builtin,
 	attribute-defined-outside-init,
 	expression-not-assigned,

@@ -101,7 +101,7 @@ def quote_fqident(s):
     tmp = s.split('.', 1)
     if len(tmp) == 1:
         return 'public.' + quote_ident(s)
-    return '.'.join(map(quote_ident, tmp))
+    return '.'.join([quote_ident(name) for name in tmp])
 
 #
 # quoting for JSON strings

@@ -166,7 +166,7 @@ class QueryBuilder:
             - 2: Insert $n in place of parameters.
         """
         self._arg_conf.param_type = param_type
-        tmp = map(str, self._sql_parts)
+        tmp = [str(part) for part in self._sql_parts]
         return "".join(tmp)
 
     def _add_expr(self, pfx, expr, params, type, required):

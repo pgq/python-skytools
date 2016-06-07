@@ -100,7 +100,7 @@ def get_table_pkeys(curs, tbl):
         "   AND i.indisprimary AND k.attnum > 0 AND NOT k.attisdropped"\
         " ORDER BY k.attnum"
     curs.execute(q, [oid])
-    return map(lambda x: x[0], curs.fetchall())
+    return [row[0] for row in curs.fetchall()]
 
 def get_table_columns(curs, tbl):
     """Return list of column names for table."""
@@ -110,7 +110,7 @@ def get_table_columns(curs, tbl):
         "   AND k.attnum > 0 AND NOT k.attisdropped"\
         " ORDER BY k.attnum"
     curs.execute(q, [oid])
-    return map(lambda x: x[0], curs.fetchall())
+    return [row[0] for row in curs.fetchall()]
 
 #
 # exist checks
