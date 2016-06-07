@@ -30,8 +30,11 @@ def transform_fields(rows, key_fields, name_field, data_field):
     >>> rows.append({'time': '22:00', 'metric': 'dur', 'value': 7})
     >>> rows.append({'time': '23:00', 'metric': 'count', 'value': 200})
     >>> rows.append({'time': '23:00', 'metric': 'dur', 'value': 5})
-    >>> [ordered_dict(row) for row in transform_fields(rows, ['time'], 'metric', 'value')]
-    [OrderedDict([('count', 100), ('dur', 7), ('time', '22:00')]), OrderedDict([('count', 200), ('dur', 5), ('time', '23:00')])]
+    >>> res = [ordered_dict(row) for row in transform_fields(rows, ['time'], 'metric', 'value')]
+    >>> res[0]
+    OrderedDict([('count', 100), ('dur', 7), ('time', '22:00')])
+    >>> res[1]
+    OrderedDict([('count', 200), ('dur', 5), ('time', '23:00')])
     """
     cur_key = None
     cur_row = None
@@ -331,10 +334,12 @@ class DBService(object):
             params[self.FIELD] = field
             if field in record:
                 if record[field] is None or (isinstance(record[field], basestring) and len(record[field]) == 0):
-                    self.tell_user(severity, "dbsXXXX", "Required value missing: {%s}.{%s}" % (self.PARAM, self.FIELD), **params)
+                    self.tell_user(severity, "dbsXXXX", "Required value missing: {%s}.{%s}" % (
+                                   self.PARAM, self.FIELD), **params)
                     missing.append(field)
             else:
-                self.tell_user(severity, "dbsXXXX", "Required field missing: {%s}.{%s}" % (self.PARAM, self.FIELD), **params)
+                self.tell_user(severity, "dbsXXXX", "Required field missing: {%s}.{%s}" % (
+                               self.PARAM, self.FIELD), **params)
                 missing.append(field)
         return missing
 
@@ -384,13 +389,18 @@ class TableAPI(object):
     def _version_check(self, original, version):
         if original is None:
             self._ctx.tell_user( self._ctx.INFO, "dbsXXXX",
-                "Record ({table}.{field}={id}) has been deleted by other user while you were editing. Check version ({ver}) in changelog for details.",
-                table = self._table, field = self._id, id = original[self._id], ver = original.version, _row = self._row )
+                "Record ({table}.{field}={id}) has been deleted by other user "\
+                "while you were editing. Check version ({ver}) in changelog for details.",
+                table = self._table, field = self._id, id = original[self._id],
+                ver = original.version, _row = self._row )
         if version is not None and original.version is not None:
             if int(version) != int(original.version):
                     self._ctx.tell_user( self._ctx.INFO, "dbsXXXX",
-                            "Record ({table}.{field}={id}) has been changed by other user while you were editing. Version in db: ({db_ver}) and version sent by caller ({caller_ver}). See changelog for details.",
-                        table = self._table, field = self._id, id = original[self._id], db_ver = original.version, caller_ver = version, _row = self._row )
+                            "Record ({table}.{field}={id}) has been changed by other user while you were editing. "\
+                            "Version in db: ({db_ver}) and version sent by caller ({caller_ver}). "\
+                            "See changelog for details.",
+                        table = self._table, field = self._id, id = original[self._id], db_ver = original.version,
+                        caller_ver = version, _row = self._row)
 
     def _insert(self, data):
         fields = []

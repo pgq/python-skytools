@@ -4,7 +4,6 @@ unsafe-load-any-extension = no
 
 [MESSAGES CONTROL]
 disable =
-	line-too-long,
 	wrong-import-position,
 	wrong-import-order,
 	no-self-use,
