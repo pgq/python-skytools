@@ -78,39 +78,39 @@ class _logtriga_parser(object):
     def parse_insert(self, tk, fields, values, key_fields, key_values):
         """Handler for inserts."""
         # (col1, col2) values ('data', null)
-        if tk.next() != "(":
+        if next(tk) != "(":
             raise Exception("syntax error")
         while 1:
-            fields.append(tk.next())
-            t = tk.next()
+            fields.append(next(tk))
+            t = next(tk)
             if t == ")":
                 break
             elif t != ",":
                 raise Exception("syntax error")
-        if tk.next().lower() != "values":
+        if next(tk).lower() != "values":
             raise Exception("syntax error, expected VALUES")
-        if tk.next() != "(":
+        if next(tk) != "(":
             raise Exception("syntax error, expected (")
         while 1:
-            values.append(tk.next())
-            t = tk.next()
+            values.append(next(tk))
+            t = next(tk)
             if t == ")":
                 break
             if t == ",":
                 continue
             raise Exception("expected , or ) got "+t)
-        t = tk.next()
+        t = next(tk)
         raise Exception("expected EOF, got " + repr(t))
 
     def parse_update(self, tk, fields, values, key_fields, key_values):
         """Handler for updates."""
         # col1 = 'data1', col2 = null where pk1 = 'pk1' and pk2 = 'pk2'
         while 1:
-            fields.append(tk.next())
-            if tk.next() != "=":
+            fields.append(next(tk))
+            if next(tk) != "=":
                 raise Exception("syntax error")
-            values.append(tk.next())
-            t = tk.next()
+            values.append(next(tk))
+            t = next(tk)
             if t == ",":
                 continue
             elif t.lower() == "where":
@@ -118,13 +118,13 @@ class _logtriga_parser(object):
             else:
                 raise Exception("syntax error, expected WHERE or , got "+repr(t))
         while 1:
-            fld = tk.next()
+            fld = next(tk)
             key_fields.append(fld)
             self.pklist.append(fld)
-            if tk.next() != "=":
+            if next(tk) != "=":
                 raise Exception("syntax error")
-            key_values.append(tk.next())
-            t = tk.next()
+            key_values.append(next(tk))
+            t = next(tk)
             if t.lower() != "and":
                 raise Exception("syntax error, expected AND got "+repr(t))
 
@@ -132,13 +132,13 @@ class _logtriga_parser(object):
         """Handler for deletes."""
         # pk1 = 'pk1' and pk2 = 'pk2'
         while 1:
-            fld = tk.next()
+            fld = next(tk)
             key_fields.append(fld)
             self.pklist.append(fld)
-            if tk.next() != "=":
+            if next(tk) != "=":
                 raise Exception("syntax error")
-            key_values.append(tk.next())
-            t = tk.next()
+            key_values.append(next(tk))
+            t = next(tk)
             if t.lower() != "and":
                 raise Exception("syntax error, expected AND, got "+repr(t))
 

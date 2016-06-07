@@ -7,8 +7,14 @@ Here is pure Python that should match C code in _cquoting.
 
 from __future__ import division, absolute_import, print_function
 
-import urllib
+import sys
 import re
+
+try:
+    from urllib.parse import quote_plus, unquote_plus  # noqa
+except ImportError:
+    from urllib import quote_plus, unquote_plus  # noqa
+
 
 __all__ = [
     "quote_literal", "quote_copy", "quote_bytea_raw",
@@ -21,7 +27,7 @@ __all__ = [
 #
 
 def quote_literal(s):
-    """Quote a literal value for SQL.
+    r"""Quote a literal value for SQL.
 
     If string contains '\\', extended E'' quoting is used,
     otherwise standard quoting.  Input value of None results
@@ -62,17 +68,23 @@ def quote_bytea_raw(s):
     global _bytea_map
     if s is None:
         return None
+    if not isinstance(s, bytes):
+        raise TypeError("Expect bytes")
     if 1 and _bytea_map is None:
         _bytea_map = {}
-        for i in xrange(256):
-            c = chr(i)
+        for i in range(256):
+            if sys.version_info[0] < 3:
+                c = chr(i)
+            else:
+                c = i
+
             if i < 0x20 or i >= 0x7F:
                 _bytea_map[c] = "\\%03o" % i
-            elif c == "\\":
-                _bytea_map[c] = r"\\"
+            elif i == ord("\\"):
+                _bytea_map[c] = "\\\\"
             else:
-                _bytea_map[c] = c
-    return "".join([_bytea_map[c] for c in s])
+                _bytea_map[c] = '%c' % i
+    return "".join([_bytea_map[b] for b in s])
 
 #
 # Database specific urlencode and urldecode.
@@ -90,9 +102,9 @@ def db_urlencode(dict_val):
     elem_list = []
     for k, v in dict_val.items():
         if v is None:
-            elem = urllib.quote_plus(str(k))
+            elem = quote_plus(str(k))
         else:
-            elem = urllib.quote_plus(str(k)) + '=' + urllib.quote_plus(str(v))
+            elem = quote_plus(str(k)) + '=' + quote_plus(str(v))
         elem_list.append(elem)
     return '&'.join(elem_list)
 
@@ -110,15 +122,11 @@ def db_urldecode(qs):
         if not elem:
             continue
         pair = elem.split('=', 1)
-        name = urllib.unquote_plus(pair[0])
-
-        # keep only one instance around
-        name = intern(str(name))
-
+        name = unquote_plus(pair[0])
         if len(pair) == 1:
             res[name] = None
         else:
-            res[name] = urllib.unquote_plus(pair[1])
+            res[name] = unquote_plus(pair[1])
     return res
 
 #

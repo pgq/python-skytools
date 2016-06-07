@@ -82,7 +82,7 @@ class _CompatRow(psycopg2.extras.DictRow):
 
     def copy(self):
         """Return regular dict."""
-        return skytools.dbdict(self.iteritems())
+        return skytools.dbdict(self.items())
 
     def iterkeys(self):
         return self._index.iterkeys()

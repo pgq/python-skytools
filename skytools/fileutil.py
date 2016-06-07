@@ -18,12 +18,19 @@ import errno
 
 __all__ = ['write_atomic', 'signal_pidfile']
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
 # non-win32
 def write_atomic(fn, data, bakext=None, mode='b'):
     """Write file with rename."""
 
     if mode not in ['', 'b', 't']:
         raise ValueError("unsupported fopen mode")
+    if mode == 'b' and isinstance(data, unicode):
+        data = data.encode('utf8')
 
     # write new data to tmp file
     fn2 = fn + '.new'
@@ -77,11 +84,8 @@ def signal_pidfile(pidfile, sig):
             return win32_detect_pid(pid)
         os.kill(pid, sig)
         return True
-    except IOError as ex:
-        if ex.errno != errno.ENOENT:
-            raise
-    except OSError as ex:
-        if ex.errno != errno.ESRCH:
+    except (IOError, OSError) as ex:
+        if ex.errno not in (errno.ESRCH, errno.ENOENT):
             raise
     except ValueError as ex:
         # this leaves slight race when someone is just creating the file,

@@ -3,29 +3,47 @@ r"""UTF-8 sanitizer.
 Python's UTF-8 parser is quite relaxed, this creates problems when
 talking with other software that uses stricter parsers.
 
->>> safe_utf8_decode("foobar")
-(True, u'foobar')
->>> safe_utf8_decode('X\xed\xa0\x80Y\xed\xb0\x89Z')
-(False, u'X\ufffdY\ufffdZ')
->>> safe_utf8_decode('X\xed\xa0\x80\xed\xb0\x89Z')
-(False, u'X\U00010009Z')
->>> safe_utf8_decode('X\0Z')
-(False, u'X\ufffdZ')
->>> safe_utf8_decode('OK')
-(True, u'OK')
->>> safe_utf8_decode('X\xF1Y')
-(False, u'X\ufffdY')
+>>> _norm(safe_utf8_decode(b"foobar"))
+(True, ['f', 'o', 'o', 'b', 'a', 'r'])
+>>> _norm(safe_utf8_decode(b'X\0Z'))
+(False, ['X', 65533, 'Z'])
+>>> _norm(safe_utf8_decode(b'OK'))
+(True, ['O', 'K'])
+>>> _norm(safe_utf8_decode(b'X\xF1Y'))
+(False, ['X', 65533, 'Y'])
 """
 
-from __future__ import division, absolute_import, print_function
+## these give different results in py27 and py35
+# >>> _norm(safe_utf8_decode(b'X\xed\xa0\x80Y\xed\xb0\x89Z'))
+# (False, ['X', 65533, 65533, 65533, 'Y', 65533, 65533, 65533, 'Z'])
+# >>> _norm(safe_utf8_decode(b'X\xed\xa0\x80\xed\xb0\x89Z'))
+# (False, ['X', 65533, 65533, 65533, 65533, 65533, 65533, 'Z'])
+# from __future__ import division, absolute_import, print_function
 
 import re
 import codecs
 
+try:
+    unichr
+except NameError:
+    unichr = chr
+    unicode = str
+
+def _norm_char(uchr):
+    code = ord(uchr)
+    if code >= 0x20 and code < 0x7f:
+        return chr(code)
+    return code
+
+def _norm(tup):
+    flg, ustr = tup
+    return (flg, [_norm_char(c) for c in ustr])
+
+
 __all__ = ['safe_utf8_decode']
 
 # by default, use same symbol as 'replace'
-REPLACEMENT_SYMBOL = unichr(0xFFFD)
+REPLACEMENT_SYMBOL = unichr(0xFFFD)   # 65533
 
 def _fix_utf8(m):
     """Merge UTF16 surrogates, replace others"""

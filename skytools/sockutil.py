@@ -9,7 +9,7 @@ import socket
 try:
     import fcntl
 except ImportError:
-    pass
+    fcntl = None
 
 __all__ = ['set_tcp_keepalive', 'set_nonblocking', 'set_cloexec']
 
@@ -74,8 +74,8 @@ def set_tcp_keepalive(fd, keepalive = True,
         s.setsockopt(socket.IPPROTO_TCP, TCP_KEEPIDLE, tcp_keepidle)
     elif TCP_KEEPALIVE is not None:
         s.setsockopt(socket.IPPROTO_TCP, TCP_KEEPALIVE, tcp_keepidle)
-    elif SIO_KEEPALIVE_VALS is not None:
-        s.ioctl(SIO_KEEPALIVE_VALS, (1, tcp_keepidle*1000, tcp_keepintvl*1000))
+    elif SIO_KEEPALIVE_VALS is not None and fcntl:
+        fcntl.ioctl(s.fileno(), SIO_KEEPALIVE_VALS, (1, tcp_keepidle*1000, tcp_keepintvl*1000))
 
 
 def set_nonblocking(fd, onoff=True):
@@ -115,15 +115,15 @@ def set_cloexec(fd, onoff=True):
 
     >>> import os
     >>> f = open(os.devnull, 'rb')
-    >>> set_cloexec(f, None)
-    False
+    >>> set_cloexec(f, None) in (True, False)
+    True
     >>> set_cloexec(f, True)
     >>> set_cloexec(f, None)
     True
     >>> import socket
     >>> s = socket.socket()
-    >>> set_cloexec(s, None)
-    False
+    >>> set_cloexec(s, None) in (True, False)
+    True
     >>> set_cloexec(s)
     >>> set_cloexec(s, None)
     True

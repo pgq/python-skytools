@@ -12,6 +12,11 @@ try:
 except ImportError:
     pass
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 __all__ = ['DBService', 'ServiceContext',
     'get_record', 'get_record_list',
     'make_record', 'make_record_array',
@@ -380,7 +385,7 @@ class TableAPI(object):
         for key in result.keys():
             if self._op == 'update':
                 if key in original:
-                    if str(original[key]) <> str(result[key]):
+                    if str(original[key]) != str(result[key]):
                         changes.append( key + ": " + str(original[key]) + " -> " + str(result[key]) )
             else:
                 changes.append( key + ": " + str(result[key]) )

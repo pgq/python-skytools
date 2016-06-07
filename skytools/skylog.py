@@ -21,6 +21,11 @@ except ImportError:
     import skytools.tnetstrings as tnetstrings
     tnetstrings.dumps = tnetstrings.dump
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
 __all__ = ['getLogger']
 
 # add TRACE level

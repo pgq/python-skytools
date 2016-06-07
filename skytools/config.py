@@ -5,8 +5,12 @@ from __future__ import division, absolute_import, print_function
 
 import os
 import os.path
-import ConfigParser
 import socket
+
+try:
+    from configparser import NoOptionError, ConfigParser    # noqa
+except ImportError:
+    from ConfigParser import NoOptionError, SafeConfigParser as ConfigParser  # noqa
 
 import skytools
 
@@ -48,7 +52,7 @@ class Config(object):
         self.main_section = main_section
         self.filename = filename
         self.override = override or {}
-        self.cf = ConfigParser.SafeConfigParser()
+        self.cf = ConfigParser()
 
         if filename is None:
             self.cf.add_section(main_section)
@@ -77,8 +81,8 @@ class Config(object):
     def get(self, key, default=None):
         """Reads string value, if not set then default."""
         try:
-            return self.cf.get(self.main_section, key)
-        except ConfigParser.NoOptionError:
+            return str(self.cf.get(self.main_section, key))
+        except NoOptionError:
             if default is None:
                 raise Exception("Config value not set: " + key)
             return default
@@ -87,7 +91,7 @@ class Config(object):
         """Reads int value, if not set then default."""
         try:
             return self.cf.getint(self.main_section, key)
-        except ConfigParser.NoOptionError:
+        except NoOptionError:
             if default is None:
                 raise Exception("Config value not set: " + key)
             return default
@@ -96,7 +100,7 @@ class Config(object):
         """Reads boolean value, if not set then default."""
         try:
             return self.cf.getboolean(self.main_section, key)
-        except ConfigParser.NoOptionError:
+        except NoOptionError:
             if default is None:
                 raise Exception("Config value not set: " + key)
             return default
@@ -105,7 +109,7 @@ class Config(object):
         """Reads float value, if not set then default."""
         try:
             return self.cf.getfloat(self.main_section, key)
-        except ConfigParser.NoOptionError:
+        except NoOptionError:
             if default is None:
                 raise Exception("Config value not set: " + key)
             return default
@@ -113,14 +117,14 @@ class Config(object):
     def getlist(self, key, default=None):
         """Reads comma-separated list from key."""
         try:
-            s = self.cf.get(self.main_section, key).strip()
+            s = self.get(self.main_section, key).strip()
             res = []
             if not s:
                 return res
             for v in s.split(","):
                 res.append(v.strip())
             return res
-        except ConfigParser.NoOptionError:
+        except NoOptionError:
             if default is None:
                 raise Exception("Config value not set: " + key)
             return default
@@ -132,7 +136,7 @@ class Config(object):
         key itself is taken as value.
         """
         try:
-            s = self.cf.get(self.main_section, key).strip()
+            s = self.get(self.main_section, key).strip()
             res = {}
             if not s:
                 return res
@@ -146,7 +150,7 @@ class Config(object):
                     v = k
                 res[k] = v
             return res
-        except ConfigParser.NoOptionError:
+        except NoOptionError:
             if default is None:
                 raise Exception("Config value not set: " + key)
             return default
@@ -174,7 +178,7 @@ class Config(object):
         """
         try:
             s = self.cf.get(self.main_section, key)
-        except ConfigParser.NoOptionError:
+        except NoOptionError:
             if default is None:
                 raise Exception("Config value not set: " + key)
             s = default
@@ -194,7 +198,7 @@ class Config(object):
         for key in keys:
             try:
                 return self.cf.get(self.main_section, key)
-            except ConfigParser.NoOptionError:
+            except NoOptionError:
                 pass
 
         if default is None:

@@ -5,7 +5,8 @@ from __future__ import division, absolute_import, print_function
 
 import sys, time
 import skytools.psycopgwrapper
-import skytools._cquoting, skytools._pyquoting
+import skytools._cquoting
+import skytools._pyquoting
 from decimal import Decimal
 
 from skytools.testing import ordered_dict
@@ -90,10 +91,10 @@ def test_quote_copy():
 def test_quote_bytea_raw():
     sql_bytea_raw = [
         [None, None],
-        ["", ""],
-        ["a'\tb", "a'\\011b"],
-        [r"a\'b", r"a\\'b"],
-        ["\t\344", r"\011\344"],
+        [b"", ""],
+        [b"a'\tb", "a'\\011b"],
+        [b"a\\'b", r"a\\'b"],
+        [b"\t\344", r"\011\344"],
     ]
     try_func(skytools._cquoting.quote_bytea_raw, sql_bytea_raw)
     try_func(skytools._pyquoting.quote_bytea_raw, sql_bytea_raw)

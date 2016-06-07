@@ -4,7 +4,12 @@
 from __future__ import division, absolute_import, print_function
 
 import os
-from cStringIO import StringIO
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import skytools
 
 __all__ = [
@@ -576,11 +581,11 @@ def mk_insert_sql(row, tbl, pkey_list = None, field_map = None):
     col_list = []
     val_list = []
     if field_map:
-        for src, dst in field_map.iteritems():
+        for src, dst in field_map.items():
             col_list.append(skytools.quote_ident(dst))
             val_list.append(skytools.quote_literal(row[src]))
     else:
-        for c, v in row.iteritems():
+        for c, v in row.items():
             col_list.append(skytools.quote_ident(c))
             val_list.append(skytools.quote_literal(v))
     col_str = ", ".join(col_list)
@@ -608,13 +613,13 @@ def mk_update_sql(row, tbl, pkey_list, field_map = None):
         whe_list.append("%s = %s" % (col, val))
 
     if field_map:
-        for src, dst in field_map.iteritems():
+        for src, dst in field_map.items():
             if src not in pkmap:
                 col = skytools.quote_ident(dst)
                 val = skytools.quote_literal(row[src])
                 set_list.append("%s = %s" % (col, val))
     else:
-        for col, val in row.iteritems():
+        for col, val in row.items():
             if col not in pkmap:
                 col = skytools.quote_ident(col)
                 val = skytools.quote_literal(val)

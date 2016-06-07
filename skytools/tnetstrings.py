@@ -1,6 +1,11 @@
 
 from __future__ import division, absolute_import, print_function
 
+try:
+    long
+except NameError:
+    long = int
+
 # Note this implementation is more strict than necessary to demonstrate
 # minimum restrictions on types allowed in dictionaries.
 
