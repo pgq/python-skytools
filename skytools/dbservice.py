@@ -440,7 +440,7 @@ class TableAPI:
         if   self._op == self._ctx.INSERT: result = self._insert( data )
         elif self._op == self._ctx.UPDATE: result = self._update( data, version )
         elif self._op == self._ctx.DELETE: result = self._delete( data, version )
-        elif self._op == self._ctx.SKIP:   None
+        elif self._op == self._ctx.SKIP:   pass
         else:
             self._ctx.tell_user( self._ctx.ERROR, "dbsXXXX",
                 "Unahndled _op='{op}' value in TableAPI (table={table}, id={id})",
