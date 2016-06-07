@@ -21,13 +21,13 @@ disable =
 	multiple-imports,
 	missing-docstring,
 	singleton-comparison,
-	deprecated-lambda,
 	unused-import,
 	bare-except,
 	broad-except,
 	using-constant-test,
-
 	ungrouped-imports,
+	unused-variable,
+
 	too-many-public-methods,
 	too-many-lines,
 	pointless-string-statement,
@@ -38,7 +38,6 @@ disable =
 	too-many-arguments,
 	too-many-locals,
 	unused-argument,
-	unused-variable,
 	fixme,
 	too-many-statements,
 	multiple-statements,
