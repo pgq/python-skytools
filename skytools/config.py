@@ -20,10 +20,8 @@ class Config(object):
      - Accepts defaults in get() functions.
      - List value support.
     """
-    def __init__(self, main_section, filename, sane_config = 1, user_defs = None, override = None, ignore_defs = False):
+    def __init__(self, main_section, filename, sane_config = None, user_defs = None, override = None, ignore_defs = False):
         """Initialize Config and read from file.
-
-        @param sane_config:  chooses between ConfigParser/SafeConfigParser.
         """
         # use config file name as default job_name
         if filename:
@@ -48,12 +46,8 @@ class Config(object):
 
         self.main_section = main_section
         self.filename = filename
-        self.sane_config = sane_config
         self.override = override or {}
-        if sane_config:
-            self.cf = ConfigParser.SafeConfigParser()
-        else:
-            self.cf = ConfigParser.ConfigParser()
+        self.cf = ConfigParser.SafeConfigParser()
 
         if filename is None:
             self.cf.add_section(main_section)
@@ -216,7 +210,7 @@ class Config(object):
 
     def clone(self, main_section):
         """Return new Config() instance with new main section on same config file."""
-        return Config(main_section, self.filename, self.sane_config)
+        return Config(main_section, self.filename)
 
     def options(self):
         """Return list of options in main section."""

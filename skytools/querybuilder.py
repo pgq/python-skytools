@@ -118,9 +118,9 @@ class PlanCache(object):
 
         # remove plans if too much
         while len(self.plan_map) > self.maxplans:
-            pc = self.plan_list.pop()
-            if isinstance(pc, CachedPlan):
-                del self.plan_map[pc.key]
+            # this is ugly workaround for pylint
+            drop = self.plan_list.pop()
+            del self.plan_map[getattr(drop, 'key')]
 
         return plan
 

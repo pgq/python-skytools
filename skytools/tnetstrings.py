@@ -30,24 +30,23 @@ def parse(data):
     payload, payload_type, remain = parse_payload(data)
 
     if payload_type == '#':
-        value = int(payload)
+        return int(payload)
     elif payload_type == '}':
-        value = parse_dict(payload)
+        return parse_dict(payload)
     elif payload_type == ']':
-        value = parse_list(payload)
+        return parse_list(payload)
     elif payload_type == '!':
-        value = payload == 'true'
+        return payload == 'true'
     elif payload_type == '^':
-        value = float(payload)
+        return float(payload)
     elif payload_type == '~':
         assert len(payload) == 0, "Payload must be 0 length for null."
-        value = None
+        return None
     elif payload_type == ',':
-        value = payload
+        return payload
     else:
         assert False, "Invalid payload type: %r" % payload_type
-
-    return value, remain
+        return None, remain
 
 def parse_payload(data):
     assert data, "Invalid data to parse, it's empty."

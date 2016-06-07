@@ -175,10 +175,10 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
         fmt = logging.Formatter(fstr, fstr_date)
         size = cf.getint('log_size', 10*1024*1024)
         num = cf.getint('log_count', 3)
-        hdlr = logging.handlers.RotatingFileHandler(
+        file_hdlr = logging.handlers.RotatingFileHandler(
                     logfile, 'a', size, num)
-        hdlr.setFormatter(fmt)
-        root.addHandler(hdlr)
+        file_hdlr.setFormatter(fmt)
+        root.addHandler(file_hdlr)
 
     # if skylog.ini is disabled or not available, log at least to stderr
     if not got_skylog:
@@ -187,10 +187,10 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
         if log_level < logging.INFO:
             fstr = cf.get('logfmt_console_verbose', fstr)
             fstr_date = cf.get('logdatefmt_console_verbose', fstr_date)
-        hdlr = logging.StreamHandler()
+        stream_hdlr = logging.StreamHandler()
         fmt = logging.Formatter(fstr, fstr_date)
-        hdlr.setFormatter(fmt)
-        root.addHandler(hdlr)
+        stream_hdlr.setFormatter(fmt)
+        root.addHandler(stream_hdlr)
 
     return log
 
