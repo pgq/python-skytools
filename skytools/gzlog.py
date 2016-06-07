@@ -32,7 +32,7 @@ def gzip_append(filename, data, level = 6):
     try:
         f.write(zdata)
         f.close()
-    except Exception, ex:
+    except Exception as ex:
         # rollback on error
         f.seek(pos, 0)
         f.truncate()

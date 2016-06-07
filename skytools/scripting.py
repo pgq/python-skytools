@@ -590,28 +590,28 @@ class BaseScript(object):
             # set exception count to 0 after success
             self.exception_count = 0
             return r
-        except UsageError, d:
+        except UsageError as d:
             self.log.error(str(d))
             sys.exit(1)
-        except MemoryError, d:
+        except MemoryError as d:
             try: # complex logging may not succeed
                 self.log.exception("Job %s out of memory, exiting", self.job_name)
             except MemoryError:
                 self.log.fatal("Out of memory")
             sys.exit(1)
-        except SystemExit, d:
+        except SystemExit as d:
             self.send_stats()
             if prefer_looping and self.looping and self.loop_delay > 0:
                 self.log.info("got SystemExit(%s), exiting", str(d))
             self.reset()
             raise d
-        except KeyboardInterrupt, d:
+        except KeyboardInterrupt as d:
             self.send_stats()
             if prefer_looping and self.looping and self.loop_delay > 0:
                 self.log.info("got KeyboardInterrupt, exiting")
             self.reset()
             sys.exit(1)
-        except Exception, d:
+        except Exception as d:
             try: # this may fail too
                 self.send_stats()
             except:
@@ -634,7 +634,7 @@ class BaseScript(object):
         """Make script sleep for some amount of time."""
         try:
             time.sleep(secs)
-        except IOError, ex:
+        except IOError as ex:
             if ex.errno != errno.EINTR:
                 raise
 
@@ -876,7 +876,7 @@ class DBScript(BaseScript):
                 p.poll(int(secs * 1000))
             else:
                 select.select(fdlist, [], [], secs)
-        except select.error, d:
+        except select.error:
             self.log.info('wait canceled')
 
     def _exec_cmd(self, curs, sql, args, quiet = False, prefix = None):
@@ -996,7 +996,7 @@ class DBScript(BaseScript):
                 curs = dbc.get_connection(dbc.isolation_level).cursor()
                 curs.execute (stmt, args)
                 break
-            except elist, e:
+            except elist as e:
                 if not sql_retry or tried >= sql_retry_max_count or time.time() - stime >= sql_retry_max_time:
                     raise
                 self.log.info("Job %s got error on connection %s: %s", self.job_name, dbname, e)

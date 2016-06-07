@@ -38,12 +38,12 @@ def write_atomic(fn, data, bakext=None, mode='b'):
         fnb = fn + bakext
         try:
             os.unlink(fnb)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
         try:
             os.link(fn, fnb)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
 
@@ -77,13 +77,13 @@ def signal_pidfile(pidfile, sig):
             return win32_detect_pid(pid)
         os.kill(pid, sig)
         return True
-    except IOError, ex:
+    except IOError as ex:
         if ex.errno != errno.ENOENT:
             raise
-    except OSError, ex:
+    except OSError as ex:
         if ex.errno != errno.ESRCH:
             raise
-    except ValueError, ex:
+    except ValueError as ex:
         # this leaves slight race when someone is just creating the file,
         # but more common case is old empty file.
         if not ln:
@@ -141,12 +141,12 @@ def win32_write_atomic(fn, data, bakext=None, mode='b'):
         fnb = fn + bakext
         try:
             os.remove(fnb)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
         try:
             os.rename(fn, fnb)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
     else:
