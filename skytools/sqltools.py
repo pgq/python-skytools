@@ -511,7 +511,7 @@ class DBFunction(DBObject):
     """Handles db function."""
     def __init__(self, name, nargs, sql = None, sql_file = None):
         """Function object - number of args is significant."""
-        DBObject.__init__(self, name, sql, sql_file)
+        super(DBFunction, self).__init__(name, sql, sql_file)
         self.nargs = nargs
     def exists(self, curs):
         """Does function exists."""
@@ -521,7 +521,7 @@ class DBLanguage(DBObject):
     """Handles db language."""
     def __init__(self, name):
         """PL object - creation happens with CREATE LANGUAGE."""
-        DBObject.__init__(self, name, sql = "create language %s" % name)
+        super(DBLanguage, self).__init__(name, sql = "create language %s" % name)
     def exists(self, curs):
         """Does PL exists."""
         return exists_language(curs, self.name)

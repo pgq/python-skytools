@@ -26,11 +26,11 @@ PARAM_DBAPI = 1  # %()s
 PARAM_PLPY = 2   # $n
 
 
-class QArgConf:
+class QArgConf(object):
     """Per-query arg-type config object."""
     param_type = None
 
-class QArg:
+class QArg(object):
     """Place-holder for a query parameter."""
     def __init__(self, name, value, pos, conf):
         self.name = name
@@ -50,7 +50,7 @@ class QArg:
 
 # need an structure with fast remove-from-middle
 # and append operations.
-class DList:
+class DList(object):
     """Simple double-linked list."""
     def __init__(self):
         self.next = self
@@ -79,14 +79,14 @@ class DList:
         return obj
 
 
-class CachedPlan:
+class CachedPlan(object):
     """Wrapper around prepared plan."""
     def __init__(self, key, plan):
         self.key = key # (sql, (types))
         self.plan = plan
 
 
-class PlanCache:
+class PlanCache(object):
     """Cache for limited amount of plans."""
 
     def __init__(self, maxplans = 100):
@@ -294,7 +294,7 @@ class PLPyQueryBuilder(QueryBuilderCore):
         return res
 
 
-class PLPyQuery:
+class PLPyQuery(object):
     """Static, cached PL/Python query that uses QueryBuilder formatting.
     
     See L{plpy_exec} for simple usage.
@@ -405,7 +405,7 @@ def run_exists(cur, sql, params = None, **kwargs):
 
 
 # fake plpy for testing
-class fake_plpy:
+class fake_plpy(object):
     def prepare(self, sql, types):
         print("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
         return ('PLAN', sql, types)

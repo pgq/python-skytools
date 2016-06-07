@@ -100,7 +100,7 @@ class _CompatRow(psycopg2.extras.DictRow):
 class _CompatCursor(psycopg2.extras.DictCursor):
     """Regular psycopg2 DictCursor with dict* methods."""
     def __init__(self, *args, **kwargs):
-        psycopg2.extras.DictCursor.__init__(self, *args, **kwargs)
+        super(_CompatCursor, self).__init__(*args, **kwargs)
         self.row_factory = _CompatRow
     dictfetchone = psycopg2.extras.DictCursor.fetchone
     dictfetchall = psycopg2.extras.DictCursor.fetchall
@@ -111,12 +111,9 @@ class _CompatConnection(psycopg2.extensions.connection):
     my_name = '?'
     def cursor(self, name = None):
         if name:
-            return psycopg2.extensions.connection.cursor(self,
-                    cursor_factory = _CompatCursor,
-                    name = name)
+            return super(_CompatConnection, self).cursor(cursor_factory=_CompatCursor, name=name)
         else:
-            return psycopg2.extensions.connection.cursor(self,
-                    cursor_factory = _CompatCursor)
+            return super(_CompatConnection, self).cursor(cursor_factory=_CompatCursor)
 
 def connect_database(connstr, keepalive = True,
                      tcp_keepidle = 4 * 60,     # 7200

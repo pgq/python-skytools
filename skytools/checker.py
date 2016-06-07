@@ -7,7 +7,7 @@ import sys, time, os, subprocess
 
 import skytools
 
-class TableRepair:
+class TableRepair(object):
     """Checks that tables in two databases are in sync."""
 
     def __init__(self, table_name, log):
@@ -495,7 +495,7 @@ class Checker(Syncer):
 
     def __init__(self, args):
         """Checker init."""
-        Syncer.__init__(self, 'data_checker', args)
+        super(Checker, self).__init__('data_checker', args)
         self.set_single_loop(1)
         self.log.info('Checker starting %s', str(args))
 

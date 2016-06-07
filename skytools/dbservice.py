@@ -152,7 +152,7 @@ def log_result(log, rec_list):
             log.debug( msg['_message'] )
 
 
-class DBService:
+class DBService(object):
     """  Wrap parameterized query handling and multiset stored procedure writing
     """
     ROW = "_row"            # name of the fake field where internal record id is stored
@@ -340,7 +340,7 @@ class DBService:
 
 
 # TableAPI
-class TableAPI:
+class TableAPI(object):
     """ Class for managing one record updates using primary key
     """
     _table = None   # schema name and table name
@@ -456,7 +456,7 @@ class ServiceContext(DBService):
     def __init__(self, context, global_dict = None):
         """ This object must be initiated in the beginning of each db service
         """
-        DBService.__init__(self, context, global_dict)
+        super(ServiceContext, self).__init__(context, global_dict)
 
         rec = skytools.db_urldecode(context)
         if "username" not in rec:

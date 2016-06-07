@@ -69,7 +69,7 @@ def parse_pgarray(array):
 # parse logtriga partial sql
 #
 
-class _logtriga_parser:
+class _logtriga_parser(object):
     """Parses logtriga/sqltriga partial SQL to values."""
     def tokenizer(self, sql):
         """Token generator."""

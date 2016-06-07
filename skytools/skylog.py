@@ -80,7 +80,7 @@ class EasyRotatingFileHandler(logging.handlers.RotatingFileHandler):
     def __init__(self, filename, maxBytes = 10*1024*1024, backupCount = 3):
         """Args same as for RotatingFileHandler, but in filename '~' is expanded."""
         fn = os.path.expanduser(filename)
-        logging.handlers.RotatingFileHandler.__init__(self, fn, maxBytes=maxBytes, backupCount=backupCount)
+        super(EasyRotatingFileHandler, self).__init__(fn, maxBytes=maxBytes, backupCount=backupCount)
 
 
 # send JSON message over UDP
@@ -188,7 +188,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         Initializes the handler with a specific connection string.
         """
 
-        logging.handlers.SocketHandler.__init__(self, None, None)
+        super(LogDBHandler, self).__init__(None, None)
         self.closeOnError = 1
 
         self.connect_string = connect_string
@@ -200,7 +200,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
 
     def createSocket(self):
         try:
-            logging.handlers.SocketHandler.createSocket(self)
+            super(LogDBHandler, self).createSocket()
         except:
             self.sock = self.makeSocket()
 
@@ -393,7 +393,7 @@ LoggerAdapter.warn = LoggerAdapter.warning
 
 class SkyLogger(LoggerAdapter):
     def __init__(self, logger, extra):
-        LoggerAdapter.__init__(self, logger, extra)
+        super(SkyLogger, self).__init__(logger, extra)
         self.name = logger.name
     def trace(self, msg, *args, **kwargs):
         """Log 'msg % args' with severity 'TRACE'."""

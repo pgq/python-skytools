@@ -729,7 +729,7 @@ class DBScript(BaseScript):
         self.db_cache = {}
         self._db_defaults = {}
         self._listen_map = {} # dbname: channel_list
-        BaseScript.__init__(self, service_name, args)
+        super(DBScript, self).__init__(service_name, args)
 
     def connection_hook(self, dbname, conn):
         pass
@@ -817,10 +817,10 @@ class DBScript(BaseScript):
         for dbc in self.db_cache.values():
             dbc.reset()
         self.db_cache = {}
-        BaseScript.reset(self)
+        super(DBScript, self).reset()
 
     def run_once(self):
-        state = BaseScript.run_once(self)
+        state = super(DBScript, self).run_once()
 
         # reconnect if needed
         for dbc in self.db_cache.values():
@@ -846,7 +846,7 @@ class DBScript(BaseScript):
             else:
                 self.log.exception(lm)
         else:
-            BaseScript.exception_hook(self, d, emsg)
+            super(DBScript, self).exception_hook(d, emsg)
 
     def sleep(self, secs):
         """Make script sleep for some amount of time."""
@@ -860,7 +860,7 @@ class DBScript(BaseScript):
             fdlist.append(fd)
 
         if not fdlist:
-            return BaseScript.sleep(self, secs)
+            return super(DBScript, self).sleep(secs)
 
         try:
             if hasattr(select, 'poll'):
