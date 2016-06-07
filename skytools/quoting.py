@@ -5,6 +5,7 @@
 from __future__ import division, absolute_import, print_function
 
 import re
+import json
 
 __all__ = [
     # _pyqoting / _cquoting
@@ -164,17 +165,6 @@ def unquote_fqident(val):
     """
     tmp = val.split('.', 1)
     return '.'.join([unquote_ident(i) for i in tmp])
-
-# accept simplejson or py2.6+ json module
-# search for simplejson first as there exists
-# incompat 'json' module
-try:
-    import simplejson as json
-except ImportError:
-    try:
-        import json
-    except:
-        pass
 
 def json_encode(val = None, **kwargs):
     """Creates JSON string from Python object.
