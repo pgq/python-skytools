@@ -12,14 +12,7 @@ import logging.handlers
 from logging import LoggerAdapter
 
 import skytools
-
-# use fast implementation if available, otherwise fall back to reference one
-try:
-    import tnetstring as tnetstrings
-    tnetstrings.parse = tnetstrings.pop
-except ImportError:
-    import skytools.tnetstrings as tnetstrings
-    tnetstrings.dumps = tnetstrings.dump
+import skytools.tnetstrings
 
 try:
     unicode
@@ -156,7 +149,7 @@ class UdpTNetStringsHandler(logging.handlers.DatagramHandler):
         self.format(record) # render 'message' attribute and others
         for k in self.send_fields:
             msg[k] = record.__dict__[k]
-        tnetstr = tnetstrings.dumps(msg)
+        tnetstr = skytools.tnetstrings.dumps(msg)
         return tnetstr
 
     def send(self, s):
