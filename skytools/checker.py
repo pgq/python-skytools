@@ -348,7 +348,8 @@ class Syncer(skytools.DBScript):
         self.log.info('Syncing %s', table_name)
 
         # consumer must get further than this tick
-        tick_id = self.force_tick(setup_curs, queue_name)
+        self.force_tick(setup_curs, queue_name)
+
         # try to force second tick also
         self.force_tick(setup_curs, queue_name)
 

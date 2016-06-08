@@ -20,10 +20,14 @@ dbrow = skytools.psycopgwrapper._CompatRow(fake_cursor())
 dbrow[0] = '123'
 dbrow[1] = 'value'
 
-def try_func(qfunc, data):
-    for val, exp in data:
+def try_func(qfunc, data_list):
+    for val, exp in data_list:
         got = qfunc(val)
         eq_(got, exp)
+
+def try_catch(qfunc, data_list, exc):
+    for d in data_list:
+        assert_raises(exc, qfunc, d)
 
 def test_quote_literal():
     sql_literal = [
@@ -34,6 +38,7 @@ def test_quote_literal():
         [1, "'1'"],
         [True, "'True'"],
         [Decimal(1), "'1'"],
+        [u'qwe', "'qwe'"]
     ]
     try_func(skytools._cquoting.quote_literal, sql_literal)
     try_func(skytools._pyquoting.quote_literal, sql_literal)
@@ -51,7 +56,17 @@ qliterals_common = [
     (r"""$$$$""", r""),
     (r"""$$qw$e$z$$""", r"qw$e$z"),
     (r"""$qq$$aa$$$'"\\$qq$""", '$aa$$$\'"\\\\'),
+    (u"'qwe'", 'qwe'),
 ]
+
+bad_dol_literals = [
+    ('$$', '$$'),
+    #('$$q', '$$q'),
+    ('$$q$', '$$q$'),
+    ('$q$q$', '$q$q$'),
+    ('$q$q$x$', '$q$q$x$'),
+]
+
 def test_unquote_literal():
     qliterals_nonstd = qliterals_common + [
         (r"""'a\\b\\c'""", r"""a\b\c"""),
@@ -60,6 +75,11 @@ def test_unquote_literal():
     try_func(skytools._cquoting.unquote_literal, qliterals_nonstd)
     try_func(skytools._pyquoting.unquote_literal, qliterals_nonstd)
     try_func(skytools.unquote_literal, qliterals_nonstd)
+
+    for v1, v2 in bad_dol_literals:
+        assert_raises(ValueError, skytools._pyquoting.unquote_literal, v1)
+        assert_raises(ValueError, skytools._cquoting.unquote_literal, v1)
+        assert_raises(ValueError, skytools.unquote_literal, v1)
 
 def test_unquote_literal_std():
     qliterals_std = qliterals_common + [
@@ -100,6 +120,11 @@ def test_quote_bytea_raw():
     try_func(skytools._pyquoting.quote_bytea_raw, sql_bytea_raw)
     try_func(skytools.quote_bytea_raw, sql_bytea_raw)
 
+def test_quote_bytea_raw_fail():
+    assert_raises(TypeError, skytools._pyquoting.quote_bytea_raw, u'qwe')
+    #assert_raises(TypeError, skytools._cquoting.quote_bytea_raw, u'qwe')
+    #assert_raises(TypeError, skytools.quote_bytea_raw, 'qwe')
+
 def test_quote_ident():
     sql_ident = [
         ['', '""'],
@@ -108,6 +133,7 @@ def test_quote_ident():
         ['from', '"from"'],
         ['0foo', '"0foo"'],
         ['mixCase', '"mixCase"'],
+        [u'utf', 'utf'],
     ]
     try_func(skytools.quote_ident, sql_ident)
 
@@ -157,4 +183,57 @@ def test_unescape():
     try_func(skytools._cquoting.unescape, t_unesc)
     try_func(skytools._pyquoting.unescape, t_unesc)
     try_func(skytools.unescape, t_unesc)
+
+def test_quote_bytea_literal():
+    bytea_raw = [
+        [None, "null"],
+        [b"", "''"],
+        [b"a'\tb", "E'a''\\\\011b'"],
+        [b"a\\'b", r"E'a\\\\''b'"],
+        [b"\t\344", r"E'\\011\\344'"],
+    ]
+    try_func(skytools.quote_bytea_literal, bytea_raw)
+
+def test_quote_bytea_copy():
+    bytea_raw = [
+        [None, "\\N"],
+        [b"", ""],
+        [b"a'\tb", "a'\\\\011b"],
+        [b"a\\'b", r"a\\\\'b"],
+        [b"\t\344", r"\\011\\344"],
+    ]
+    try_func(skytools.quote_bytea_copy, bytea_raw)
+
+def test_quote_statement():
+    sql = "set a=%s, b=%s, c=%s"
+    args = [None, u"qwe'qwe", 6.6]
+    eq_(skytools.quote_statement(sql, args), "set a=null, b='qwe''qwe', c='6.6'")
+
+    sql = "set a=%(a)s, b=%(b)s, c=%(c)s"
+    args = dict(a=None, b="qwe'qwe", c=6.6)
+    eq_(skytools.quote_statement(sql, args), "set a=null, b='qwe''qwe', c='6.6'")
+
+def test_quote_json():
+    json_string_vals = [
+        [None, "null"],
+        ['', '""'],
+        [u'xx', '"xx"'],
+        ['qwe"qwe\t', '"qwe\\"qwe\\t"'],
+        ['\x01', '"\\u0001"'],
+    ]
+    try_func(skytools.quote_json, json_string_vals)
+
+def test_unquote_ident():
+    idents = [
+        ['qwe', 'qwe'],
+        [u'qwe', 'qwe'],
+        ['"qwe"', 'qwe'],
+        ['"q""w\\\\e"', 'q"w\\\\e'],
+    ]
+    try_func(skytools.unquote_ident, idents)
+
+@raises(Exception)
+def test_unquote_ident_fail():
+    skytools.unquote_ident('asd"asd')
+
 

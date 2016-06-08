@@ -1,4 +1,5 @@
 include modules/*.h
-include tests/*.py
-include .pylintrc tox.ini MANIFEST.in
+include tests/*.py tests/*.ini
+include tox.ini .prospector.yaml .coveragerc
+include MANIFEST.in
 include README.rst

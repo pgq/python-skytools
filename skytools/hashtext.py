@@ -36,7 +36,10 @@ import struct
 try:
     from skytools._chashtext import hashtext_old, hashtext_new
 except ImportError:
-    hashtext_old = hashtext_new = None
+    def hashtext_old(v):
+        return hashtext_old_py(v)
+    def hashtext_new(v):
+        return hashtext_new_py(v)
 
 __all__ = ["hashtext_old", "hashtext_new"]
 
@@ -154,9 +157,4 @@ def hashtext_new_py(k):
         c = -0x100000000 + c
 
     return int(c)
-
-
-if not hashtext_old:
-    hashtext_old = hashtext_old_py
-    hashtext_new = hashtext_new_py
 

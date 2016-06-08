@@ -48,7 +48,7 @@ class AdminScript(skytools.DBScript):
         fn = getattr(self, fname)
 
         # check if correct number of arguments
-        (args, varargs, varkw, defaults) = inspect.getargspec(fn)
+        (args, varargs, ___varkw, ___defaults) = inspect.getargspec(fn)
         n_args = len(args) - 1 # drop 'self'
         if varargs is None and n_args != len(cmdargs):
             helpstr = ""

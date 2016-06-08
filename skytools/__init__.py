@@ -3,8 +3,10 @@
 
 from __future__ import division, absolute_import, print_function
 
-if __name__ == 'disabled':
-    # import everything immediately (make pylint think so)
+try:
+    import skytools.apipkg as _apipkg
+except ImportError:
+    # make pylint think everything is imported immediately
     from skytools.quoting import *
     from skytools.sqltools import *
     from skytools.scripting import *
@@ -24,8 +26,6 @@ if __name__ == 'disabled':
     from skytools.sockutil import *
     from skytools.timeutil import *
     from skytools.utf8 import *
-else:
-    import skytools.apipkg as _apipkg
 
 _symbols = {
     # skytools.adminscript

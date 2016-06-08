@@ -23,7 +23,25 @@ __all__ = [
 ]
 
 class dbdict(dict):
-    """Wrapper on actual dict that allows accessing dict keys as attributes."""
+    """Wrapper on actual dict that allows accessing dict keys as attributes.
+
+    >>> row = dbdict(a=1, b=2)
+    >>> row.a, row.b, row['a'], row['b']
+    (1, 2, 1, 2)
+    >>> row.c = 3; row['c']
+    3
+    >>> del row.c; row.c
+    Traceback (most recent call last):
+        ...
+    AttributeError: c
+    >>> row['c']
+    Traceback (most recent call last):
+        ...
+    KeyError: 'c'
+    >>> row.merge({'q': 4}); row.q
+    4
+
+    """
     # obj.foo access
     def __getattr__(self, k):
         "Return attribute."
@@ -60,10 +78,7 @@ def fq_name_parts(tbl):
     tmp = tbl.split('.', 1)
     if len(tmp) == 1:
         return ['public', tbl]
-    elif len(tmp) == 2:
-        return tmp
-    else:
-        raise Exception('Syntax error in table name:'+tbl)
+    return tmp
 
 def fq_name(tbl):
     """Return fully qualified name.
@@ -212,6 +227,11 @@ class Snapshot(object):
     True
     >>> sn.contains(20)
     False
+    >>> Snapshot(':')
+    Traceback (most recent call last):
+        ...
+    ValueError: Unknown format for snapshot
+
     """
 
     def __init__(self, str_val):
@@ -220,7 +240,7 @@ class Snapshot(object):
         self.sn_str = str_val
         tmp = str_val.split(':')
         if len(tmp) != 3:
-            raise Exception('Unknown format for snapshot')
+            raise ValueError('Unknown format for snapshot')
         self.xmin = int(tmp[0])
         self.xmax = int(tmp[1])
         self.txid_list = []
@@ -281,7 +301,7 @@ def _gen_list_insert(tbl, row, fields, qfields):
     fmt = "insert into %s (%s) values (%s);"
     return fmt % (tbl, ",".join(qfields), ",".join(tmp))
 
-def magic_insert(curs, tablename, data, fields = None, use_insert = 0, quoted_table = False):
+def magic_insert(curs, tablename, data, fields = None, use_insert = False, quoted_table = False):
     r"""Copy/insert a list of dict/list data to database.
 
     If curs is None, then the copy or insert statements are returned
@@ -291,9 +311,34 @@ def magic_insert(curs, tablename, data, fields = None, use_insert = 0, quoted_ta
     Example:
     >>> magic_insert(None, 'tbl', [[1, '1'], [2, '2']], ['col1', 'col2'])
     'COPY public.tbl (col1,col2) FROM STDIN;\n1\t1\n2\t2\n\\.\n'
+    >>> magic_insert(None, 'tbl', [[1, '1'], [2, '2']], ['col1', 'col2'], use_insert=True)
+    "insert into public.tbl (col1,col2) values ('1','1');\ninsert into public.tbl (col1,col2) values ('2','2');\n"
+    >>> magic_insert(None, 'tbl', [], ['col1', 'col2'])
+    >>> magic_insert(None, 'tbl."1"', [[1, '1'], [2, '2']], ['col1', 'col2'], quoted_table=True)
+    'COPY tbl."1" (col1,col2) FROM STDIN;\n1\t1\n2\t2\n\\.\n'
+    >>> magic_insert(None, 'tbl."1"', [[1, '1'], [2, '2']])
+    Traceback (most recent call last):
+        ...
+    Exception: Non-dict data needs field list
+    >>> magic_insert(None, 'a.tbl', [{'a':1}, {'a':2}])
+    'COPY a.tbl (a) FROM STDIN;\n1\n2\n\\.\n'
+    >>> magic_insert(None, 'a.tbl', [{'a':1}, {'a':2}], use_insert=True)
+    "insert into a.tbl (a) values ('1');\ninsert into a.tbl (a) values ('2');\n"
+
+    More fields than data:
+
+    >>> magic_insert(None, 'tbl', [[1, 'a']], ['col1', 'col2', 'col3'])
+    'COPY public.tbl (col1,col2,col3) FROM STDIN;\n1\ta\t\\N\n\\.\n'
+    >>> magic_insert(None, 'tbl', [[1, 'a']], ['col1', 'col2', 'col3'], use_insert=True)
+    "insert into public.tbl (col1,col2,col3) values ('1','a',null);\n"
+    >>> magic_insert(None, 'tbl', [{'a':1}, {'b':2}], ['a', 'b'], use_insert=False)
+    'COPY public.tbl (a,b) FROM STDIN;\n1\t\\N\n\\N\t2\n\\.\n'
+    >>> magic_insert(None, 'tbl', [{'a':1}, {'b':2}], ['a', 'b'], use_insert=True)
+    "insert into public.tbl (a,b) values ('1',null);\ninsert into public.tbl (a,b) values (null,'2');\n"
+
     """
     if len(data) == 0:
-        return
+        return None
 
     # decide how to process
     if hasattr(data[0], 'keys'):
@@ -576,6 +621,9 @@ def mk_insert_sql(row, tbl, pkey_list = None, field_map = None):
     >>> row = OrderedDict([('id',1), ('data', None)])
     >>> mk_insert_sql(row, 'tbl')
     "insert into public.tbl (id, data) values ('1', null);"
+    >>> mk_insert_sql(row, 'tbl', ['x'], OrderedDict([('id', 'id_'), ('data', 'data_')]))
+    "insert into public.tbl (id_, data_) values ('1', null);"
+
     """
 
     col_list = []
@@ -598,6 +646,14 @@ def mk_update_sql(row, tbl, pkey_list, field_map = None):
 
     >>> mk_update_sql({'id': 0, 'id2': '2', 'data': 'str\\'}, 'Table', ['id', 'id2'])
     'update only public."Table" set data = E\'str\\\\\' where id = \'0\' and id2 = \'2\';'
+    >>> mk_update_sql({'id': 0, 'id2': '2', 'data': 'str\\'}, 'Table', ['id', 'id2'],
+    ...     {'id': '_id', 'id2': '_id2', 'data': '_data'})
+    'update only public."Table" set _data = E\'str\\\\\' where _id = \'0\' and _id2 = \'2\';'
+    >>> mk_update_sql({'id': 0, 'id2': '2', 'data': 'str\\'}, 'Table', [])
+    Traceback (most recent call last):
+        ...
+    Exception: update needs pkeys
+
     """
 
     if len(pkey_list) < 1:
@@ -628,7 +684,18 @@ def mk_update_sql(row, tbl, pkey_list, field_map = None):
             ", ".join(set_list), " and ".join(whe_list))
 
 def mk_delete_sql(row, tbl, pkey_list, field_map = None):
-    """Generate DELETE statement from dict data."""
+    """Generate DELETE statement from dict data.
+
+    >>> mk_delete_sql({'a': 1, 'b':2, 'c':3}, 'tablename', ['a','b'])
+    "delete from only public.tablename where a = '1' and b = '2';"
+    >>> mk_delete_sql({'a': 1, 'b':2, 'c':3}, 'tablename', ['a','b'], {'a': 'aa', 'b':'bb'})
+    "delete from only public.tablename where aa = '1' and bb = '2';"
+    >>> mk_delete_sql({'a': 1, 'b':2, 'c':3}, 'tablename', [])
+    Traceback (most recent call last):
+        ...
+    Exception: delete needs pkeys
+
+    """
 
     if len(pkey_list) < 1:
         raise Exception("delete needs pkeys")

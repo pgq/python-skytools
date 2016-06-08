@@ -8,13 +8,19 @@ import os.path
 import socket
 
 try:
-    from configparser import NoOptionError, ConfigParser    # noqa
+    from configparser import (      # noqa
+        NoOptionError, NoSectionError, InterpolationMissingOptionError,
+        Error as ConfigError,
+        ConfigParser)
 except ImportError:
-    from ConfigParser import NoOptionError, SafeConfigParser as ConfigParser  # noqa
+    from ConfigParser import (      # noqa
+        NoOptionError, NoSectionError, InterpolationMissingOptionError,
+        Error as ConfigError,
+        SafeConfigParser as ConfigParser)
 
 import skytools
 
-__all__ = ['Config']
+__all__ = ['Config', 'NoOptionError', 'InterpolationMissingOptionError', 'ConfigError']
 
 class Config(object):
     """Bit improved ConfigParser.
@@ -57,7 +63,7 @@ class Config(object):
         if filename is None:
             self.cf.add_section(main_section)
         elif not os.path.isfile(filename):
-            raise Exception('Config file not found: '+filename)
+            raise ConfigError('Config file not found: '+filename)
 
         self.reload()
 
@@ -66,7 +72,7 @@ class Config(object):
         if self.filename:
             self.cf.read(self.filename)
         if not self.cf.has_section(self.main_section):
-            raise Exception("Wrong config file, no section '%s'" % self.main_section)
+            raise NoSectionError(self.main_section)
 
         # apply default if key not set
         for k, v in self.defs.items():
@@ -84,7 +90,7 @@ class Config(object):
             return str(self.cf.get(self.main_section, key))
         except NoOptionError:
             if default is None:
-                raise Exception("Config value not set: " + key)
+                raise
             return default
 
     def getint(self, key, default=None):
@@ -93,7 +99,7 @@ class Config(object):
             return self.cf.getint(self.main_section, key)
         except NoOptionError:
             if default is None:
-                raise Exception("Config value not set: " + key)
+                raise
             return default
 
     def getboolean(self, key, default=None):
@@ -102,7 +108,7 @@ class Config(object):
             return self.cf.getboolean(self.main_section, key)
         except NoOptionError:
             if default is None:
-                raise Exception("Config value not set: " + key)
+                raise
             return default
 
     def getfloat(self, key, default=None):
@@ -111,13 +117,13 @@ class Config(object):
             return self.cf.getfloat(self.main_section, key)
         except NoOptionError:
             if default is None:
-                raise Exception("Config value not set: " + key)
+                raise
             return default
 
     def getlist(self, key, default=None):
         """Reads comma-separated list from key."""
         try:
-            s = self.get(self.main_section, key).strip()
+            s = self.get(key).strip()
             res = []
             if not s:
                 return res
@@ -126,7 +132,7 @@ class Config(object):
             return res
         except NoOptionError:
             if default is None:
-                raise Exception("Config value not set: " + key)
+                raise
             return default
 
     def getdict(self, key, default=None):
@@ -136,7 +142,7 @@ class Config(object):
         key itself is taken as value.
         """
         try:
-            s = self.get(self.main_section, key).strip()
+            s = self.get(key).strip()
             res = {}
             if not s:
                 return res
@@ -152,7 +158,7 @@ class Config(object):
             return res
         except NoOptionError:
             if default is None:
-                raise Exception("Config value not set: " + key)
+                raise
             return default
 
     def getfile(self, key, default=None):
@@ -180,7 +186,7 @@ class Config(object):
             s = self.cf.get(self.main_section, key)
         except NoOptionError:
             if default is None:
-                raise Exception("Config value not set: " + key)
+                raise
             s = default
         return skytools.hsize_to_bytes(s)
 
@@ -202,7 +208,7 @@ class Config(object):
                 pass
 
         if default is None:
-            raise Exception("Config value not set: " + orig_key)
+            raise NoOptionError(orig_key, self.main_section)
         return default
 
     def sections(self):

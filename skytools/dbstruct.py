@@ -358,7 +358,7 @@ class TGrant(TElem):
         qtarget = quote_fqident(new_name)
 
         sql_list = []
-        for role, acl, who in self.acl_list:
+        for role, acl, ___who in self.acl_list:
             qrole = quote_ident(role)
             astr1, astr2 = self.acl_to_grants(acl)
             if astr1:
@@ -371,7 +371,7 @@ class TGrant(TElem):
 
     def get_drop_sql(self, curs):
         sql_list = []
-        for user, acl, who in self.acl_list:
+        for user, ___acl, ___who in self.acl_list:
             sql = "REVOKE ALL FROM %s ON %s;" % (quote_ident(user), quote_fqident(self.name))
             sql_list.append(sql)
         return "\n".join(sql_list)

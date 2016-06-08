@@ -26,18 +26,25 @@ def parse_pgarray(array):
     ['a,a', 'b"b', 'c\\c']
     >>> parse_pgarray("[0,3]={1,2,3}")
     ['1', '2', '3']
+    >>> parse_pgarray(None) is None
+    True
+    >>> from nose.tools import *
+    >>> assert_raises(ValueError, parse_pgarray, '}{')
+    >>> assert_raises(ValueError, parse_pgarray, '[1]=}')
+    >>> assert_raises(ValueError, parse_pgarray, '{"..." , }')
+
     """
     if array is None:
         return None
     if not array or array[0] not in ("{", "[") or array[-1] != '}':
-        raise Exception("bad array format: must be surrounded with {}")
+        raise ValueError("bad array format: must be surrounded with {}")
     res = []
     pos = 1
     # skip optional dimensions descriptor "[a,b]={...}"
     if array[0] == "[":
         pos = array.find('{') + 1
         if pos < 1:
-            raise Exception("bad array format: must be surrounded with {}")
+            raise ValueError("bad array format 2: must be surrounded with {}")
     while 1:
         m = _rc_listelem.search(array, pos)
         if not m:
@@ -49,7 +56,7 @@ def parse_pgarray(array):
         else:
             if len(item) > 0 and item[0] == '"':
                 if len(item) == 1 or item[-1] != '"':
-                    raise Exception("bad array format: broken '\"'")
+                    raise ValueError("bad array format: broken '\"'")
                 item = item[1:-1]
             val = skytools.unescape(item)
         res.append(val)
@@ -58,9 +65,9 @@ def parse_pgarray(array):
         if array[pos2] == "}":
             break
         elif array[pos2] != ",":
-            raise Exception("bad array format: expected ,} got " + repr(array[pos2]))
+            raise ValueError("bad array format: expected ,} got " + repr(array[pos2]))
     if pos < len(array) - 1:
-        raise Exception("bad array format: failed to parse completely (pos=%d len=%d)" % (pos, len(array)))
+        raise ValueError("bad array format: failed to parse completely (pos=%d len=%d)" % (pos, len(array)))
     return res
 
 #
@@ -72,7 +79,7 @@ class _logtriga_parser(object):
     pklist = None
     def tokenizer(self, sql):
         """Token generator."""
-        for typ, tok in sql_tokenizer(sql, ignore_whitespace = True):
+        for ___typ, tok in sql_tokenizer(sql, ignore_whitespace = True):
             yield tok
 
     def parse_insert(self, tk, fields, values, key_fields, key_values):
@@ -302,6 +309,13 @@ def sql_tokenizer(sql, standard_quoting = False, ignore_whitespace = False,
     [('ident', '"c olumn"'), ('sym', ','), ('str', "'str''val'")]
     >>> list(sql_tokenizer('a.b a."b "" c" a.1', fqident=True, ignore_whitespace=True))
     [('ident', 'a.b'), ('ident', 'a."b "" c"'), ('ident', 'a'), ('sym', '.'), ('num', '1')]
+    >>> list(sql_tokenizer(r"set 'a''\' + E'\''", standard_quoting=True, ignore_whitespace=True))
+    [('ident', 'set'), ('str', "'a''\\'"), ('sym', '+'), ('str', "E'\\''")]
+    >>> list(sql_tokenizer('a.b a."b "" c" a.1', fqident=True, standard_quoting=True, ignore_whitespace=True))
+    [('ident', 'a.b'), ('ident', 'a."b "" c"'), ('ident', 'a'), ('sym', '.'), ('num', '1')]
+    >>> list(sql_tokenizer('a.b\nc;', show_location=True, ignore_whitespace=True))
+    [('ident', 'a', 1), ('sym', '.', 2), ('ident', 'b', 3), ('ident', 'c', 5), ('sym', ';', 6)]
+
     """
     global _std_sql_rc, _ext_sql_rc, _std_sql_fq_rc, _ext_sql_fq_rc
     if not _std_sql_rc:
@@ -345,6 +359,18 @@ def parse_statements(sql, standard_quoting = False):
 
     >>> [sql for sql in parse_statements("begin; select 1; select 'foo'; end;")]
     ['begin;', 'select 1;', "select 'foo';", 'end;']
+    >>> [sql for sql in parse_statements("select (select 2+(select 3;);) ; select 4;")]
+    ['select (select 2+(select 3;);) ;', 'select 4;']
+
+    >>> [sql for sql in parse_statements('select ());')]
+    Traceback (most recent call last):
+        ...
+    ValueError: syntax error - unbalanced parenthesis
+    >>> [sql for sql in parse_statements('copy from stdin;')]
+    Traceback (most recent call last):
+        ...
+    ValueError: copy from stdin not supported
+
     """
 
     global _copy_from_stdin_rc
@@ -365,13 +391,13 @@ def parse_statements(sql, standard_quoting = False):
         elif t == ";" and pcount == 0:
             sql = "".join(tokens)
             if _copy_from_stdin_rc.match(sql):
-                raise Exception("copy from stdin not supported")
+                raise ValueError("copy from stdin not supported")
             yield "".join(tokens)
             tokens = []
     if len(tokens) > 0:
         yield "".join(tokens)
     if pcount != 0:
-        raise Exception("syntax error - unbalanced parenthesis")
+        raise ValueError("syntax error - unbalanced parenthesis")
 
 _acl_name = r'(?: [0-9a-z_]+ | " (?: [^"]+ | "" )* " )'
 _acl_re = r'''
@@ -394,6 +420,11 @@ def parse_acl(acl):
     ('user', 'rwx', None)
     >>> parse_acl('=/f')
     (None, '', 'f')
+
+    On error (is this ok?):
+    >>> parse_acl('?') is None
+    True
+
     """
     global _acl_rc
     if not _acl_rc:
@@ -450,7 +481,11 @@ def dedent(doc):
 
 
 def hsize_to_bytes(input_str):
-    """ Convert sizes from human format to bytes (string to integer) """
+    """ Convert sizes from human format to bytes (string to integer)
+
+    >>> hsize_to_bytes('10G'), hsize_to_bytes('12k')
+    (10737418240, 12288)
+    """
 
     assert isinstance (input_str, str)
     m = re.match (r"^([0-9]+) *([KMGTPEZY]?)B?$", input_str.strip(), re.IGNORECASE)
@@ -477,6 +512,11 @@ def parse_connect_string(cstr):
     [('host', 'foo')]
     >>> parse_connect_string(r" host = foo password = ' f\\\o\'o ' ")
     [('host', 'foo'), ('password', "' f\\o'o '")]
+    >>> parse_connect_string(r" host = ")
+    Traceback (most recent call last):
+        ...
+    ValueError: Invalid connect string
+
     """
     global _cstr_rc, _cstr_unesc_rc
     if not _cstr_rc:

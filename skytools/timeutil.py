@@ -97,6 +97,11 @@ def parse_iso_timestamp(s, default_tz = None):
     '2005-06-01 15:00 -0530 -05:30'
     >>> parse_iso_timestamp('2014-10-27T11:59:13Z').strftime('%Y-%m-%d %H:%M:%S %z %Z')
     '2014-10-27 11:59:13 +0000 +00'
+    >>> parse_iso_timestamp('2014.10.27')
+    Traceback (most recent call last):
+        ...
+    ValueError: Date not in ISO format: '2014.10.27'
+
     """
 
     global _iso_rc

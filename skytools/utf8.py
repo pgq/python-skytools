@@ -11,6 +11,10 @@ talking with other software that uses stricter parsers.
 (True, ['O', 'K'])
 >>> _norm(safe_utf8_decode(b'X\xF1Y'))
 (False, ['X', 65533, 'Y'])
+
+>>> _norm_str(sanitize_unicode(u'\uD801\uDC01'))
+[66561]
+
 """
 
 ## these give different results in py27 and py35
@@ -35,9 +39,12 @@ def _norm_char(uchr):
         return chr(code)
     return code
 
+def _norm_str(ustr):
+    return [_norm_char(c) for c in ustr]
+
 def _norm(tup):
     flg, ustr = tup
-    return (flg, [_norm_char(c) for c in ustr])
+    return (flg, _norm_str(ustr))
 
 
 __all__ = ['safe_utf8_decode']
@@ -83,8 +90,6 @@ def safe_replace(exc):
     Builtin .decode('xxx', 'replace') replaces several symbols
     together, which is unsafe.
     """
-    if not isinstance(exc, UnicodeDecodeError):
-        raise exc
     c2 = REPLACEMENT_SYMBOL
 
     # we could assume latin1

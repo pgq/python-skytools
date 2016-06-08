@@ -159,6 +159,8 @@ def _loads(buf):
 #
 
 def dumps(val):
+    """Dump object tree as TNetString value.
+    """
     dst = []
     _dumps(dst, val)
     return b''.join(dst)

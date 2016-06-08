@@ -34,7 +34,7 @@ def colfilter_full(rnew, rold):
 
 def colfilter_changed(rnew, rold):
     res = {}
-    for k, v in rnew:
+    for k, _ in rnew:
         if rnew[k] != rold[k]:
             res[k] = rnew[k]
     return res
@@ -200,8 +200,8 @@ def ts_conflict_handler(gd, args):
     ev_data = args[2]
     ev_extra1 = args[3]
     ev_extra2 = args[4]
-    ev_extra3 = args[5]
-    ev_extra4 = args[6]
+    ___ev_extra3 = args[5]
+    ___ev_extra4 = args[6]
     altpk = None
     if 'altpk' in conf:
         altpk = conf['altpk'].split(',')

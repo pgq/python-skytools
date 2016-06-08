@@ -24,7 +24,7 @@ except NameError:
     unicode = str
 
 # non-win32
-def write_atomic(fn, data, bakext=None, mode='b'):
+def write_atomic_unix(fn, data, bakext=None, mode='b'):
     """Write file with rename."""
 
     if mode not in ['', 'b', 't']:
@@ -164,4 +164,6 @@ def win32_write_atomic(fn, data, bakext=None, mode='b'):
 
 if sys.platform == 'win32':
     write_atomic = win32_write_atomic
+else:
+    write_atomic = write_atomic_unix
 

@@ -400,7 +400,7 @@ class TableAPI(object):
                 ver = original.version, _row = self._row )
         if version is not None and original.version is not None:
             if int(version) != int(original.version):
-                    self._ctx.tell_user( self._ctx.INFO, "dbsXXXX",
+                self._ctx.tell_user( self._ctx.INFO, "dbsXXXX",
                             "Record ({table}.{field}={id}) has been changed by other user while you were editing. "\
                             "Version in db: ({db_ver}) and version sent by caller ({caller_ver}). "\
                             "See changelog for details.",

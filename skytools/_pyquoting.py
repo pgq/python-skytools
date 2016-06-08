@@ -7,13 +7,15 @@ Here is pure Python that should match C code in _cquoting.
 
 from __future__ import division, absolute_import, print_function
 
-import sys
 import re
 
 try:
     from urllib.parse import quote_plus, unquote_plus  # noqa
+    def _bytes_val(c):
+        return c
 except ImportError:
     from urllib import quote_plus, unquote_plus  # noqa
+    _bytes_val = chr
 
 
 __all__ = [
@@ -73,11 +75,7 @@ def quote_bytea_raw(s):
     if 1 and _bytea_map is None:
         _bytea_map = {}
         for i in range(256):
-            if sys.version_info[0] < 3:
-                c = chr(i)
-            else:
-                c = i
-
+            c = _bytes_val(i)
             if i < 0x20 or i >= 0x7F:
                 _bytea_map[c] = "\\%03o" % i
             elif i == ord("\\"):
@@ -200,7 +198,7 @@ def unquote_literal(val, stdstr = False):
             t2 = val[p2:]
             if t1 == t2:
                 return val[len(t1):-len(t1)]
-        raise Exception("Bad dollar-quoted string")
+        raise ValueError("Bad dollar-quoted string")
     elif val.lower() == "null":
         return None
     return val
