@@ -79,7 +79,7 @@ class _logtriga_parser(object):
     pklist = None
     def tokenizer(self, sql):
         """Token generator."""
-        for ___typ, tok in sql_tokenizer(sql, ignore_whitespace = True):
+        for ___typ, tok in sql_tokenizer(sql, ignore_whitespace=True):
             yield tok
 
     def parse_insert(self, tk, fields, values, key_fields, key_values):
@@ -271,7 +271,7 @@ _extstr = r""" ['] (?: [^'\\]+ | \\. | [']['] )* ['] """
 _stdstr = r""" ['] (?: [^']+ | [']['] )* ['] """
 _name = r""" (?: [a-z_][a-z0-9_$]* | " (?: [^"]+ | "" )* " ) """
 
-_ident   = r""" (?P<ident> %s ) """ % _name
+_ident = r""" (?P<ident> %s ) """ % _name
 _fqident = r""" (?P<ident> %s (?: \. %s )* ) """ % (_name, _name)
 
 _base_sql = r"""
@@ -287,17 +287,17 @@ _base_sql = r"""
     | (?P<error>  . )"""
 
 _base_sql_fq = r"%s | %s" % (_fqident, _base_sql)
-_base_sql    = r"%s | %s" % (_ident, _base_sql)
+_base_sql = r"%s | %s" % (_ident, _base_sql)
 
-_std_sql    = r"""(?: (?P<str> [E] %s | %s ) | %s )""" % (_extstr, _stdstr, _base_sql)
+_std_sql = r"""(?: (?P<str> [E] %s | %s ) | %s )""" % (_extstr, _stdstr, _base_sql)
 _std_sql_fq = r"""(?: (?P<str> [E] %s | %s ) | %s )""" % (_extstr, _stdstr, _base_sql_fq)
-_ext_sql    = r"""(?: (?P<str> [E]? %s ) | %s )""" % (_extstr, _base_sql)
+_ext_sql = r"""(?: (?P<str> [E]? %s ) | %s )""" % (_extstr, _base_sql)
 _ext_sql_fq = r"""(?: (?P<str> [E]? %s ) | %s )""" % (_extstr, _base_sql_fq)
 _std_sql_rc = _ext_sql_rc = None
 _std_sql_fq_rc = _ext_sql_fq_rc = None
 
-def sql_tokenizer(sql, standard_quoting = False, ignore_whitespace = False,
-                  fqident = False, show_location = False):
+def sql_tokenizer(sql, standard_quoting=False, ignore_whitespace=False,
+                  fqident=False, show_location=False):
     r"""Parser SQL to tokens.
 
     Iterator, returns (toktype, tokstr) tuples.
@@ -352,7 +352,7 @@ def sql_tokenizer(sql, standard_quoting = False, ignore_whitespace = False,
 
 _copy_from_stdin_re = r"copy.*from\s+stdin"
 _copy_from_stdin_rc = None
-def parse_statements(sql, standard_quoting = False):
+def parse_statements(sql, standard_quoting=False):
     """Parse multi-statement string into separate statements.
 
     Returns list of statements.
@@ -378,7 +378,7 @@ def parse_statements(sql, standard_quoting = False):
         _copy_from_stdin_rc = re.compile(_copy_from_stdin_re, re.X | re.I)
     tokens = []
     pcount = 0 # '(' level
-    for typ, t in sql_tokenizer(sql, standard_quoting = standard_quoting):
+    for typ, t in sql_tokenizer(sql, standard_quoting=standard_quoting):
         # skip whitespace and comments before statement
         if len(tokens) == 0 and typ == "ws":
             continue
@@ -474,7 +474,7 @@ def dedent(doc):
             pfx = ln[ : wslen]
         if pfx:
             if ln.startswith(pfx):
-                ln = ln[ len(pfx) : ]
+                ln = ln[len(pfx):]
         res.append(ln)
     res.append('')
     return '\n'.join(res)
@@ -487,9 +487,10 @@ def hsize_to_bytes(input_str):
     (10737418240, 12288)
     """
 
-    assert isinstance (input_str, str)
-    m = re.match (r"^([0-9]+) *([KMGTPEZY]?)B?$", input_str.strip(), re.IGNORECASE)
-    if not m: raise ValueError ("cannot parse: %s" % input_str)
+    assert isinstance(input_str, str)
+    m = re.match(r"^([0-9]+) *([KMGTPEZY]?)B?$", input_str.strip(), re.IGNORECASE)
+    if not m:
+        raise ValueError("cannot parse: %s" % input_str)
     units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
     nbytes = int(m.group(1)) * 1024 ** units.index(m.group(2).upper())
     return nbytes
@@ -533,7 +534,7 @@ def parse_connect_string(cstr):
         v = m.group(2)
         if v[0] == "'":
             v = _cstr_unesc_rc.sub(r"\1", v)
-        res.append( (k,v) )
+        res.append((k, v))
     return res
 
 def merge_connect_string(cstr_arg_list):

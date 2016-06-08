@@ -97,7 +97,7 @@ class CachedPlan(DList):
 class PlanCache(object):
     """Cache for limited amount of plans."""
 
-    def __init__(self, maxplans = 100):
+    def __init__(self, maxplans=100):
         self.maxplans = maxplans
         self.plan_map = {}
         self.plan_list = DList()
@@ -159,14 +159,14 @@ class QueryBuilderCore(object):
         self._nargs = 0
 
         if sqlexpr:
-            self.add(sqlexpr, required = True)
+            self.add(sqlexpr, required=True)
 
-    def add(self, expr, sql_type = "text", required = False):
+    def add(self, expr, sql_type="text", required=False):
         """Add SQL fragment to query.
         """
         self._add_expr('', expr, self._params, sql_type, required)
 
-    def get_sql(self, param_type = PARAM_INLINE):
+    def get_sql(self, param_type=PARAM_INLINE):
         """Return generated SQL (thus far) as string.
 
         Possible values for param_type:
@@ -256,7 +256,7 @@ class QueryBuilder(QueryBuilderCore):
 
 class PLPyQueryBuilder(QueryBuilderCore):
 
-    def __init__(self, sqlexpr, params, plan_cache = None, sqls = None):
+    def __init__(self, sqlexpr, params, plan_cache=None, sqls=None):
         """Init the object.
 
         @param sqlexpr:     Partial sql fragment.
@@ -289,7 +289,7 @@ class PLPyQueryBuilder(QueryBuilderCore):
         types = self._arg_type_list
 
         if self._sqls is not None:
-            self._sqls.append( { "sql": self.get_sql(PARAM_INLINE) } )
+            self._sqls.append({"sql": self.get_sql(PARAM_INLINE)})
 
         if self._plan_cache is not None:
             sql = self.get_sql(PARAM_PLPY)
@@ -311,12 +311,12 @@ class PLPyQuery(object):
     def __init__(self, sql):
         qb = QueryBuilder(sql, None)
         p_sql = qb.get_sql(PARAM_PLPY)
-        p_types =  qb._arg_type_list
+        p_types = qb._arg_type_list
         self.plan = plpy.prepare(p_sql, p_types)
         self.arg_map = qb._arg_value_list
         self.sql = sql
 
-    def execute(self, arg_dict, all_keys_required = True):
+    def execute(self, arg_dict, all_keys_required=True):
         try:
             if all_keys_required:
                 arg_list = [arg_dict[k] for k in self.arg_map]
@@ -333,7 +333,7 @@ class PLPyQuery(object):
     def __repr__(self):
         return 'PLPyQuery<%s>' % self.sql
 
-def plpy_exec(gd, sql, args, all_keys_required = True):
+def plpy_exec(gd, sql, args, all_keys_required=True):
     """Cached plan execution for PL/Python.
 
     @param gd:  dict to store cached plans under.  If None, caching is disabled.
@@ -368,7 +368,7 @@ def plpy_exec(gd, sql, args, all_keys_required = True):
 
 # some helper functions for convenient sql execution
 
-def run_query(cur, sql, params = None, **kwargs):
+def run_query(cur, sql, params=None, **kwargs):
     """ Helper function if everything you need is just paramertisized execute
         Sets rows_found that is coneninet to use when you don't need result just
         want to know how many rows were affected
@@ -382,7 +382,7 @@ def run_query(cur, sql, params = None, **kwargs):
         rows = [skytools.dbdict(r) for r in rows]
     return rows
 
-def run_query_row(cur, sql, params = None, **kwargs):
+def run_query_row(cur, sql, params=None, **kwargs):
     """ Helper function if everything you need is just paramertisized execute to
         fetch one row only. If not found none is returned
     """
@@ -392,7 +392,7 @@ def run_query_row(cur, sql, params = None, **kwargs):
         return None
     return rows[0]
 
-def run_lookup(cur, sql, params = None, **kwargs):
+def run_lookup(cur, sql, params=None, **kwargs):
     """ Helper function to fetch one value Takes away all the hassle of preparing statements
         and processing returned result giving out just one value.
     """
@@ -404,7 +404,7 @@ def run_lookup(cur, sql, params = None, **kwargs):
         return None
     return row[0]
 
-def run_exists(cur, sql, params = None, **kwargs):
+def run_exists(cur, sql, params=None, **kwargs):
     """ Helper function to fetch one value Takes away all the hassle of preparing statements
         and processing returned result giving out just one value.
     """
@@ -418,7 +418,7 @@ class fake_plpy(object):
     def prepare(self, sql, types):
         print("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
         return ('PLAN', sql, types)
-    def execute(self, plan, args = ()):
+    def execute(self, plan, args=()):
         print("DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args)))
     def error(self, msg):
         print("DBG: plpy.error(%s)" % repr(msg))

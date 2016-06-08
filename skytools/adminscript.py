@@ -61,7 +61,7 @@ class AdminScript(skytools.DBScript):
         # run command
         fn(*cmdargs)
 
-    def fetch_list(self, db, sql, args, keycol = None):
+    def fetch_list(self, db, sql, args, keycol=None):
         """Fetch a resultset from db, optionally turning it into value list."""
         curs = db.cursor()
         curs.execute(sql, args)
@@ -73,8 +73,7 @@ class AdminScript(skytools.DBScript):
             res = [r[keycol] for r in rows]
         return res
 
-    def display_table(self, db, desc, sql, args = (), fields = (),
-                      fieldfmt = None):
+    def display_table(self, db, desc, sql, args=(), fields=(), fieldfmt=None):
         """Display multirow query as a table."""
 
         self.log.debug("display_table: %s", skytools.quote_statement(sql, args))
@@ -102,7 +101,7 @@ class AdminScript(skytools.DBScript):
         if desc:
             print(desc)
         print(fmt % tuple(fields))
-        print(fmt % tuple([ '-' * (w - 2) for w in widths ]))
+        print(fmt % tuple(['-' * (w - 2) for w in widths]))
         #print(fmt % tuple(['-'*15] * len(fields)))
         for row in rows:
             vals = []

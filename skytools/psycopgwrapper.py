@@ -107,16 +107,16 @@ class _CompatConnection(psycopg2.extensions.connection):
     """Connection object that uses _CompatCursor."""
     my_name = '?'
     server_version = None
-    def cursor(self, name = None):
+    def cursor(self, name=None):
         if name:
             return super(_CompatConnection, self).cursor(cursor_factory=_CompatCursor, name=name)
         else:
             return super(_CompatConnection, self).cursor(cursor_factory=_CompatCursor)
 
-def connect_database(connstr, keepalive = True,
-                     tcp_keepidle = 4 * 60,     # 7200
-                     tcp_keepcnt = 4,           # 9
-                     tcp_keepintvl = 15):       # 75
+def connect_database(connstr, keepalive=True,
+                     tcp_keepidle=4*60,       # 7200
+                     tcp_keepcnt=4,           # 9
+                     tcp_keepintvl=15):       # 75
     """Create a db connection with connect_timeout and TCP keepalive.
 
     Default connect_timeout is 15, to change put it directly into dsn.

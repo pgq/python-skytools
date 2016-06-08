@@ -109,7 +109,8 @@ def quote_fqident(s):
 #
 
 _jsre = re.compile(r'[\x00-\x1F\\/"]')
-_jsmap = { "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r",
+_jsmap = {
+    "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r",
     "\t": "\\t", "\\": "\\\\", '"': '\\"',
     "/": "\\/",   # to avoid html attacks
 }
@@ -166,7 +167,7 @@ def unquote_fqident(val):
     tmp = val.split('.', 1)
     return '.'.join([unquote_ident(i) for i in tmp])
 
-def json_encode(val = None, **kwargs):
+def json_encode(val=None, **kwargs):
     """Creates JSON string from Python object.
 
     >>> json_encode({'a': 1})

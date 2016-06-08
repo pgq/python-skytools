@@ -52,13 +52,13 @@ def canapply_tstamp_helper(rnew, rold, tscol):
     return tnew > told
 
 def applyrow(tblname, ev_type, new_row,
-             backup_row = None,
-             alt_pkey_cols = None,
-             fkey_cols = None,
-             fkey_ref_table = None,
-             fkey_ref_cols = None,
-             fn_canapply = canapply_dummy,
-             fn_colfilter = colfilter_full):
+             backup_row=None,
+             alt_pkey_cols=None,
+             fkey_cols=None,
+             fkey_ref_table=None,
+             fkey_ref_cols=None,
+             fn_canapply=canapply_dummy,
+             fn_colfilter=colfilter_full):
     """Core logic.  Actual decisions will be done in callback functions.
 
     - [IUD]: If row referenced by fkey does not exist, event is not applied
@@ -210,10 +210,10 @@ def ts_conflict_handler(gd, args):
         return canapply_tstamp_helper(rnew, rold, timefield)
 
     return applyrow(ev_extra1, ev_type, ev_data,
-                    backup_row = ev_extra2,
-                    alt_pkey_cols = altpk,
-                    fkey_ref_table = conf.get('fkey_ref_table'),
-                    fkey_ref_cols = conf.get('fkey_ref_cols'),
-                    fkey_cols = conf.get('fkey_cols'),
-                    fn_canapply = ts_canapply)
+                    backup_row=ev_extra2,
+                    alt_pkey_cols=altpk,
+                    fkey_ref_table=conf.get('fkey_ref_table'),
+                    fkey_ref_cols=conf.get('fkey_ref_cols'),
+                    fkey_cols=conf.get('fkey_cols'),
+                    fn_canapply=ts_canapply)
 

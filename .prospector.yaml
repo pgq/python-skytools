@@ -21,9 +21,6 @@ pylint:
     # optparse
     - deprecated-module
 
-    # kwargs
-    - bad-whitespace
-
     - bare-except
     - broad-except
     - invalid-name

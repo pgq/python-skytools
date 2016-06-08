@@ -36,7 +36,7 @@ class TableRepair(object):
         self.apply_fixes = False
         self.apply_cursor = None
 
-    def do_repair(self, src_db, dst_db, where, pfx = 'repair', apply_fixes = False):
+    def do_repair(self, src_db, dst_db, where, pfx='repair', apply_fixes=False):
         """Actual comparison."""
 
         self.reset()
@@ -95,7 +95,7 @@ class TableRepair(object):
         cmdline.append('-o')
         cmdline.append(dst)
         cmdline.append(src)
-        p = subprocess.Popen(cmdline, env = xenv)
+        p = subprocess.Popen(cmdline, env=xenv)
         if p.wait() != 0:
             raise Exception('sort failed')
 
@@ -323,13 +323,11 @@ class Syncer(skytools.DBScript):
         where table should be in sync.
         """
 
-        setup_db = self.get_database('setup_db', connstr = cstr1, autocommit = 1)
-        lock_db = self.get_database('lock_db', connstr = cstr1)
+        setup_db = self.get_database('setup_db', connstr=cstr1, autocommit=1)
+        lock_db = self.get_database('lock_db', connstr=cstr1)
 
-        src_db = self.get_database('src_db', connstr = cstr1,
-                isolation_level = skytools.I_REPEATABLE_READ)
-        dst_db = self.get_database('dst_db', connstr = cstr2,
-                isolation_level = skytools.I_REPEATABLE_READ)
+        src_db = self.get_database('src_db', connstr=cstr1, isolation_level=skytools.I_REPEATABLE_READ)
+        dst_db = self.get_database('dst_db', connstr=cstr2, isolation_level=skytools.I_REPEATABLE_READ)
 
         lock_curs = lock_db.cursor()
         setup_curs = setup_db.cursor()

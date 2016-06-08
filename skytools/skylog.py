@@ -77,7 +77,7 @@ logging.LogRecord = _NewLogRecord
 # configurable file logger
 class EasyRotatingFileHandler(logging.handlers.RotatingFileHandler):
     """Easier setup for RotatingFileHandler."""
-    def __init__(self, filename, maxBytes = 10*1024*1024, backupCount = 3):
+    def __init__(self, filename, maxBytes=10*1024*1024, backupCount=3):
         """Args same as for RotatingFileHandler, but in filename '~' is expanded."""
         fn = os.path.expanduser(filename)
         super(EasyRotatingFileHandler, self).__init__(fn, maxBytes=maxBytes, backupCount=backupCount)
@@ -345,10 +345,8 @@ class SysLogHostnameHandler(SysLogHandler):
     def _custom_format(self, record):
         msg = self.format(record)
         format_string = '<%d> %s %s %s\000'
-        msg = format_string % (self.encodePriority(self.facility,self.mapPriority(record.levelname)),
-                               _hostname,
-                               _service_name,
-                               msg)
+        msg = format_string % (self.encodePriority(self.facility, self.mapPriority(record.levelname)),
+                               _hostname, _service_name, msg)
         return msg
 
 

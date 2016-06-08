@@ -56,7 +56,7 @@ def uint32(x):
 
 FMT_OLD = struct.Struct("<LLL")
 
-def mix_old(a,b,c):
+def mix_old(a, b, c):
     c = uint32(c)
 
     a -= b; a -= c; a = uint32(a ^ (c>>13))
@@ -109,27 +109,27 @@ def hashtext_old_py(k):
 
 FMT_NEW = struct.Struct("=LLL")
 
-def rol32(x,k):
+def rol32(x, k):
     return ((x)<<(k)) | (uint32(x)>>(32-(k)))
 
-def mix_new(a,b,c):
+def mix_new(a, b, c):
     a -= c;  a ^= rol32(c, 4);  c += b
     b -= a;  b ^= rol32(a, 6);  a += c
     c -= b;  c ^= rol32(b, 8);  b += a
-    a -= c;  a ^= rol32(c,16);  c += b
-    b -= a;  b ^= rol32(a,19);  a += c
+    a -= c;  a ^= rol32(c, 16); c += b
+    b -= a;  b ^= rol32(a, 19); a += c
     c -= b;  c ^= rol32(b, 4);  b += a
 
     return uint32(a), uint32(b), uint32(c)
 
-def final_new(a,b,c):
-    c ^= b; c -= rol32(b,14)
-    a ^= c; a -= rol32(c,11)
-    b ^= a; b -= rol32(a,25)
-    c ^= b; c -= rol32(b,16)
+def final_new(a, b, c):
+    c ^= b; c -= rol32(b, 14)
+    a ^= c; a -= rol32(c, 11)
+    b ^= a; b -= rol32(a, 25)
+    c ^= b; c -= rol32(b, 16)
     a ^= c; a -= rol32(c, 4)
-    b ^= a; b -= rol32(a,14)
-    c ^= b; c -= rol32(b,24)
+    b ^= a; b -= rol32(a, 14)
+    c ^= b; c -= rol32(b, 24)
 
     return uint32(a), uint32(b), uint32(c)
 

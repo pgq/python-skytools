@@ -14,19 +14,19 @@ __all__ = ['TableStruct', 'SeqStruct',
     'T_RULE', 'T_GRANT', 'T_OWNER', 'T_PKEY', 'T_ALL',
     'T_SEQUENCE', 'T_PARENT', 'T_DEFAULT']
 
-T_TABLE       = 1 << 0
-T_CONSTRAINT  = 1 << 1
-T_INDEX       = 1 << 2
-T_TRIGGER     = 1 << 3
-T_RULE        = 1 << 4
-T_GRANT       = 1 << 5
-T_OWNER       = 1 << 6
-T_SEQUENCE    = 1 << 7
-T_PARENT      = 1 << 8
-T_DEFAULT     = 1 << 9
-T_PKEY        = 1 << 20 # special, one of constraints
-T_ALL = (  T_TABLE | T_CONSTRAINT | T_INDEX | T_SEQUENCE
-         | T_TRIGGER | T_RULE | T_GRANT | T_OWNER | T_DEFAULT )
+T_TABLE = 1 << 0
+T_CONSTRAINT = 1 << 1
+T_INDEX = 1 << 2
+T_TRIGGER = 1 << 3
+T_RULE = 1 << 4
+T_GRANT = 1 << 5
+T_OWNER = 1 << 6
+T_SEQUENCE = 1 << 7
+T_PARENT = 1 << 8
+T_DEFAULT = 1 << 9
+T_PKEY = 1 << 20  # special, one of constraints
+T_ALL = (T_TABLE | T_CONSTRAINT | T_INDEX | T_SEQUENCE
+         | T_TRIGGER | T_RULE | T_GRANT | T_OWNER | T_DEFAULT)
 
 #
 # Utility functions
@@ -70,7 +70,7 @@ class TElem(object):
     """Keeps info about one metadata object."""
     SQL = ""
     type = 0
-    def get_create_sql(self, curs, new_name = None):
+    def get_create_sql(self, curs, new_name=None):
         """Return SQL statement for creating or None if not supported."""
         return None
     def get_drop_sql(self, curs):
@@ -121,7 +121,7 @@ class TConstraint(TElem):
             qname = quote_ident(self.name)
         sql = fmt % (qtbl, qname, self.defn)
         if self.is_clustered:
-            sql +=' ALTER TABLE ONLY %s\n  CLUSTER ON %s;' % (qtbl, qname)
+            sql += ' ALTER TABLE ONLY %s\n  CLUSTER ON %s;' % (qtbl, qname)
         return sql
 
     def get_drop_sql(self, curs):
@@ -154,7 +154,7 @@ class TIndex(TElem):
         self.table_name = table_name
         self.local_name = row['local_name']
 
-    def get_create_sql(self, curs, new_table_name = None):
+    def get_create_sql(self, curs, new_table_name=None):
         """Generate creation SQL."""
         if new_table_name:
             # fixme: seems broken
@@ -182,13 +182,13 @@ class TRule(TElem):
               FROM pg_rewrite rw
              WHERE rw.ev_class = %(oid)s AND rw.rulename <> '_RETURN'::name
     """
-    def __init__(self, table_name, row, new_name = None):
+    def __init__(self, table_name, row, new_name=None):
         self.table_name = table_name
         self.name = row['rulename']
         self.defn = row['def']
         self.enabled = row.get('ev_enabled', 'O')
 
-    def get_create_sql(self, curs, new_table_name = None):
+    def get_create_sql(self, curs, new_table_name=None):
         """Generate creation SQL."""
         if not new_table_name:
             sql = self.defn
@@ -212,7 +212,7 @@ class TRule(TElem):
             # A - rule fires always
             action = {'R': 'ENABLE REPLICA',
                       'A': 'ENABLE ALWAYS',
-                      'D': 'DISABLE'} [self.enabled]
+                      'D': 'DISABLE'}[self.enabled]
             sql += ('\nALTER TABLE %s %s RULE %s;' % (table, action, self.name))
         return sql
 
@@ -230,7 +230,7 @@ class TTrigger(TElem):
         self.defn = row['def'] + ';'
         self.defn = self.defn.replace('FOR EACH', '\n  FOR EACH', 1)
 
-    def get_create_sql(self, curs, new_table_name = None):
+    def get_create_sql(self, curs, new_table_name=None):
         """Generate creation SQL."""
         if not new_table_name:
             return self.defn
@@ -270,7 +270,7 @@ class TParent(TElem):
         self.name = table_name
         self.parent_name = row['name']
 
-    def get_create_sql(self, curs, new_table_name = None):
+    def get_create_sql(self, curs, new_table_name=None):
         return 'ALTER TABLE ONLY %s\n  INHERIT %s' % (quote_fqident(self.name), quote_fqident(self.parent_name))
 
     def get_drop_sql(self, curs):
@@ -284,12 +284,12 @@ class TOwner(TElem):
         SELECT pg_get_userbyid(relowner) as owner FROM pg_class
          WHERE oid = %(oid)s
     """
-    def __init__(self, table_name, row, new_name = None):
+    def __init__(self, table_name, row, new_name=None):
         self.table_name = table_name
         self.name = 'Owner'
         self.owner = row['owner']
 
-    def get_create_sql(self, curs, new_name = None):
+    def get_create_sql(self, curs, new_name=None):
         """Generate creation SQL."""
         if not new_name:
             new_name = self.table_name
@@ -346,11 +346,11 @@ class TGrant(TElem):
             tup_list.append(acl)
         return tup_list
 
-    def __init__(self, table_name, row, new_name = None):
+    def __init__(self, table_name, row, new_name=None):
         self.name = table_name
         self.acl_list = self.parse_relacl(row['relacl'])
 
-    def get_create_sql(self, curs, new_name = None):
+    def get_create_sql(self, curs, new_name=None):
         """Generate creation SQL."""
         if not new_name:
             new_name = self.name
@@ -394,7 +394,7 @@ class TColumnDefault(TElem):
         self.name = row['name']
         self.expr = row['expr']
 
-    def get_create_sql(self, curs, new_name = None):
+    def get_create_sql(self, curs, new_name=None):
         """Generate creation SQL."""
         tbl = new_name or self.table_name
         sql = "ALTER TABLE ONLY %s ALTER COLUMN %s\n  SET DEFAULT %s;" % (
@@ -453,12 +453,12 @@ class TGPDistKey(TElem):
 class TTable(TElem):
     """Info about table only (columns)."""
     type = T_TABLE
-    def __init__(self, table_name, col_list, dist_key_list = None):
+    def __init__(self, table_name, col_list, dist_key_list=None):
         self.name = table_name
         self.col_list = col_list
         self.dist_key_list = dist_key_list
 
-    def get_create_sql(self, curs, new_name = None):
+    def get_create_sql(self, curs, new_name=None):
         """Generate creation SQL."""
         if not new_name:
             new_name = self.name
@@ -511,13 +511,13 @@ class TSeq(TElem):
             defn += ' OWNED BY %s' % self.owner
         self.defn = defn
 
-    def get_create_sql(self, curs, new_seq_name = None):
+    def get_create_sql(self, curs, new_seq_name=None):
         """Generate creation SQL."""
 
         # we are in table def, forget full def
         if self.owner:
             sql = "ALTER SEQUENCE %s\n  OWNED BY %s;" % (
-                    quote_fqident(self.name), self.owner )
+                    quote_fqident(self.name), self.owner)
             return sql
 
         name = self.name
@@ -558,7 +558,7 @@ class BaseStruct(object):
             elem_list.append(eclass(name, row))
         return elem_list
 
-    def create(self, curs, objs, new_table_name = None, log = None):
+    def create(self, curs, objs, new_table_name=None, log=None):
         """Issues CREATE statements for requested set of objects.
 
         If new_table_name is giver, creates table under that name
@@ -576,7 +576,7 @@ class BaseStruct(object):
                     log.debug(sql)
                 curs.execute(sql)
 
-    def drop(self, curs, objs, log = None):
+    def drop(self, curs, objs, log=None):
         """Issues DROP statements for requested set of objects."""
         # make sure the creating & dropping happen in reverse order
         olist = self.object_list[:]
@@ -628,12 +628,10 @@ class TableStruct(BaseStruct):
         self.col_list = self._load_elem(curs, self.name, args, TColumn)
         # if db is GP then read also table distribution keys
         if skytools.exists_table(curs, "pg_catalog.gp_distribution_policy"):
-            self.dist_key_list = self._load_elem(curs, self.name, args,
-                                                 TGPDistKey)
+            self.dist_key_list = self._load_elem(curs, self.name, args, TGPDistKey)
         else:
             self.dist_key_list = None
-        self.object_list = [ TTable(table_name, self.col_list,
-                                    self.dist_key_list) ]
+        self.object_list = [TTable(table_name, self.col_list, self.dist_key_list)]
         self.seq_list = []
 
         # load seqs
@@ -641,7 +639,7 @@ class TableStruct(BaseStruct):
             if col.seqname:
                 fqname = quote_fqident(col.seqname)
                 owner = self.fqname + '.' + quote_ident(col.name)
-                seq_args = { 'fqname': fqname, 'owner': skytools.quote_literal(owner) }
+                seq_args = {'fqname': fqname, 'owner': skytools.quote_literal(owner)}
                 self.seq_list += self._load_elem(curs, col.seqname, seq_args, TSeq)
         self.object_list += self.seq_list
 
@@ -671,7 +669,7 @@ class SeqStruct(BaseStruct):
         super(SeqStruct, self).__init__(curs, seq_name)
 
         # fill args
-        args = { 'fqname': self.fqname, 'owner': 'null' }
+        args = {'fqname': self.fqname, 'owner': 'null'}
 
         # load table struct
         self.object_list = self._load_elem(curs, seq_name, args, TSeq)

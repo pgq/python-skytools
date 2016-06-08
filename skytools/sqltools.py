@@ -301,7 +301,7 @@ def _gen_list_insert(tbl, row, fields, qfields):
     fmt = "insert into %s (%s) values (%s);"
     return fmt % (tbl, ",".join(qfields), ",".join(tmp))
 
-def magic_insert(curs, tablename, data, fields = None, use_insert = False, quoted_table = False):
+def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_table=False):
     r"""Copy/insert a list of dict/list data to database.
 
     If curs is None, then the copy or insert statements are returned
@@ -394,8 +394,7 @@ def magic_insert(curs, tablename, data, fields = None, use_insert = False, quote
 class CopyPipe(object):
     "Splits one big COPY to chunks."
 
-    def __init__(self, dstcurs, tablename = None, limit = 512*1024,
-                 sql_from = None):
+    def __init__(self, dstcurs, tablename=None, limit=512*1024, sql_from=None):
         self.tablename = tablename
         self.sql_from = sql_from
         self.dstcurs = dstcurs
@@ -451,9 +450,9 @@ class CopyPipe(object):
         self.buf.truncate()
 
 
-def full_copy(tablename, src_curs, dst_curs, column_list = (), condition = None,
-        dst_tablename = None, dst_column_list = None,
-        write_hook = None, flush_hook = None):
+def full_copy(tablename, src_curs, dst_curs, column_list=(), condition=None,
+        dst_tablename=None, dst_column_list=None,
+        write_hook=None, flush_hook=None):
     """COPY table from one db to another."""
 
     # default dst table and dst columns to source ones
@@ -487,7 +486,7 @@ def full_copy(tablename, src_curs, dst_curs, column_list = (), condition = None,
     if hasattr(src_curs, 'copy_expert'):
         sql_to = "COPY %s TO stdout" % src
         sql_from = "COPY %s FROM stdin" % dst
-        buf = CopyPipe(dst_curs, sql_from = sql_from)
+        buf = CopyPipe(dst_curs, sql_from=sql_from)
         buf.write_hook = write_hook
         buf.flush_hook = flush_hook
         src_curs.copy_expert(sql_to, buf)
@@ -513,13 +512,13 @@ class DBObject(object):
     name = None
     sql = None
     sql_file = None
-    def __init__(self, name, sql = None, sql_file = None):
+    def __init__(self, name, sql=None, sql_file=None):
         """Generic dbobject init."""
         self.name = name
         self.sql = sql
         self.sql_file = sql_file
 
-    def create(self, curs, log = None):
+    def create(self, curs, log=None):
         """Create a dbobject."""
         if log:
             log.info('Installing %s' % self.name)
@@ -554,7 +553,7 @@ class DBTable(DBObject):
 
 class DBFunction(DBObject):
     """Handles db function."""
-    def __init__(self, name, nargs, sql = None, sql_file = None):
+    def __init__(self, name, nargs, sql=None, sql_file=None):
         """Function object - number of args is significant."""
         super(DBFunction, self).__init__(name, sql, sql_file)
         self.nargs = nargs
@@ -566,12 +565,12 @@ class DBLanguage(DBObject):
     """Handles db language."""
     def __init__(self, name):
         """PL object - creation happens with CREATE LANGUAGE."""
-        super(DBLanguage, self).__init__(name, sql = "create language %s" % name)
+        super(DBLanguage, self).__init__(name, sql="create language %s" % name)
     def exists(self, curs):
         """Does PL exists."""
         return exists_language(curs, self.name)
 
-def db_install(curs, obj_list, log = None):
+def db_install(curs, obj_list, log=None):
     """Installs list of objects into db."""
     for obj in obj_list:
         if not obj.exists(curs):
@@ -614,7 +613,7 @@ def installer_apply_file(db, filename, log):
 # Generate INSERT/UPDATE/DELETE statement
 #
 
-def mk_insert_sql(row, tbl, pkey_list = None, field_map = None):
+def mk_insert_sql(row, tbl, pkey_list=None, field_map=None):
     """Generate INSERT statement from dict data.
 
     >>> from collections import OrderedDict
@@ -641,7 +640,7 @@ def mk_insert_sql(row, tbl, pkey_list = None, field_map = None):
     return "insert into %s (%s) values (%s);" % (
                     skytools.quote_fqident(tbl), col_str, val_str)
 
-def mk_update_sql(row, tbl, pkey_list, field_map = None):
+def mk_update_sql(row, tbl, pkey_list, field_map=None):
     r"""Generate UPDATE statement from dict data.
 
     >>> mk_update_sql({'id': 0, 'id2': '2', 'data': 'str\\'}, 'Table', ['id', 'id2'])
@@ -683,7 +682,7 @@ def mk_update_sql(row, tbl, pkey_list, field_map = None):
     return "update only %s set %s where %s;" % (skytools.quote_fqident(tbl),
             ", ".join(set_list), " and ".join(whe_list))
 
-def mk_delete_sql(row, tbl, pkey_list, field_map = None):
+def mk_delete_sql(row, tbl, pkey_list, field_map=None):
     """Generate DELETE statement from dict data.
 
     >>> mk_delete_sql({'a': 1, 'b':2, 'c':3}, 'tablename', ['a','b'])

@@ -25,14 +25,14 @@ class FixedOffsetTimezone(tzinfo):
     def __init__(self, offset):
         super(FixedOffsetTimezone, self).__init__()
 
-        self.__offset = timedelta(minutes = offset)
+        self.__offset = timedelta(minutes=offset)
 
         # numeric tz name
         h, m = divmod(abs(offset), 60)
         if offset < 0:
             h = -h
         if m:
-            self.__name = "%+03d:%02d" % (h,m)
+            self.__name = "%+03d:%02d" % (h, m)
         else:
             self.__name = "%+03d" % h
 
@@ -69,7 +69,7 @@ _iso_regex = r"""
     """
 _iso_rc = None
 
-def parse_iso_timestamp(s, default_tz = None):
+def parse_iso_timestamp(s, default_tz=None):
     """Parse ISO timestamp to datetime object.
 
     YYYY-MM-DD[ T]HH:MM[:SS[.ss]][-+HH[:MM]]

@@ -30,8 +30,8 @@ class Config(object):
      - Accepts defaults in get() functions.
      - List value support.
     """
-    def __init__(self, main_section, filename, sane_config = None,
-                 user_defs = None, override = None, ignore_defs = False):
+    def __init__(self, main_section, filename, sane_config=None,
+                 user_defs=None, override=None, ignore_defs=False):
         """Initialize Config and read from file.
         """
         # use config file name as default job_name

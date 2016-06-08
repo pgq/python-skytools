@@ -17,11 +17,11 @@ __all__ = ['natsort_key', 'natsort', 'natsorted',
 
 def natsort_key(s):
     """Split string to numeric and non-numeric fragments."""
-    return [ not f[0].isdigit() and f or int(f, 10) for f in _rc.findall(s) ]
+    return [not f[0].isdigit() and f or int(f, 10) for f in _rc.findall(s)]
 
 def natsort(lst):
     """Natural in-place sort, case-sensitive."""
-    lst.sort(key = natsort_key)
+    lst.sort(key=natsort_key)
 
 def natsorted(lst):
     """Return copy of list, sorted in natural order, case-sensitive.
@@ -41,7 +41,7 @@ def natsort_key_icase(s):
 
 def natsort_icase(lst):
     """Natural in-place sort, case-sensitive."""
-    lst.sort(key = natsort_key_icase)
+    lst.sort(key=natsort_key_icase)
 
 def natsorted_icase(lst):
     """Return copy of list, sorted in natural order, case-sensitive.

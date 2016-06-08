@@ -175,7 +175,7 @@ def _sub_unescape_sqlext(m):
             return v
     return chr(int(v, 8))
 
-def unquote_literal(val, stdstr = False):
+def unquote_literal(val, stdstr=False):
     """Unquotes SQL string.
 
     E'..' -> extended quoting.

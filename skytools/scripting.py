@@ -390,10 +390,10 @@ class BaseScript(object):
             sys.exit(1)
         conf_file = self.args[0]
         return skytools.Config(self.service_name, conf_file,
-                               user_defs = self.cf_defaults,
-                               override = self.cf_override)
+                               user_defs=self.cf_defaults,
+                               override=self.cf_override)
 
-    def init_optparse(self, parser = None):
+    def init_optparse(self, parser=None):
         """Initialize a OptionParser() instance that will be used to
         parse command line arguments.
 
@@ -413,29 +413,29 @@ class BaseScript(object):
 
         # generic options
         p.add_option("-q", "--quiet", action="store_true",
-                     help = "log only errors and warnings")
+                     help="log only errors and warnings")
         p.add_option("-v", "--verbose", action="count",
-                     help = "log verbosely")
+                     help="log verbosely")
         p.add_option("-d", "--daemon", action="store_true",
-                     help = "go background")
+                     help="go background")
         p.add_option("-V", "--version", action="store_true",
-                     help = "print version info and exit")
+                     help="print version info and exit")
         p.add_option("", "--ini", action="store_true",
-                    help = "display sample ini file")
+                    help="display sample ini file")
         p.add_option("", "--set", action="append",
-                    help = "override config setting (--set 'PARAM=VAL')")
+                    help="override config setting (--set 'PARAM=VAL')")
 
         # control options
         g = optparse.OptionGroup(p, 'control running process')
         g.add_option("-r", "--reload",
                      action="store_const", const="reload", dest="cmd",
-                     help = "reload config (send SIGHUP)")
+                     help="reload config (send SIGHUP)")
         g.add_option("-s", "--stop",
                      action="store_const", const="stop", dest="cmd",
-                     help = "stop program safely (send SIGINT)")
+                     help="stop program safely (send SIGINT)")
         g.add_option("-k", "--kill",
                      action="store_const", const="kill", dest="cmd",
-                     help = "kill program immediately (send SIGTERM)")
+                     help="kill program immediately (send SIGTERM)")
         p.add_option_group(g)
 
         return p
@@ -480,7 +480,7 @@ class BaseScript(object):
             self.cf = self.load_config()
         else:
             self.cf.reload()
-            self.log.info ("Config reloaded")
+            self.log.info("Config reloaded")
         self.job_name = self.cf.get("job_name")
         self.pidfile = self.cf.getfile("pidfile", '')
         self.loop_delay = self.cf.getfloat("loop_delay", self.loop_delay)
@@ -515,7 +515,7 @@ class BaseScript(object):
         """Sets a stat value."""
         self.stat_dict[key] = value
 
-    def stat_increase(self, key, increase = 1):
+    def stat_increase(self, key, increase=1):
         """Increases a stat value."""
         try:
             self.stat_dict[key] += increase
@@ -581,7 +581,7 @@ class BaseScript(object):
         return state
 
     last_func_fail = None
-    def run_func_safely(self, func, prefer_looping = False):
+    def run_func_safely(self, func, prefer_looping=False):
         "Run users work function, safely."
         try:
             r = func()
@@ -752,8 +752,8 @@ class DBScript(BaseScript):
                 connstr += ' ' + extra
         return connstr
 
-    def get_database(self, dbname, autocommit = 0, isolation_level = -1,
-                     cache = None, connstr = None, profile = None):
+    def get_database(self, dbname, autocommit=0, isolation_level=-1,
+                     cache=None, connstr=None, profile=None):
         """Load cached database connection.
 
         User must not store it permanently somewhere,
@@ -799,7 +799,7 @@ class DBScript(BaseScript):
                 filtered_connstr = connstr[:pos] + ' [...]'
 
             self.log.debug("Connect '%s' to '%s'", cache, filtered_connstr)
-            dbc = DBCachedConn(cache, connstr, params['max_age'], setup_func = self.connection_hook)
+            dbc = DBCachedConn(cache, connstr, params['max_age'], setup_func=self.connection_hook)
             self.db_cache[cache] = dbc
 
         clist = []
@@ -879,7 +879,7 @@ class DBScript(BaseScript):
         except select.error:
             self.log.info('wait canceled')
 
-    def _exec_cmd(self, curs, sql, args, quiet = False, prefix = None):
+    def _exec_cmd(self, curs, sql, args, quiet=False, prefix=None):
         """Internal tool: Run SQL on cursor."""
         if self.options.verbose:
             self.log.debug("exec_cmd: %s", skytools.quote_statement(sql, args))
@@ -915,7 +915,7 @@ class DBScript(BaseScript):
                 ok = False
         return (ok, rows)
 
-    def _exec_cmd_many(self, curs, sql, baseargs, extra_list, quiet = False, prefix=None):
+    def _exec_cmd_many(self, curs, sql, baseargs, extra_list, quiet=False, prefix=None):
         """Internal tool: Run SQL on cursor multiple times."""
         ok = True
         rows = []
@@ -926,7 +926,7 @@ class DBScript(BaseScript):
             rows += tmp_rows
         return (ok, rows)
 
-    def exec_cmd(self, db_or_curs, q, args, commit = True, quiet = False, prefix = None):
+    def exec_cmd(self, db_or_curs, q, args, commit=True, quiet=False, prefix=None):
         """Run SQL on db with code/value error handling."""
         if hasattr(db_or_curs, 'cursor'):
             db = db_or_curs
@@ -948,7 +948,7 @@ class DBScript(BaseScript):
             sys.exit(1)
 
     def exec_cmd_many(self, db_or_curs, sql, baseargs, extra_list,
-                      commit = True, quiet = False, prefix = None):
+                      commit=True, quiet=False, prefix=None):
         """Run SQL on db multiple times."""
         if hasattr(db_or_curs, 'cursor'):
             db = db_or_curs
@@ -969,7 +969,7 @@ class DBScript(BaseScript):
             # error is already logged
             sys.exit(1)
 
-    def execute_with_retry (self, dbname, stmt, args, exceptions = None):
+    def execute_with_retry(self, dbname, stmt, args, exceptions=None):
         """ Execute SQL and retry if it fails.
         Return number of retries and current valid cursor, or raise an exception.
         """
@@ -990,11 +990,11 @@ class DBScript(BaseScript):
                         self.get_database(dbname, autocommit=1)
                     dbc = self.db_cache[dbname]
                     if dbc.isolation_level != skytools.I_AUTOCOMMIT:
-                        raise skytools.UsageError ("execute_with_retry: autocommit required")
+                        raise skytools.UsageError("execute_with_retry: autocommit required")
                 else:
                     dbc.reset()
                 curs = dbc.get_connection(dbc.isolation_level).cursor()
-                curs.execute (stmt, args)
+                curs.execute(stmt, args)
                 break
             except elist as e:
                 if not sql_retry or tried >= sql_retry_max_count or time.time() - stime >= sql_retry_max_time:
@@ -1044,7 +1044,7 @@ class DBScript(BaseScript):
 
 class DBCachedConn(object):
     """Cache a db connection."""
-    def __init__(self, name, loc, max_age = DEF_CONN_AGE, verbose = False, setup_func=None, channels=()):
+    def __init__(self, name, loc, max_age=DEF_CONN_AGE, verbose=False, setup_func=None, channels=()):
         self.name = name
         self.loc = loc
         self.conn = None
@@ -1060,7 +1060,7 @@ class DBCachedConn(object):
             return None
         return self.conn.cursor().fileno()
 
-    def get_connection(self, isolation_level = -1, listen_channel_list = ()):
+    def get_connection(self, isolation_level=-1, listen_channel_list=()):
 
         # default isolation_level is READ COMMITTED
         if isolation_level < 0:
