@@ -27,8 +27,6 @@ if __name__ == 'disabled':
 else:
     import skytools.apipkg as _apipkg
 
-__version__ = '3.3'
-
 _symbols = {
     # skytools.adminscript
     'AdminScript': 'skytools.adminscript:AdminScript',

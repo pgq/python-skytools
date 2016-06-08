@@ -7,7 +7,7 @@ sql_locations = [
     "/usr/share/skytools3",
 ]
 
-package_version = "3.2.6"
+package_version = "3.3"
 
 skylog = 0
 

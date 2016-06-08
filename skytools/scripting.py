@@ -323,7 +323,7 @@ class BaseScript(object):
         ver = getattr(self, '__version__', None)
         if ver:
             service += ' version %s' % ver
-        print('%s, Skytools version %s' % (service, skytools.__version__))
+        print('%s, Skytools version %s' % (service, getattr(skytools, '__version__')))
 
     def print_ini(self):
         """Prints out ini file from doc string of the script of default for dbscript
