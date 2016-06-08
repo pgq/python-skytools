@@ -15,6 +15,10 @@ talking with other software that uses stricter parsers.
 >>> _norm_str(sanitize_unicode(u'\uD801\uDC01'))
 [66561]
 
+>>> sanitize_unicode(b'qwe')
+Traceback (most recent call last):
+    ...
+TypeError: Need unicode string
 """
 
 ## these give different results in py27 and py35
@@ -71,7 +75,8 @@ def sanitize_unicode(u):
     """Fix invalid symbols in unicode string."""
     global _urc
 
-    assert isinstance(u, unicode)
+    if not isinstance(u, unicode):
+        raise TypeError('Need unicode string')
 
     # regex for finding invalid chars, works on unicode string
     if not _urc:

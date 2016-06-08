@@ -487,7 +487,6 @@ def hsize_to_bytes(input_str):
     (10737418240, 12288)
     """
 
-    assert isinstance(input_str, str)
     m = re.match(r"^([0-9]+) *([KMGTPEZY]?)B?$", input_str.strip(), re.IGNORECASE)
     if not m:
         raise ValueError("cannot parse: %s" % input_str)
