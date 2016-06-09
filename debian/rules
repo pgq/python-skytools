@@ -1,26 +1,9 @@
 #! /usr/bin/make -f
 
+#export DH_VERBOSE = 1
+export DEB_BUILD_OPTIONS = nocheck
+export PYBUILD_NAME = skytools
+
 %:
-	dh $@ --with python2,python3
-
-override_dh_auto_build:
-	dh_auto_build
-	set -e; for python in $$(py3versions -r); do \
-		$$python setup.py build; \
-	done
-
-override_dh_auto_clean:
-	dh_auto_clean
-	find skytools tests -name '*.pyc' -print0 | xargs -0r rm -f
-	find skytools tests -name __pycache__ -print0 | xargs -0r rm -rf
-	rm -rf build
-
-override_dh_auto_install:
-	#dh_auto_install
-	python2 setup.py install --root=$(CURDIR)/debian/tmp \
-		--no-compile -O0 --install-layout=deb
-	set -e; for python in $$(py3versions -r); do \
-		$$python setup.py install --root=$(CURDIR)/debian/tmp \
-			--no-compile -O0 --install-layout=deb; \
-	done
+	dh $@ --with python2,python3 --buildsystem=pybuild
 
