@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+"""Setup for skytools module.
+"""
 
 from setuptools import setup, Extension
 
