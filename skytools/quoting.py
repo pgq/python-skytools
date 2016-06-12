@@ -56,7 +56,7 @@ def quote_statement(sql, dict_or_list):
 # reserved keywords (RESERVED_KEYWORD + TYPE_FUNC_NAME_KEYWORD)
 _ident_kwmap = {
 "all":1, "analyse":1, "analyze":1, "and":1, "any":1, "array":1, "as":1,
-"asc":1, "asymmetric":1, "authorization":1, "binary":1, "both":1, "case":1,
+"asc":1, "asymmetric":1, "authorization":1, "between":1, "binary":1, "both":1, "case":1,
 "cast":1, "check":1, "collate":1, "collation":1, "column":1, "concurrently":1,
 "constraint":1, "create":1, "cross":1, "current_catalog":1, "current_date":1,
 "current_role":1, "current_schema":1, "current_time":1, "current_timestamp":1,
@@ -69,7 +69,7 @@ _ident_kwmap = {
 "not":1, "notnull":1, "null":1, "off":1, "offset":1, "old":1, "on":1, "only":1,
 "or":1, "order":1, "outer":1, "over":1, "overlaps":1, "placing":1, "primary":1,
 "references":1, "returning":1, "right":1, "select":1, "session_user":1,
-"similar":1, "some":1, "symmetric":1, "table":1, "then":1, "to":1, "trailing":1,
+"similar":1, "some":1, "symmetric":1, "table":1, "tablesample":1, "then":1, "to":1, "trailing":1,
 "true":1, "union":1, "unique":1, "user":1, "using":1, "variadic":1, "verbose":1,
 "when":1, "where":1, "window":1, "with":1,
 }
