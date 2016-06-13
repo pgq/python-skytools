@@ -16,9 +16,6 @@ pylint:
     max-parents: 20
 
   disable:
-    # getargspec
-    - deprecated-method
-
     # optparse
     - deprecated-module
 
