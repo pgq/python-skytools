@@ -1,10 +1,13 @@
 
 import os.path
 
+import io
+
 from nose.tools import *
 
 from skytools.config import (Config, NoOptionError, NoSectionError,
-        InterpolationMissingOptionError, ConfigError)
+        ConfigError, InterpolationError,
+        ExtendedConfigParser, ExtendedCompatConfigParser)
 
 TOP = os.path.dirname(__file__)
 CONFIG = os.path.join(TOP, 'config.ini')
@@ -117,5 +120,28 @@ def test_vars():
     cf = Config('base', CONFIG)
     eq_(cf.get('vars1'), 'V2=V3=Q3')
 
-    assert_raises(InterpolationMissingOptionError, cf.get, 'bad1')
+    assert_raises(InterpolationError, cf.get, 'bad1')
+
+
+def test_extended_compat():
+    config = u'[foo]\nkey = ${sub} $${nosub}\nsub = 2\n[bar]\nkey = ${foo:key}\n'
+    cf = ExtendedCompatConfigParser()
+    cf.readfp(io.StringIO(config), 'conf.ini')
+    eq_(cf.get('bar', 'key'), '2 ${nosub}')
+
+    config = u'[foo]\nloop1= ${loop1}\nloop2 = ${loop3}\nloop3 = ${loop2}\n'
+    cf = ExtendedCompatConfigParser()
+    cf.readfp(io.StringIO(config), 'conf.ini')
+    assert_raises(InterpolationError, cf.get, 'foo', 'loop1')
+    assert_raises(InterpolationError, cf.get, 'foo', 'loop2')
+
+    config = u'[foo]\nkey = %(sub)s ${sub}\nsub = 2\n[bar]\nkey = %(foo:key)s\nkey2 = ${foo:key}\n'
+    cf = ExtendedCompatConfigParser()
+    cf.readfp(io.StringIO(config), 'conf.ini')
+    eq_(cf.get('bar', 'key2'), '2 2')
+    assert_raises(NoOptionError, cf.get, 'bar', 'key')
+
+    config = u'[foo]\nkey = ${bad:xxx}\n[bad]\nsub = 1\n'
+    cf = ExtendedCompatConfigParser(); cf.readfp(io.StringIO(config), 'conf.ini')
+    assert_raises(NoOptionError, cf.get, 'foo', 'key')
 

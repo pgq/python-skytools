@@ -5,22 +5,51 @@ from __future__ import division, absolute_import, print_function
 
 import os
 import os.path
+import re
 import socket
-
-try:
-    from configparser import (      # noqa
-        NoOptionError, NoSectionError, InterpolationMissingOptionError,
-        Error as ConfigError,
-        ConfigParser)
-except ImportError:
-    from ConfigParser import (      # noqa
-        NoOptionError, NoSectionError, InterpolationMissingOptionError,
-        Error as ConfigError,
-        SafeConfigParser as ConfigParser)
 
 import skytools
 
-__all__ = ['Config', 'NoOptionError', 'InterpolationMissingOptionError', 'ConfigError']
+try:
+    from configparser import (      # noqa
+        NoOptionError, NoSectionError, InterpolationError, InterpolationDepthError,
+        Error as ConfigError, ConfigParser, MAX_INTERPOLATION_DEPTH,
+        ExtendedInterpolation, Interpolation)
+except ImportError:
+    from ConfigParser import (      # noqa
+        NoOptionError, NoSectionError, InterpolationError, InterpolationDepthError,
+        Error as ConfigError, SafeConfigParser, MAX_INTERPOLATION_DEPTH)
+
+    class Interpolation(object):
+        """Define Interpolation API from Python3."""
+
+        def before_get(self, parser, section, option, value, defaults):
+            return value
+
+        def before_set(self, parser, section, option, value):
+            return value
+
+        def before_read(self, parser, section, option, value):
+            return value
+
+        def before_write(self, parser, section, option, value):
+            return value
+
+    class ConfigParser(SafeConfigParser):
+        """Default Python's ConfigParser that uses _DEFAULT_INTERPOLATION"""
+        _DEFAULT_INTERPOLATION = None
+
+        def _interpolate(self, section, option, rawval, vars):
+            if self._DEFAULT_INTERPOLATION is None:
+                return SafeConfigParser._interpolate(self, section, option, rawval, vars)
+            return self._DEFAULT_INTERPOLATION.before_get(self, section, option, rawval, vars)
+
+
+__all__ = [
+    'Config',
+    'NoOptionError', 'ConfigError',
+    'ConfigParser', 'ExtendedConfigParser', 'ExtendedCompatConfigParser'
+]
 
 class Config(object):
     """Bit improved ConfigParser.
@@ -86,54 +115,59 @@ class Config(object):
 
     def get(self, key, default=None):
         """Reads string value, if not set then default."""
-        try:
-            return str(self.cf.get(self.main_section, key))
-        except NoOptionError:
+
+        if not self.cf.has_option(self.main_section, key):
             if default is None:
-                raise
+                raise NoOptionError(key, self.main_section)
             return default
+
+        return str(self.cf.get(self.main_section, key))
 
     def getint(self, key, default=None):
         """Reads int value, if not set then default."""
-        try:
-            return self.cf.getint(self.main_section, key)
-        except NoOptionError:
+
+        if not self.cf.has_option(self.main_section, key):
             if default is None:
-                raise
+                raise NoOptionError(key, self.main_section)
             return default
+
+        return self.cf.getint(self.main_section, key)
 
     def getboolean(self, key, default=None):
         """Reads boolean value, if not set then default."""
-        try:
-            return self.cf.getboolean(self.main_section, key)
-        except NoOptionError:
+
+        if not self.cf.has_option(self.main_section, key):
             if default is None:
-                raise
+                raise NoOptionError(key, self.main_section)
             return default
+
+        return self.cf.getboolean(self.main_section, key)
 
     def getfloat(self, key, default=None):
         """Reads float value, if not set then default."""
-        try:
-            return self.cf.getfloat(self.main_section, key)
-        except NoOptionError:
+
+        if not self.cf.has_option(self.main_section, key):
             if default is None:
-                raise
+                raise NoOptionError(key, self.main_section)
             return default
+
+        return self.cf.getfloat(self.main_section, key)
 
     def getlist(self, key, default=None):
         """Reads comma-separated list from key."""
-        try:
-            s = self.get(key).strip()
-            res = []
-            if not s:
-                return res
-            for v in s.split(","):
-                res.append(v.strip())
-            return res
-        except NoOptionError:
+
+        if not self.cf.has_option(self.main_section, key):
             if default is None:
-                raise
+                raise NoOptionError(key, self.main_section)
             return default
+
+        s = self.get(key).strip()
+        res = []
+        if not s:
+            return res
+        for v in s.split(","):
+            res.append(v.strip())
+        return res
 
     def getdict(self, key, default=None):
         """Reads key-value dict from parameter.
@@ -141,25 +175,26 @@ class Config(object):
         Key and value are separated with ':'.  If missing,
         key itself is taken as value.
         """
-        try:
-            s = self.get(key).strip()
-            res = {}
-            if not s:
-                return res
-            for kv in s.split(","):
-                tmp = kv.split(':', 1)
-                if len(tmp) > 1:
-                    k = tmp[0].strip()
-                    v = tmp[1].strip()
-                else:
-                    k = kv.strip()
-                    v = k
-                res[k] = v
-            return res
-        except NoOptionError:
+
+        if not self.cf.has_option(self.main_section, key):
             if default is None:
-                raise
+                raise NoOptionError(key, self.main_section)
             return default
+
+        s = self.get(key).strip()
+        res = {}
+        if not s:
+            return res
+        for kv in s.split(","):
+            tmp = kv.split(':', 1)
+            if len(tmp) > 1:
+                k = tmp[0].strip()
+                v = tmp[1].strip()
+            else:
+                k = kv.strip()
+                v = k
+            res[k] = v
+        return res
 
     def getfile(self, key, default=None):
         """Reads filename from config.
@@ -182,12 +217,14 @@ class Config(object):
 
         Examples: 1, 2 B, 3K, 4 MB
         """
-        try:
-            s = self.cf.get(self.main_section, key)
-        except NoOptionError:
+
+        if not self.cf.has_option(self.main_section, key):
             if default is None:
-                raise
+                raise NoOptionError(key, self.main_section)
             s = default
+        else:
+            s = self.cf.get(self.main_section, key)
+
         return skytools.hsize_to_bytes(s)
 
     def get_wildcard(self, key, values=(), default=None):
@@ -202,10 +239,8 @@ class Config(object):
         keys.reverse()
 
         for key in keys:
-            try:
+            if self.cf.has_option(self.main_section, key):
                 return self.cf.get(self.main_section, key)
-            except NoOptionError:
-                pass
 
         if default is None:
             raise NoOptionError(orig_key, self.main_section)
@@ -237,3 +272,94 @@ class Config(object):
 
     # define some aliases (short-cuts / backward compatibility cruft)
     getbool = getboolean
+
+
+
+class ExtendedInterpolationCompat(Interpolation):
+    _EXT_VAR_RX = r'\$\$|\$\{[^(){}]+\}'
+    _OLD_VAR_RX = r'%%|%\([^(){}]+\)s'
+    _var_rc = re.compile('(%s|%s)' % (_EXT_VAR_RX, _OLD_VAR_RX))
+    _bad_rc = re.compile('[%$]')
+
+    def before_get(self, parser, section, option, rawval, defaults):
+        dst = []
+        self._interpolate_ext(dst, parser, section, option, rawval, defaults, set())
+        return ''.join(dst)
+
+    def before_set(self, parser, section, option, value):
+        sub = self._var_rc.sub('', value)
+        if self._bad_rc.search(sub):
+            raise ValueError("invalid interpolation syntax in %r" % value)
+        return value
+
+    def _interpolate_ext(self, dst, parser, section, option, rawval, defaults, loop_detect):
+        if not rawval:
+            return rawval
+
+        if len(loop_detect) > MAX_INTERPOLATION_DEPTH:
+            raise InterpolationDepthError(option, section, rawval)
+
+        xloop = (section, option)
+        if xloop in loop_detect:
+            raise InterpolationError(section, option, 'Loop detected: %r in %r' % (xloop, loop_detect))
+        loop_detect.add(xloop)
+
+        parts = self._var_rc.split(rawval)
+        for i, frag in enumerate(parts):
+            fullkey = None
+            use_vars = defaults
+            if i % 2 == 0:
+                dst.append(frag)
+                continue
+            if frag in ('$$', '%%'):
+                dst.append(frag[0])
+                continue
+            if frag.startswith('${') and frag.endswith('}'):
+                fullkey = frag[2:-1]
+
+                # use section access only for new-style keys
+                if ':' in fullkey:
+                    ksect, key = fullkey.split(':', 1)
+                    use_vars = None
+                else:
+                    ksect, key = section, fullkey
+            elif frag.startswith('%(') and frag.endswith(')s'):
+                fullkey = frag[2:-2]
+                ksect, key = section, fullkey
+            else:
+                raise InterpolationError(section, option, 'Internal parse error: %r' % frag)
+
+            key = parser.optionxform(key)
+            newpart = parser.get(ksect, key, raw=True, vars=use_vars)
+            if newpart is None:
+                raise InterpolationError(ksect, key, 'Key referenced is None')
+            self._interpolate_ext(dst, parser, ksect, key, newpart, defaults, loop_detect)
+
+        loop_detect.remove(xloop)
+
+
+try:
+    ExtendedInterpolation
+except NameError:
+    class ExtendedInterpolationPy2(ExtendedInterpolationCompat):
+        _var_rc = re.compile('(%s)' % ExtendedInterpolationCompat._EXT_VAR_RX)
+        _bad_rc = re.compile('[$]')
+    ExtendedInterpolation = ExtendedInterpolationPy2
+
+
+class ExtendedConfigParser(ConfigParser):
+    """ConfigParser that uses Python3-style extended interpolation by default.
+
+    Syntax: ${var} and ${section:var}
+    """
+    _DEFAULT_INTERPOLATION = ExtendedInterpolation()
+
+
+class ExtendedCompatConfigParser(ExtendedConfigParser):
+    r"""Support both extended "${}" syntax from python3 and old "%()s" too.
+
+    New ${} syntax allows ${key} to refer key in same section,
+    and ${sect:key} to refer key in other sections.
+    """
+    _DEFAULT_INTERPOLATION = ExtendedInterpolationCompat()
+

@@ -13,6 +13,7 @@ pylint:
   options:
     init-import: true
     dummy-variables-rgx: _$|dummy|___
+    max-parents: 20
 
   disable:
     # getargspec
