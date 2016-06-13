@@ -39,10 +39,10 @@ except ImportError:
         """Default Python's ConfigParser that uses _DEFAULT_INTERPOLATION"""
         _DEFAULT_INTERPOLATION = None
 
-        def _interpolate(self, section, option, rawval, vars):
+        def _interpolate(self, section, option, rawval, defs):
             if self._DEFAULT_INTERPOLATION is None:
-                return SafeConfigParser._interpolate(self, section, option, rawval, vars)
-            return self._DEFAULT_INTERPOLATION.before_get(self, section, option, rawval, vars)
+                return SafeConfigParser._interpolate(self, section, option, rawval, defs)
+            return self._DEFAULT_INTERPOLATION.before_get(self, section, option, rawval, defs)
 
 
 __all__ = [

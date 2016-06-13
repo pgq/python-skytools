@@ -8,15 +8,16 @@ import re
 import json
 
 try:
-    from skytools._cquoting import *
+    from skytools._cquoting import (db_urldecode, db_urlencode, quote_bytea_raw,
+            quote_copy, quote_literal, unescape, unquote_literal)
 except ImportError:
-    from skytools._pyquoting import *
+    from skytools._pyquoting import (db_urldecode, db_urlencode, quote_bytea_raw,
+            quote_copy, quote_literal, unescape, unquote_literal)
 
 __all__ = [
     # _pyqoting / _cquoting
-    "quote_literal", "quote_copy", "quote_bytea_raw",
-    "db_urlencode", "db_urldecode", "unescape",
-    "unquote_literal",
+    "db_urldecode", "db_urlencode", "quote_bytea_raw",
+    "quote_copy", "quote_literal", "unescape", "unquote_literal",
     # local
     "quote_bytea_literal", "quote_bytea_copy", "quote_statement",
     "quote_ident", "quote_fqident", "quote_json", "unescape_copy",

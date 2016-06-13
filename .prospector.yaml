@@ -7,7 +7,7 @@ member-warnings: true
 
 doc-warnings: false
 
-test-warnings: false
+test-warnings: true
 
 pylint:
   options:
@@ -28,7 +28,6 @@ pylint:
     - multiple-statements
     - no-self-use
     - protected-access
-    - redefined-builtin
     - too-many-arguments
     - too-many-branches
     - too-many-instance-attributes
@@ -37,15 +36,11 @@ pylint:
     - too-many-return-statements
     - too-many-statements
     - unused-argument
-    - unused-wildcard-import
-    - wildcard-import
 
 pyflakes:
   disable:
-    - F999
     - F401
     - F403
-    - F841
 
 mccabe:
   run: false

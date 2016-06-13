@@ -17,7 +17,7 @@ import skytools.tnetstrings
 try:
     unicode
 except NameError:
-    unicode = str
+    unicode = str   # noqa
 
 __all__ = ['getLogger']
 

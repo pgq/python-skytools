@@ -21,7 +21,7 @@ __all__ = ['write_atomic', 'signal_pidfile']
 try:
     unicode
 except NameError:
-    unicode = str
+    unicode = str   # noqa
 
 # non-win32
 def write_atomic_unix(fn, data, bakext=None, mode='b'):

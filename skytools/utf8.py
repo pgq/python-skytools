@@ -34,8 +34,8 @@ import codecs
 try:
     unichr
 except NameError:
-    unichr = chr
-    unicode = str
+    unichr = chr        # noqa
+    unicode = str       # noqa
 
 def _norm_char(uchr):
     code = ord(uchr)

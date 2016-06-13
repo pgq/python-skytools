@@ -1,6 +1,9 @@
 """Admin scripting.
 """
 
+# allow getargspec
+# pylint:disable=deprecated-method
+
 from __future__ import division, absolute_import, print_function
 
 import sys

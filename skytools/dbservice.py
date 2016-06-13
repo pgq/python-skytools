@@ -15,7 +15,7 @@ except ImportError:
 try:
     basestring
 except NameError:
-    basestring = str
+    basestring = str    # noqa
 
 __all__ = ['DBService', 'ServiceContext',
     'get_record', 'get_record_list',

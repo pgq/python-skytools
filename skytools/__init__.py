@@ -1,6 +1,8 @@
 
 """Tools for Python database scripts."""
 
+# pylint:disable=redefined-builtin,unused-wildcard-import,wildcard-import
+
 from __future__ import division, absolute_import, print_function
 
 try:

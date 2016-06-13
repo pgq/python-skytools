@@ -56,8 +56,8 @@ __all__ = ['loads', 'dumps']
 try:
     unicode
 except NameError:
-    unicode = str
-    long = int
+    unicode = str   # noqa
+    long = int      # noqa
 
 _memstr_types = (unicode, bytes, memoryview)
 _struct_types = (list, tuple, dict)
