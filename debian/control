@@ -10,6 +10,7 @@ X-Python3-Version: >= 3.5
 Package: python-skytools
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Conflicts: python-skytools3
 Description: Scripting tools
  .
 
