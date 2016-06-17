@@ -289,10 +289,11 @@ class BaseScript(object):
             self.go_daemon = 1
         if self.options.quiet:
             self.log_level = logging.WARNING
-        if self.options.verbose > 1:
-            self.log_level = skytools.skylog.TRACE
-        elif self.options.verbose:
-            self.log_level = logging.DEBUG
+        if self.options.verbose:
+            if self.options.verbose > 1:
+                self.log_level = skytools.skylog.TRACE
+            else:
+                self.log_level = logging.DEBUG
 
         self.cf_override = {}
         if self.options.set:
