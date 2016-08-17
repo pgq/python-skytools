@@ -900,7 +900,7 @@ class DBScript(BaseScript):
                 self.log.error("SQL: %s", skytools.quote_statement(sql, args))
                 self.log.error("Row: %s", repr(row.copy()))
                 sys.exit(1)
-            level = code / 100
+            level = code // 100
             if level == 1:
                 self.log.debug("%s%d %s", _pfx, code, msg)
             elif level == 2:
