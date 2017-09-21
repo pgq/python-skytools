@@ -29,6 +29,7 @@ setup(
     description = "SkyTools - tools for PostgreSQL",
     packages = ['skytools'],
     ext_modules = c_modules,
+    zip_safe = False,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
