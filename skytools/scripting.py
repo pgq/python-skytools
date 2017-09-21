@@ -858,7 +858,7 @@ class DBScript(BaseScript):
     def sleep(self, secs):
         """Make script sleep for some amount of time."""
         fdlist = []
-        for dbname in self._listen_map.keys():
+        for dbname in self._listen_map:
             if dbname not in self.db_cache:
                 continue
             fd = self.db_cache[dbname].fileno()

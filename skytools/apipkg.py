@@ -5,6 +5,9 @@ see http://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
+
+#pylint: skip-file
+
 import os
 import sys
 from types import ModuleType

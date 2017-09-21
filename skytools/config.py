@@ -238,9 +238,9 @@ class Config(object):
             keys.append(key)
         keys.reverse()
 
-        for key in keys:
-            if self.cf.has_option(self.main_section, key):
-                return self.cf.get(self.main_section, key)
+        for k in keys:
+            if self.cf.has_option(self.main_section, k):
+                return self.cf.get(self.main_section, k)
 
         if default is None:
             raise NoOptionError(orig_key, self.main_section)

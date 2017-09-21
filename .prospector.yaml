@@ -33,6 +33,13 @@ pylint:
     - too-many-return-statements
     - too-many-statements
     - unused-argument
+    - trailing-newlines
+
+    # tofix: style
+    - consider-using-ternary
+    - no-else-return
+    - len-as-condition
+    - arguments-differ
 
 pyflakes:
   disable:
