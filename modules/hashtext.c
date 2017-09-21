@@ -383,11 +383,7 @@ static struct PyModuleDef modInfo = {
 	"_chashtext",
 	NULL,
 	-1,
-	methods,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	methods
 };
 
 PyMODINIT_FUNC
