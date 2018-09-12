@@ -127,6 +127,8 @@ class UdpLogServerHandler(logging.handlers.DatagramHandler):
     def send(self, s):
         """Disable socket caching."""
         sock = self.makeSocket()
+        if not isinstance(s, bytes):
+            s = s.encode('utf8')
         sock.sendto(s, (self.host, self.port))
         sock.close()
 
