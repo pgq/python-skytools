@@ -490,22 +490,22 @@ class TSeq(TElem):
         self.name = seq_name
         defn = ''
         self.owner = row['owner']
-        if row['increment_by'] != 1:
+        if row.get('increment_by', 1) != 1:
             defn += ' INCREMENT BY %d' % row['increment_by']
-        if row['min_value'] != 1:
+        if row.get('min_value', 1) != 1:
             defn += ' MINVALUE %d' % row['min_value']
-        if row['max_value'] != 9223372036854775807:
+        if row.get('max_value', 9223372036854775807) != 9223372036854775807:
             defn += ' MAXVALUE %d' % row['max_value']
         last_value = row['last_value']
         if row['is_called']:
-            last_value += row['increment_by']
-            if last_value >= row['max_value']:
+            last_value += row.get('increment_by', 1)
+            if last_value >= row.get('max_value', 9223372036854775807):
                 raise Exception('duh, seq passed max_value')
         if last_value != 1:
             defn += ' START %d' % last_value
-        if row['cache_value'] != 1:
+        if row.get('cache_value', 1) != 1:
             defn += ' CACHE %d' % row['cache_value']
-        if row['is_cycled']:
+        if row.get('is_cycled'):
             defn += ' CYCLE '
         if self.owner:
             defn += ' OWNED BY %s' % self.owner
