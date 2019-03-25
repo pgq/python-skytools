@@ -5,10 +5,8 @@ from __future__ import division, absolute_import, print_function
 
 import os
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO
+from io import StringIO
 
 import skytools
 
@@ -400,7 +398,7 @@ class CopyPipe(object):
         self.tablename = tablename
         self.sql_from = sql_from
         self.dstcurs = dstcurs
-        self.buf = StringIO()
+        self.buf = BytesIO()
         self.limit = limit
         #hook for new data, hook func should return new data
         #def write_hook(obj, data):
@@ -419,7 +417,7 @@ class CopyPipe(object):
             data = self.write_hook(self, data)
 
         self.total_bytes += len(data)
-        self.total_rows += data.count("\n")
+        self.total_rows += data.count(b"\n")
 
         if self.buf.tell() >= self.limit:
             pos = data.find('\n')
