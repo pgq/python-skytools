@@ -4,10 +4,7 @@
 from __future__ import division, absolute_import, print_function
 
 import os
-
-from io import BytesIO
-from io import StringIO
-
+import io
 import skytools
 
 __all__ = [
@@ -363,7 +360,7 @@ def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_ta
         qtablename = skytools.quote_fqident(tablename)
 
     # init processing
-    buf = StringIO()
+    buf = io.StringIO()
     if curs is None and use_insert == 0:
         fmt = "COPY %s (%s) FROM STDIN;\n"
         buf.write(fmt % (qtablename, ",".join(qfields)))
@@ -391,14 +388,15 @@ def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_ta
 # Full COPY of table from one db to another
 #
 
-class CopyPipe(object):
-    "Splits one big COPY to chunks."
+class CopyPipe(io.TextIOBase):
+    """Splits one big COPY to chunks.
+    """
 
     def __init__(self, dstcurs, tablename=None, limit=512*1024, sql_from=None):
         self.tablename = tablename
         self.sql_from = sql_from
         self.dstcurs = dstcurs
-        self.buf = BytesIO()
+        self.buf = io.StringIO()
         self.limit = limit
         #hook for new data, hook func should return new data
         #def write_hook(obj, data):
@@ -412,29 +410,22 @@ class CopyPipe(object):
         self.total_bytes = 0
 
     def write(self, data):
-        "New data from psycopg"
+        """New row from psycopg
+        """
         if self.write_hook:
             data = self.write_hook(self, data)
 
-        self.total_bytes += len(data)
-        self.total_rows += data.count(b"\n")
-
-        if self.buf.tell() >= self.limit:
-            pos = data.find('\n')
-            if pos >= 0:
-                # split at newline
-                p1 = data[:pos + 1]
-                p2 = data[pos + 1:]
-                self.buf.write(p1)
-                self.flush()
-
-                data = p2
+        self.total_bytes += len(data) # it's chars now...
+        self.total_rows += 1
 
         self.buf.write(data)
 
-    def flush(self):
-        "Send data out."
+        if self.buf.tell() >= self.limit:
+            self.flush()
 
+    def flush(self):
+        """Send data out.
+        """
         if self.flush_hook:
             self.flush_hook(self)
 
@@ -483,21 +474,12 @@ def full_copy(tablename, src_curs, dst_curs, column_list=(), condition=None,
     else:
         src = build_statement(tablename, column_list)
 
-    if hasattr(src_curs, 'copy_expert'):
-        sql_to = "COPY %s TO stdout" % src
-        sql_from = "COPY %s FROM stdin" % dst
-        buf = CopyPipe(dst_curs, sql_from=sql_from)
-        buf.write_hook = write_hook
-        buf.flush_hook = flush_hook
-        src_curs.copy_expert(sql_to, buf)
-    else:
-        if condition:
-            # regular psycopg copy_to generates invalid sql for subselect copy
-            raise Exception('copy_expert() is needed for conditional copy')
-        buf = CopyPipe(dst_curs, dst)
-        buf.write_hook = write_hook
-        buf.flush_hook = flush_hook
-        src_curs.copy_to(buf, src)
+    sql_to = "COPY %s TO stdout" % src
+    sql_from = "COPY %s FROM stdin" % dst
+    buf = CopyPipe(dst_curs, sql_from=sql_from)
+    buf.write_hook = write_hook
+    buf.flush_hook = flush_hook
+    src_curs.copy_expert(sql_to, buf)
     buf.flush()
 
     return (buf.total_bytes, buf.total_rows)
