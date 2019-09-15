@@ -485,7 +485,32 @@ class TTable(TElem):
 class TSeq(TElem):
     """Info about sequence."""
     type = T_SEQUENCE
-    SQL = """SELECT *, %(owner)s as "owner" from %(fqname)s """
+    SQL_PG10 = """
+        SELECT %(fq2name)s::name AS sequence_name, s.last_value,
+            p.seqstart AS start_value, p.seqincrement AS increment_by,
+            p.seqmax AS max_value, p.seqmin AS min_value,
+            p.seqcache AS cache_value, s.log_cnt, s.is_called,
+            p.seqcycle AS is_cycled,
+            %(owner)s as owner
+        FROM pg_catalog.pg_sequence p, %(fqname)s s
+        WHERE p.seqrelid = %(fq2name)s::regclass::oid
+    """
+    SQL_PG9 = """
+        SELECT %(fq2name)s AS sequence_name, last_value,
+            start_value, increment_by,
+            max_value, min_value, cache_value, log_cnt,
+            is_called, is_cycled, %(owner)s AS "owner"
+        FROM %(fqname)s
+    """
+
+    @classmethod
+    def get_load_sql(cls, pg_vers):
+        """Return SQL statement for finding objects."""
+
+        if pg_vers < 100000:
+            return cls.SQL_PG9
+        return cls.SQL_PG10
+
     def __init__(self, seq_name, row):
         self.name = seq_name
         defn = ''
@@ -639,7 +664,11 @@ class TableStruct(BaseStruct):
             if col.seqname:
                 fqname = quote_fqident(col.seqname)
                 owner = self.fqname + '.' + quote_ident(col.name)
-                seq_args = {'fqname': fqname, 'owner': skytools.quote_literal(owner)}
+                seq_args = {
+                    'fqname': fqname,
+                    'fq2name': skytools.quote_literal(fqname),
+                    'owner': skytools.quote_literal(owner),
+                }
                 self.seq_list += self._load_elem(curs, col.seqname, seq_args, TSeq)
         self.object_list += self.seq_list
 
@@ -669,7 +698,11 @@ class SeqStruct(BaseStruct):
         super(SeqStruct, self).__init__(curs, seq_name)
 
         # fill args
-        args = {'fqname': self.fqname, 'owner': 'null'}
+        args = {
+            'fqname': self.fqname,
+            'fq2name': skytools.quote_literal(self.fqname),
+            'owner': 'null',
+        }
 
         # load table struct
         self.object_list = self._load_elem(curs, seq_name, args, TSeq)
