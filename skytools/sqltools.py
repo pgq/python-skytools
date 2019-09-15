@@ -335,7 +335,8 @@ def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_ta
     if len(data) == 0:
         return None
 
-    fields = list(fields) # get rid of iterator
+    if fields is not None:
+        fields = list(fields) # get rid of iterator
 
     # decide how to process
     if hasattr(data[0], 'keys'):
