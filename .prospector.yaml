@@ -40,6 +40,11 @@ pylint:
     - no-else-return
     - len-as-condition
     - arguments-differ
+    - useless-object-inheritance
+    - chained-comparison
+    - unnecessary-pass
+    - try-except-raise
+    - consider-using-in
 
 pyflakes:
   disable:
@@ -49,3 +54,5 @@ pyflakes:
 mccabe:
   run: false
 
+pep8:
+  run: false
