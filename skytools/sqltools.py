@@ -384,6 +384,7 @@ def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_ta
         buf.seek(0)
         hdr = "%s (%s)" % (qtablename, ",".join(qfields))
         curs.copy_from(buf, hdr)
+    return None
 
 #
 # Full COPY of table from one db to another

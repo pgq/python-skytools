@@ -89,6 +89,7 @@ def set_nonblocking(fd, onoff=True):
     >>> set_nonblocking(s, None)
     False
     >>> set_nonblocking(s, 1)
+    1
     >>> set_nonblocking(s, None)
     True
     """
@@ -101,6 +102,8 @@ def set_nonblocking(fd, onoff=True):
     else:
         flags &= ~os.O_NONBLOCK
     fcntl.fcntl(fd, fcntl.F_SETFL, flags)
+    return onoff
+
 
 def set_cloexec(fd, onoff=True):
     """Toggle the FD_CLOEXEC flag.
@@ -115,6 +118,7 @@ def set_cloexec(fd, onoff=True):
     >>> set_cloexec(f, None) in (True, False)
     True
     >>> set_cloexec(f, True)
+    True
     >>> set_cloexec(f, None)
     True
     >>> import socket
@@ -122,6 +126,7 @@ def set_cloexec(fd, onoff=True):
     >>> set_cloexec(s, None) in (True, False)
     True
     >>> set_cloexec(s)
+    True
     >>> set_cloexec(s, None)
     True
     """
@@ -134,4 +139,5 @@ def set_cloexec(fd, onoff=True):
     else:
         flags &= ~fcntl.FD_CLOEXEC
     fcntl.fcntl(fd, fcntl.F_SETFD, flags)
+    return onoff
 

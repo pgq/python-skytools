@@ -294,7 +294,7 @@ class ExtendedInterpolationCompat(Interpolation):
 
     def _interpolate_ext(self, dst, parser, section, option, rawval, defaults, loop_detect):
         if not rawval:
-            return rawval
+            return
 
         if len(loop_detect) > MAX_INTERPOLATION_DEPTH:
             raise InterpolationDepthError(option, section, rawval)

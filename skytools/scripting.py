@@ -881,6 +881,7 @@ class DBScript(BaseScript):
                 select.select(fdlist, [], [], secs)
         except select.error:
             self.log.info('wait canceled')
+        return None
 
     def _exec_cmd(self, curs, sql, args, quiet=False, prefix=None):
         """Internal tool: Run SQL on cursor."""
