@@ -22,7 +22,7 @@ if BUILD_C_MOD:
 setup(
     name = "skytools",
     license = "ISC",
-    version = '3.3',
+    version = '3.4',
     url = "https://github.com/pgq/python-skytools",
     maintainer = "Marko Kreen",
     maintainer_email = "markokr@gmail.com",
