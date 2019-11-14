@@ -395,6 +395,7 @@ class CopyPipe(io.TextIOBase):
     """
 
     def __init__(self, dstcurs, tablename=None, limit=512*1024, sql_from=None):
+        super(CopyPipe, self).__init__()
         self.tablename = tablename
         self.sql_from = sql_from
         self.dstcurs = dstcurs
