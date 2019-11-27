@@ -50,28 +50,14 @@ def set_service_name(service_name, job_name):
     _log_extra['job_name'] = _job_name
     _log_extra['service_name'] = _service_name
 
-#
-# How to make extra fields available to all log records:
-# 1. Use own getLogger()
-#    - messages logged otherwise (eg. from some libs)
-#      will crash the logging.
-# 2. Fix record in own handlers
-#    - works only with custom handlers, standard handlers will
-#      crash is used with custom fmt string.
-# 3. Change root logger
-#    - can't do it after non-root loggers are initialized,
-#      doing it before will depend on import order.
-# 4. Update LogRecord.__dict__
-#    - fails, as formatter uses obj.__dict__ directly.
-# 5. Change LogRecord class
-#    - ugly but seems to work.
-#
-_OldLogRecord = logging.LogRecord
-class _NewLogRecord(_OldLogRecord):
-    def __init__(self, *args):
-        super(_NewLogRecord, self).__init__(*args)
-        self.__dict__.update(_log_extra)
-logging.LogRecord = _NewLogRecord
+
+# Make extra fields available to all log records
+_old_factory = logging.getLogRecordFactory()
+def _new_factory(*args, **kwargs):
+    record = _old_factory(*args, **kwargs)
+    record.__dict__.update(_log_extra)
+    return record
+logging.setLogRecordFactory(_new_factory)
 
 
 # configurable file logger
