@@ -129,7 +129,7 @@ def make_record(row):
     """ Takes record as dict and returns it as urlencoded string.
         Used to send data out of db service layer.or to fake incoming calls
     """
-    for v in list(row.values()):
+    for v in row.values():
         if isinstance(v, list):
             return _make_record_convert(row)
     return skytools.db_urlencode(row)
