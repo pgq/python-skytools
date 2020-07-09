@@ -1,7 +1,6 @@
 """Catch moment when tables are in sync on master and slave.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import subprocess

@@ -5,7 +5,6 @@ The point is - if several gzip streams are concatenated,
 they are read back as one whole stream.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import gzip
 from io import BytesIO

@@ -1,7 +1,6 @@
 """Our log handlers for Python's logging package.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import logging
 import logging.handlers

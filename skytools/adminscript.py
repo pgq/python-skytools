@@ -4,7 +4,6 @@
 # allow getargspec
 # pylint:disable=deprecated-method
 
-from __future__ import absolute_import, division, print_function
 
 import inspect
 import sys

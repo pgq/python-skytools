@@ -1,7 +1,6 @@
 """ Class used to handle multiset receiving and returning PL/Python procedures
 """
 
-from __future__ import absolute_import, division, print_function
 
 import skytools
 from skytools import dbdict

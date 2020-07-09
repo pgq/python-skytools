@@ -12,7 +12,6 @@ See L{plpy_exec} for examples.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import skytools
 

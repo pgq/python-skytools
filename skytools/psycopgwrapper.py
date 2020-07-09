@@ -54,7 +54,6 @@ Plain .fetchall() / .fetchone() give exact same result.
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import skytools
 from skytools.sockutil import set_tcp_keepalive

@@ -3,7 +3,6 @@
 Compares numeric parts numerically.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re as _re
 

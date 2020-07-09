@@ -1,6 +1,5 @@
 """Various low-level utility functions for sockets."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import socket

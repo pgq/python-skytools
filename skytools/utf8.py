@@ -26,7 +26,6 @@ TypeError: Need unicode string
 # (False, ['X', 65533, 65533, 65533, 'Y', 65533, 65533, 65533, 'Z'])
 # >>> _norm(safe_utf8_decode(b'X\xed\xa0\x80\xed\xb0\x89Z'))
 # (False, ['X', 65533, 65533, 65533, 65533, 65533, 65533, 'Z'])
-# from __future__ import division, absolute_import, print_function
 
 import codecs
 import re

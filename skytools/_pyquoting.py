@@ -5,7 +5,6 @@
 Here is pure Python that should match C code in _cquoting.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 

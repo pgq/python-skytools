@@ -1,7 +1,6 @@
 """Check if SQL keywords are up-to-date.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import os.path
 import re

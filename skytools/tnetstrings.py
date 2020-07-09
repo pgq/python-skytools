@@ -47,7 +47,6 @@ TypeError: Object type not supported: <built-in function divmod>
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import codecs
 
