@@ -62,33 +62,15 @@ FMT_OLD = struct.Struct("<LLL")
 def mix_old(a, b, c):
     c = uint32(c)
 
-    a -= b
-    a -= c
-    a = uint32(a ^ (c >> 13))
-    b -= c
-    b -= a
-    b = uint32(b ^ (a << 8))
-    c -= a
-    c -= b
-    c = uint32(c ^ (b >> 13))
-    a -= b
-    a -= c
-    a = uint32(a ^ (c >> 12))
-    b -= c
-    b -= a
-    b = uint32(b ^ (a << 16))
-    c -= a
-    c -= b
-    c = uint32(c ^ (b >> 5))
-    a -= b
-    a -= c
-    a = uint32(a ^ (c >> 3))
-    b -= c
-    b -= a
-    b = uint32(b ^ (a << 10))
-    c -= a
-    c -= b
-    c = uint32(c ^ (b >> 15))
+    a = uint32((a - b - c) ^ (c >> 13))
+    b = uint32((b - c - a) ^ (a << 8))
+    c = uint32((c - a - b) ^ (b >> 13))
+    a = uint32((a - b - c) ^ (c >> 12))
+    b = uint32((b - c - a) ^ (a << 16))
+    c = uint32((c - a - b) ^ (b >> 5))
+    a = uint32((a - b - c) ^ (c >> 3))
+    b = uint32((b - c - a) ^ (a << 10))
+    c = uint32((c - a - b) ^ (b >> 15))
 
     return a, b, c
 
@@ -138,43 +120,30 @@ def rol32(x, k):
 
 
 def mix_new(a, b, c):
-    a -= c
-    a ^= rol32(c, 4)
+    a = (a - c) ^ rol32(c, 4)
     c += b
-    b -= a
-    b ^= rol32(a, 6)
+    b = (b - a) ^ rol32(a, 6)
     a += c
-    c -= b
-    c ^= rol32(b, 8)
+    c = (c - b) ^ rol32(b, 8)
     b += a
-    a -= c
-    a ^= rol32(c, 16)
+    a = (a - c) ^ rol32(c, 16)
     c += b
-    b -= a
-    b ^= rol32(a, 19)
+    b = (b - a) ^ rol32(a, 19)
     a += c
-    c -= b
-    c ^= rol32(b, 4)
+    c = (c - b) ^ rol32(b, 4)
     b += a
 
     return uint32(a), uint32(b), uint32(c)
 
 
 def final_new(a, b, c):
-    c ^= b
-    c -= rol32(b, 14)
-    a ^= c
-    a -= rol32(c, 11)
-    b ^= a
-    b -= rol32(a, 25)
-    c ^= b
-    c -= rol32(b, 16)
-    a ^= c
-    a -= rol32(c, 4)
-    b ^= a
-    b -= rol32(a, 14)
-    c ^= b
-    c -= rol32(b, 24)
+    c = (c ^ b) - rol32(b, 14)
+    a = (a ^ c) - rol32(c, 11)
+    b = (b ^ a) - rol32(a, 25)
+    c = (c ^ b) - rol32(b, 16)
+    a = (a ^ c) - rol32(c, 4)
+    b = (b ^ a) - rol32(a, 14)
+    c = (c ^ b) - rol32(b, 24)
 
     return uint32(a), uint32(b), uint32(c)
 

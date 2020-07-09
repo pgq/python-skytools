@@ -16,12 +16,13 @@ try:
 except NameError:
     basestring = str    # noqa
 
-__all__ = ['DBService', 'ServiceContext',
-           'get_record', 'get_record_list',
-           'make_record', 'make_record_array',
-           'TableAPI',
-           #'log_result', 'transform_fields'
-           ]
+__all__ = (
+    'DBService', 'ServiceContext',
+    'get_record', 'get_record_list',
+    'make_record', 'make_record_array',
+    'TableAPI',
+    #'log_result', 'transform_fields'
+)
 
 
 def transform_fields(rows, key_fields, name_field, data_field):
@@ -55,8 +56,8 @@ def transform_fields(rows, key_fields, name_field, data_field):
         cur_row[r[name_field]] = r[data_field]
     return res
 
-# render_table
 
+# render_table
 
 def render_table(rows, fields):
     """ Render result rows as a table.
@@ -79,8 +80,8 @@ def render_table(rows, fields):
         lines.append(fmt % tuple([str(row.get(k)) for k in fields]))
     return lines
 
-# data conversion to and from url
 
+# data conversion to and from url
 
 def get_record(arg):
     """ Parse data for one urlencoded record.
@@ -478,8 +479,8 @@ class TableAPI(object):
         result[self._ctx.ROW] = self._row
         return result
 
-# ServiceContext
 
+# ServiceContext
 
 class ServiceContext(DBService):
     OP = "_op"              # name of the fake field where record modificaton operation is stored
