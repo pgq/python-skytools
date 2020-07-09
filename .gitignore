@@ -19,3 +19,5 @@ debian/python3-skytools
 MANIFEST
 build
 tmp
+dist
+
