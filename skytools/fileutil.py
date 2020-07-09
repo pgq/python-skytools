@@ -34,9 +34,8 @@ def write_atomic_unix(fn, data, bakext=None, mode='b'):
 
     # write new data to tmp file
     fn2 = fn + '.new'
-    f = open(fn2, 'w' + mode)
-    f.write(data)
-    f.close()
+    with open(fn2, 'w' + mode) as f:
+        f.write(data)
 
     # link old data to bak file
     if bakext:
@@ -76,9 +75,8 @@ def signal_pidfile(pidfile, sig):
 
     ln = ''
     try:
-        f = open(pidfile, 'r')
-        ln = f.readline().strip()
-        f.close()
+        with open(pidfile, 'r') as f:
+            ln = f.readline().strip()
         pid = int(ln)
         if sig == 0 and sys.platform == 'win32':
             return win32_detect_pid(pid)
@@ -132,11 +130,13 @@ def win32_write_atomic(fn, data, bakext=None, mode='b'):
     if mode not in ['', 'b', 't']:
         raise ValueError("unsupported fopen mode")
 
+    if mode == 'b' and isinstance(data, unicode):
+        data = data.encode('utf8')
+
     # write new data to tmp file
     fn2 = fn + '.new'
-    f = open(fn2, 'w' + mode)
-    f.write(data)
-    f.close()
+    with open(fn2, 'w' + mode) as f:
+        f.write(data)
 
     # move old data to bak file
     if bakext:
