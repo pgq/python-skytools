@@ -130,6 +130,8 @@ def set_cloexec(fd, onoff=True):
     >>> set_cloexec(s, None)
     True
     """
+    if fcntl is None:
+        return onoff
 
     flags = fcntl.fcntl(fd, fcntl.F_GETFD)
     if onoff is None:
