@@ -1,7 +1,7 @@
 
-import os.path
-
 import io
+import os.path
+import sys
 
 from nose.tools import *
 
@@ -59,7 +59,8 @@ def test_config_dict():
 def test_config_file():
     cf = Config('base', CONFIG)
     eq_(cf.getfile('file-val1'), '-')
-    eq_(cf.getfile('file-val2')[0], '/')
+    if sys.platform != 'win32':
+        eq_(cf.getfile('file-val2')[0], '/')
     eq_(cf.getfile('missing', 'qwe'), 'qwe')
     assert_raises(NoOptionError, cf.getfile, 'missing')
 

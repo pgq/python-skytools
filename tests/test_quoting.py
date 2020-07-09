@@ -4,13 +4,13 @@
 from __future__ import division, absolute_import, print_function
 
 import sys, time
-import skytools.psycopgwrapper
-import skytools._cquoting
-import skytools._pyquoting
 from decimal import Decimal
+from nose.tools import *
 
 from skytools.testing import ordered_dict
-from nose.tools import *
+import skytools.psycopgwrapper
+import skytools._pyquoting
+import skytools._cquoting
 
 # create a DictCursor row
 class fake_cursor:

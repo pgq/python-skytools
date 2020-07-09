@@ -8,7 +8,7 @@ import sys
 # don't build C module on win32 as it's unlikely to have dev env
 BUILD_C_MOD = 1
 if sys.platform == 'win32':
-    BUILD_C_MOD = 0
+    BUILD_C_MOD = 1
 
 # check if building C is allowed
 c_modules = []
