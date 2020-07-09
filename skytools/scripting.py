@@ -201,7 +201,7 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
     return log
 
 
-class BaseScript(object):
+class BaseScript:
     """Base class for service scripts.
 
     Handles logging, daemonizing, config, errors.
@@ -1055,7 +1055,7 @@ class DBScript(BaseScript):
             pass
 
 
-class DBCachedConn(object):
+class DBCachedConn:
     """Cache a db connection."""
     def __init__(self, name, loc, max_age=DEF_CONN_AGE, verbose=False, setup_func=None, channels=()):
         self.name = name

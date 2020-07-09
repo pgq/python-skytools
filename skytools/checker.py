@@ -10,7 +10,7 @@ import time
 import skytools
 
 
-class TableRepair(object):
+class TableRepair:
     """Checks that tables in two databases are in sync."""
 
     def __init__(self, table_name, log):

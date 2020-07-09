@@ -226,7 +226,7 @@ def exists_temp_table(curs, tbl):
 #
 
 
-class Snapshot(object):
+class Snapshot:
     """Represents a PostgreSQL snapshot.
 
     Example:
@@ -515,7 +515,7 @@ def full_copy(tablename, src_curs, dst_curs, column_list=(), condition=None,
 # SQL installer
 #
 
-class DBObject(object):
+class DBObject:
     """Base class for installable DB objects."""
     name = None
     sql = None

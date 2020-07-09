@@ -19,7 +19,7 @@ except ImportError:
         NoOptionError, NoSectionError, InterpolationError, InterpolationDepthError,
         Error as ConfigError, SafeConfigParser, MAX_INTERPOLATION_DEPTH)
 
-    class Interpolation(object):
+    class Interpolation:
         """Define Interpolation API from Python3."""
 
         def before_get(self, parser, section, option, value, defaults):
@@ -51,7 +51,7 @@ __all__ = [
 ]
 
 
-class Config(object):
+class Config:
     """Bit improved ConfigParser.
 
     Additional features:

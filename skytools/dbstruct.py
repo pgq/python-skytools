@@ -67,7 +67,7 @@ def rx_replace(rx, sql, new_part):
 #
 
 
-class TElem(object):
+class TElem:
     """Keeps info about one metadata object."""
     SQL = ""
     type = 0
@@ -569,7 +569,7 @@ class TSeq(TElem):
 #
 
 
-class BaseStruct(object):
+class BaseStruct:
     """Collects and manages all info about a higher-level db object.
 
     Allow to issue CREATE/DROP statements about any

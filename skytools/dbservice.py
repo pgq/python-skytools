@@ -170,7 +170,7 @@ def log_result(log, rec_list):
             log.debug(msg['_message'])
 
 
-class DBService(object):
+class DBService:
     """  Wrap parameterized query handling and multiset stored procedure writing
     """
     ROW = "_row"            # name of the fake field where internal record id is stored
@@ -360,7 +360,7 @@ class DBService(object):
 
 
 # TableAPI
-class TableAPI(object):
+class TableAPI:
     """ Class for managing one record updates using primary key
     """
     _table = None   # schema name and table name
