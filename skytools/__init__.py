@@ -5,13 +5,9 @@
 
 
 try:
-    import skytools.apipkg as _apipkg
+    from skytools import apipkg as _apipkg
 except ImportError:
     # make pylint think everything is imported immediately
-    from skytools.quoting import *
-    from skytools.sqltools import *
-    from skytools.scripting import *
-
     from skytools.adminscript import *
     from skytools.config import *
     from skytools.dbservice import *
@@ -23,8 +19,11 @@ except ImportError:
     from skytools.parsing import *
     from skytools.psycopgwrapper import *
     from skytools.querybuilder import *
+    from skytools.quoting import *
+    from skytools.scripting import *
     from skytools.skylog import *
     from skytools.sockutil import *
+    from skytools.sqltools import *
     from skytools.timeutil import *
     from skytools.utf8 import *
 
@@ -168,7 +167,7 @@ _symbols = {
     'safe_utf8_decode': 'skytools.utf8:safe_utf8_decode',
 }
 
-__all__ = _symbols.keys()
+__all__ = tuple(_symbols)
 _symbols['__version__'] = 'skytools.installer_config:package_version'
 
 # lazy-import exported vars

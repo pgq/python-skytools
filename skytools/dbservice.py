@@ -28,18 +28,6 @@ def transform_fields(rows, key_fields, name_field, data_field):
     """Convert multiple-rows per key input array
     to one-row, multiple-column output array.  The input arrays
     must be sorted by the key fields.
-
-    >>> from skytools.testing import ordered_dict
-    >>> rows = []
-    >>> rows.append({'time': '22:00', 'metric': 'count', 'value': 100})
-    >>> rows.append({'time': '22:00', 'metric': 'dur', 'value': 7})
-    >>> rows.append({'time': '23:00', 'metric': 'count', 'value': 200})
-    >>> rows.append({'time': '23:00', 'metric': 'dur', 'value': 5})
-    >>> res = [ordered_dict(row) for row in transform_fields(rows, ['time'], 'metric', 'value')]
-    >>> res[0]
-    OrderedDict([('count', 100), ('dur', 7), ('time', '22:00')])
-    >>> res[1]
-    OrderedDict([('count', 200), ('dur', 5), ('time', '23:00')])
     """
     cur_key = None
     cur_row = None
@@ -285,7 +273,7 @@ class DBService:
         row = rows[0]
         return list(row.values())[0]
 
-     # resultset handling
+    # resultset handling
 
     def return_next(self, rows, res_name, severity=None):
         """ Adds given set of rows to resultset

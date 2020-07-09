@@ -17,23 +17,6 @@ _rc_listelem = re.compile(r'( [^,"}]+ | ["] ( [^"\\]+ | [\\]. )* ["] )', re.X)
 
 def parse_pgarray(array):
     r"""Parse Postgres array and return list of items inside it.
-
-    Examples:
-    >>> parse_pgarray('{}')
-    []
-    >>> parse_pgarray('{a,b,null,"null"}')
-    ['a', 'b', None, 'null']
-    >>> parse_pgarray(r'{"a,a","b\"b","c\\c"}')
-    ['a,a', 'b"b', 'c\\c']
-    >>> parse_pgarray("[0,3]={1,2,3}")
-    ['1', '2', '3']
-    >>> parse_pgarray(None) is None
-    True
-    >>> from nose.tools import *
-    >>> assert_raises(ValueError, parse_pgarray, '}{')
-    >>> assert_raises(ValueError, parse_pgarray, '[1]=}')
-    >>> assert_raises(ValueError, parse_pgarray, '{"..." , }')
-
     """
     if array is None:
         return None
@@ -202,41 +185,6 @@ def parse_sqltriga_sql(op, sql, pklist=None, splitkeys=False):
      - Does not support updating pk value, unless you use the splitkeys parameter.
 
     Returns dict of col->data pairs.
-
-    >>> from skytools.testing import ordered_dict
-
-    Insert event:
-    >>> row = parse_logtriga_sql('I', '(id, data) values (1, null)')
-    >>> ordered_dict(row)
-    OrderedDict([('data', None), ('id', '1')])
-
-    Update event:
-    >>> row = parse_logtriga_sql('U', "data='foo' where id = 1")
-    >>> ordered_dict(row)
-    OrderedDict([('data', 'foo'), ('id', '1')])
-
-    Delete event:
-    >>> row = parse_logtriga_sql('D', "id = 1 and id2 = 'str''val'")
-    >>> ordered_dict(row)
-    OrderedDict([('id', '1'), ('id2', "str'val")])
-
-    If you set the splitkeys parameter, it will return two dicts, one for key
-    fields and one for data fields.
-
-    Insert event:
-    >>> keys, row = parse_logtriga_sql('I', '(id, data) values (1, null)', splitkeys=True)
-    >>> keys, ordered_dict(row)
-    ({}, OrderedDict([('data', None), ('id', '1')]))
-
-    Update event:
-    >>> parse_logtriga_sql('U', "data='foo' where id = 1", splitkeys=True)
-    ({'id': '1'}, {'data': 'foo'})
-
-    Delete event:
-    >>> keys, row = parse_logtriga_sql('D', "id = 1 and id2 = 'str''val'", splitkeys=True)
-    >>> (ordered_dict(keys), row)
-    (OrderedDict([('id', '1'), ('id2', "str'val")]), {})
-
     """
     return _logtriga_parser().parse_sql(op, sql, pklist, splitkeys=splitkeys)
 
@@ -247,11 +195,6 @@ def parse_tabbed_table(txt):
     Expect first row to be column names.
 
     Very primitive.
-
-    Test:
-    >>> from skytools.testing import ordered_dict
-    >>> [ordered_dict(d) for d in parse_tabbed_table('col1\tcol2\nval1\tval2\n')]
-    [OrderedDict([('col1', 'val1'), ('col2', 'val2')])]
     """
 
     txt = txt.replace("\r\n", "\n")
@@ -306,21 +249,6 @@ def sql_tokenizer(sql, standard_quoting=False, ignore_whitespace=False,
     r"""Parser SQL to tokens.
 
     Iterator, returns (toktype, tokstr) tuples.
-
-    Example
-    >>> [x for x in sql_tokenizer("select * from a.b", ignore_whitespace=True)]
-    [('ident', 'select'), ('sym', '*'), ('ident', 'from'), ('ident', 'a'), ('sym', '.'), ('ident', 'b')]
-    >>> [x for x in sql_tokenizer("\"c olumn\",'str''val'")]
-    [('ident', '"c olumn"'), ('sym', ','), ('str', "'str''val'")]
-    >>> list(sql_tokenizer('a.b a."b "" c" a.1', fqident=True, ignore_whitespace=True))
-    [('ident', 'a.b'), ('ident', 'a."b "" c"'), ('ident', 'a'), ('sym', '.'), ('num', '1')]
-    >>> list(sql_tokenizer(r"set 'a''\' + E'\''", standard_quoting=True, ignore_whitespace=True))
-    [('ident', 'set'), ('str', "'a''\\'"), ('sym', '+'), ('str', "E'\\''")]
-    >>> list(sql_tokenizer('a.b a."b "" c" a.1', fqident=True, standard_quoting=True, ignore_whitespace=True))
-    [('ident', 'a.b'), ('ident', 'a."b "" c"'), ('ident', 'a'), ('sym', '.'), ('num', '1')]
-    >>> list(sql_tokenizer('a.b\nc;', show_location=True, ignore_whitespace=True))
-    [('ident', 'a', 1), ('sym', '.', 2), ('ident', 'b', 3), ('ident', 'c', 5), ('sym', ';', 6)]
-
     """
     global _std_sql_rc, _ext_sql_rc, _std_sql_fq_rc, _ext_sql_fq_rc
     if not _std_sql_rc:
@@ -364,21 +292,6 @@ def parse_statements(sql, standard_quoting=False):
     """Parse multi-statement string into separate statements.
 
     Returns list of statements.
-
-    >>> [sql for sql in parse_statements("begin; select 1; select 'foo'; end;")]
-    ['begin;', 'select 1;', "select 'foo';", 'end;']
-    >>> [sql for sql in parse_statements("select (select 2+(select 3;);) ; select 4;")]
-    ['select (select 2+(select 3;);) ;', 'select 4;']
-
-    >>> [sql for sql in parse_statements('select ());')]
-    Traceback (most recent call last):
-        ...
-    ValueError: syntax error - unbalanced parenthesis
-    >>> [sql for sql in parse_statements('copy from stdin;')]
-    Traceback (most recent call last):
-        ...
-    ValueError: copy from stdin not supported
-
     """
 
     global _copy_from_stdin_rc
@@ -421,20 +334,6 @@ _acl_rc = None
 
 def parse_acl(acl):
     """Parse ACL entry.
-
-    >>> parse_acl('user=rwx/owner')
-    ('user', 'rwx', 'owner')
-    >>> parse_acl('" ""user"=rwx/" ""owner"')
-    (' "user', 'rwx', ' "owner')
-    >>> parse_acl('user=rwx')
-    ('user', 'rwx', None)
-    >>> parse_acl('=/f')
-    (None, '', 'f')
-
-    On error (is this ok?):
-    >>> parse_acl('?') is None
-    True
-
     """
     global _acl_rc
     if not _acl_rc:
@@ -467,11 +366,6 @@ def dedent(doc):
     - skips empty lines at the start
     - ignores indent of empty lines
     - if line does not match common indent, is stays unchanged
-
-    >>> dedent('  Line1:\n    Line 2\n')
-    'Line1:\n  Line 2\n'
-    >>> dedent('  \nLine1:\n  Line 2\n Line 3\n    Line 4')
-    'Line1:\nLine 2\n Line 3\n  Line 4\n'
     """
     pfx = None
     res = []
@@ -492,9 +386,6 @@ def dedent(doc):
 
 def hsize_to_bytes(input_str):
     """ Convert sizes from human format to bytes (string to integer)
-
-    >>> hsize_to_bytes('10G'), hsize_to_bytes('12k')
-    (10737418240, 12288)
     """
 
     m = re.match(r"^([0-9]+) *([KMGTPEZY]?)B?$", input_str.strip(), re.IGNORECASE)
@@ -519,16 +410,6 @@ _cstr_badval_rc = None
 
 def parse_connect_string(cstr):
     r"""Parse Postgres connect string.
-
-    >>> parse_connect_string("host=foo")
-    [('host', 'foo')]
-    >>> parse_connect_string(r" host = foo password = ' f\\\o\'o ' ")
-    [('host', 'foo'), ('password', "' f\\o'o '")]
-    >>> parse_connect_string(r" host = ")
-    Traceback (most recent call last):
-        ...
-    ValueError: Invalid connect string
-
     """
     global _cstr_rc, _cstr_unesc_rc
     if not _cstr_rc:
@@ -551,9 +432,6 @@ def parse_connect_string(cstr):
 
 def merge_connect_string(cstr_arg_list):
     """Put fragments back together.
-
-    >>> merge_connect_string([('host', 'ip'), ('pass', ''), ('x', ' ')])
-    "host=ip pass='' x=' '"
     """
     global _cstr_badval_rc
     if not _cstr_badval_rc:

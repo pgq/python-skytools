@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """Helper classes for complex query generation.
 
 Main target is code execution under PL/Python.
@@ -9,9 +7,7 @@ Type will be given to C{plpy.prepare}.
 If C{type} is missing, C{text} is assumed.
 
 See L{plpy_exec} for examples.
-
 """
-
 
 import skytools
 
@@ -132,17 +128,6 @@ class PlanCache:
 
 class QueryBuilderCore:
     """Helper for query building.
-
-    >>> args = {'success': 't', 'total': 45, 'ccy': 'EEK', 'id': 556}
-    >>> q = QueryBuilder("update orders set total = {total} where id = {id}", args)
-    >>> q.add(" and optional = {non_exist}")
-    >>> q.add(" and final = {success}")
-    >>> print(q.get_sql(PARAM_INLINE))
-    update orders set total = '45' where id = '556' and final = 't'
-    >>> print(q.get_sql(PARAM_DBAPI))
-    update orders set total = %s where id = %s and final = %s
-    >>> print(q.get_sql(PARAM_PLPY))
-    update orders set total = $1 where id = $2 and final = $3
     """
 
     def __init__(self, sqlexpr, params):
@@ -343,18 +328,6 @@ def plpy_exec(gd, sql, args, all_keys_required=True):
     @param sql: SQL statement to execute.
     @param args: dict of arguments to query.
     @param all_keys_required: if False, missing key is taken as NULL, instead of throwing error.
-
-    >>> res = plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
-    DBG: plpy.prepare('select $1, $2, $3', ['text', 'int4', 'text'])
-    DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['1', '2', '1'])
-    >>> res = plpy_exec(None, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
-    DBG: plpy.execute("select '1', '2', '1'", ())
-    >>> res = plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3', 'arg2': '4'})
-    DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['3', '4', '3'])
-    >>> res = plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3'})
-    DBG: plpy.error("Missing arguments: [arg2]  QUERY: 'select {arg1}, {arg2:int4}, {arg1}'")
-    >>> res = plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3'}, False)
-    DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['3', None, '3'])
     """
 
     if gd is None:
@@ -369,8 +342,8 @@ def plpy_exec(gd, sql, args, all_keys_required=True):
         gd['plq_cache'][sql] = sq
     return sq.execute(args, all_keys_required)
 
-# some helper functions for convenient sql execution
 
+# some helper functions for convenient sql execution
 
 def run_query(cur, sql, params=None, **kwargs):
     """ Helper function if everything you need is just paramertisized execute
@@ -422,13 +395,16 @@ def run_exists(cur, sql, params=None, **kwargs):
 
 # fake plpy for testing
 class fake_plpy:
+    log = []
     def prepare(self, sql, types):
-        print("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
+        self.log.append("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
         return ('PLAN', sql, types)
+
     def execute(self, plan, args=()):
-        print("DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args)))
+        self.log.append("DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args)))
+
     def error(self, msg):
-        print("DBG: plpy.error(%s)" % repr(msg))
+        self.log.append("DBG: plpy.error(%s)" % repr(msg))
 
 
 # make plpy available

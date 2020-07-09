@@ -3,44 +3,21 @@ Implementation of Postgres hashing function.
 
 hashtext_old() - used up to PostgreSQL 8.3
 hashtext_new() - used since PostgreSQL 8.4
-
->>> import skytools._chashtext
->>> for i in range(3):
-...     print([hashtext_new_py(b'x' * (i*5 + j)) for j in range(5)])
-[-1477818771, 1074944137, -1086392228, -1992236649, -1379736791]
-[-370454118, 1489915569, -66683019, -2126973000, 1651296771]
-[755764456, -1494243903, 631527812, 28686851, -9498641]
->>> for i in range(3):
-...     print([hashtext_old_py(b'x' * (i*5 + j)) for j in range(5)])
-[-863449762, 37835117, 294739542, -320432768, 1007638138]
-[1422906842, -261065348, 59863994, -162804943, 1736144510]
-[-682756517, 317827663, -495599455, -1411793989, 1739997714]
->>> data = b'HypficUjFitraxlumCitcemkiOkIkthi'
->>> p = [hashtext_old_py(data[:l]) for l in range(len(data)+1)]
->>> c = [hashtext_old(data[:l]) for l in range(len(data)+1)]
->>> assert p == c, '%s <> %s' % (p, c)
->>> p == c
-True
->>> p = [hashtext_new_py(data[:l]) for l in range(len(data)+1)]
->>> c = [hashtext_new(data[:l]) for l in range(len(data)+1)]
->>> assert p == c, '%s <> %s' % (p, c)
->>> p == c
-True
 """
-
 
 import struct
 import sys
 
 try:
-    from skytools._chashtext import hashtext_old, hashtext_new
+    from skytools._chashtext import hashtext_new, hashtext_old
 except ImportError:
     def hashtext_old(v):
         return hashtext_old_py(v)
     def hashtext_new(v):
         return hashtext_new_py(v)
 
-__all__ = ["hashtext_old", "hashtext_new"]
+
+__all__ = ("hashtext_old", "hashtext_new")
 
 # pad for last partial block
 PADDING = b'\0' * 12
@@ -50,10 +27,10 @@ def uint32(x):
     """python does not have 32 bit integer so we need this hack to produce uint32 after bit operations"""
     return x & 0xffffffff
 
+
 #
 # Old Postgres hashtext() - lookup2 with custom initval
 #
-
 
 FMT_OLD = struct.Struct("<LLL")
 
@@ -103,13 +80,13 @@ def hashtext_old_py(k):
 
     return int(c)
 
+
 #
 # New Postgres hashtext() - hacked lookup3:
 # - custom initval
 # - calls mix() when len=12
 # - shifted c in last block on little-endian
 #
-
 
 FMT_NEW = struct.Struct("=LLL")
 

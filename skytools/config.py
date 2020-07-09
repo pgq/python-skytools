@@ -10,14 +10,19 @@ import socket
 import skytools
 
 try:
-    from configparser import (      # noqa
-        NoOptionError, NoSectionError, InterpolationError, InterpolationDepthError,
-        Error as ConfigError, ConfigParser, MAX_INTERPOLATION_DEPTH,
-        ExtendedInterpolation, Interpolation)
+    from configparser import MAX_INTERPOLATION_DEPTH, ConfigParser
+    from configparser import Error as ConfigError  # noqa
+    from configparser import (
+        ExtendedInterpolation, Interpolation, InterpolationDepthError,
+        InterpolationError, NoOptionError, NoSectionError,
+    )
 except ImportError:
-    from ConfigParser import (      # noqa
-        NoOptionError, NoSectionError, InterpolationError, InterpolationDepthError,
-        Error as ConfigError, SafeConfigParser, MAX_INTERPOLATION_DEPTH)
+    from ConfigParser import MAX_INTERPOLATION_DEPTH
+    from ConfigParser import Error as ConfigError  # noqa
+    from ConfigParser import (
+        InterpolationDepthError, InterpolationError,
+        NoOptionError, NoSectionError, SafeConfigParser,
+    )
 
     class Interpolation:
         """Define Interpolation API from Python3."""

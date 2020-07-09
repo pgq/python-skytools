@@ -1,4 +1,3 @@
-
 """Wrapper around psycopg2.
 
 Database connection provides regular DB-API 2.0 interface.
@@ -54,13 +53,12 @@ Plain .fetchall() / .fetchone() give exact same result.
 
 """
 
-
-import skytools
-from skytools.sockutil import set_tcp_keepalive
-
 import psycopg2.extensions
 import psycopg2.extras
 from psycopg2 import Error as DBError
+
+from skytools.sockutil import set_tcp_keepalive
+from skytools.sqltools import dbdict
 
 __all__ = ['connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
            'I_REPEATABLE_READ', 'I_SERIALIZABLE']
@@ -81,7 +79,7 @@ class _CompatRow(psycopg2.extras.DictRow):
 
     def copy(self):
         """Return regular dict."""
-        return skytools.dbdict(self.items())
+        return dbdict(self.items())
 
     def iterkeys(self):
         return self._index.iterkeys()

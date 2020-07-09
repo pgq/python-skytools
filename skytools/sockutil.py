@@ -23,10 +23,6 @@ def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4 * 60, tcp_keepcnt=4, tc
      - Win32: (7200, 5|10, 1) - can configure tcp_keepidle and tcp_keepintvl.
 
     Our defaults: (240, 4, 15).
-
-    >>> import socket
-    >>> s = socket.socket()
-    >>> set_tcp_keepalive(s)
     """
 
     # usable on this OS?
@@ -83,15 +79,6 @@ def set_nonblocking(fd, onoff=True):
     Actual sockets from 'socket' module should use .setblocking() method,
     this is for situations where it is not available.  Eg. pipes
     from 'subprocess' module.
-
-    >>> import socket
-    >>> s = socket.socket()
-    >>> set_nonblocking(s, None)
-    False
-    >>> set_nonblocking(s, 1)
-    1
-    >>> set_nonblocking(s, None)
-    True
     """
     if fcntl is None:
         return onoff
@@ -114,23 +101,6 @@ def set_cloexec(fd, onoff=True):
 
     Some libraries do it automatically (eg. libpq).
     Others do not (Python stdlib).
-
-    >>> import os
-    >>> f = open(os.devnull, 'rb')
-    >>> set_cloexec(f, None) in (True, False)
-    True
-    >>> set_cloexec(f, True)
-    True
-    >>> set_cloexec(f, None)
-    True
-    >>> import socket
-    >>> s = socket.socket()
-    >>> set_cloexec(s, None) in (True, False)
-    True
-    >>> set_cloexec(s)
-    True
-    >>> set_cloexec(s, None)
-    True
     """
     if fcntl is None:
         return onoff

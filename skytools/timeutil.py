@@ -1,4 +1,3 @@
-
 """Fill gaps in Python time API-s.
 
 parse_iso_timestamp:
@@ -10,12 +9,11 @@ datetime_to_timestamp:
 
 """
 
-
 import re
 import time
 from datetime import datetime, timedelta, tzinfo
 
-__all__ = ['parse_iso_timestamp', 'FixedOffsetTimezone', 'datetime_to_timestamp']
+__all__ = ('parse_iso_timestamp', 'FixedOffsetTimezone', 'datetime_to_timestamp')
 
 
 class FixedOffsetTimezone(tzinfo):
@@ -83,27 +81,6 @@ def parse_iso_timestamp(s, default_tz=None):
     By default its None, meaning the datetime object will be without tz.
 
     Only fixed offset timezones are supported.
-
-    >>> str(parse_iso_timestamp('2005-06-01 15:00'))
-    '2005-06-01 15:00:00'
-    >>> str(parse_iso_timestamp(' 2005-06-01T15:00 +02 '))
-    '2005-06-01 15:00:00+02:00'
-    >>> str(parse_iso_timestamp('2005-06-01 15:00:33+02:00'))
-    '2005-06-01 15:00:33+02:00'
-    >>> d = parse_iso_timestamp('2005-06-01 15:00:59.33 +02')
-    >>> d.strftime("%z %Z")
-    '+0200 +02'
-    >>> str(parse_iso_timestamp(str(d)))
-    '2005-06-01 15:00:59.330000+02:00'
-    >>> parse_iso_timestamp('2005-06-01 15:00-0530').strftime('%Y-%m-%d %H:%M %z %Z')
-    '2005-06-01 15:00 -0530 -05:30'
-    >>> parse_iso_timestamp('2014-10-27T11:59:13Z').strftime('%Y-%m-%d %H:%M:%S %z %Z')
-    '2014-10-27 11:59:13 +0000 +00'
-    >>> parse_iso_timestamp('2014.10.27')
-    Traceback (most recent call last):
-        ...
-    ValueError: Date not in ISO format: '2014.10.27'
-
     """
 
     global _iso_rc
@@ -125,19 +102,18 @@ def parse_iso_timestamp(s, default_tz=None):
     elif m.group('tzname'):
         tz = UTC
 
-    return datetime(int(m.group('year')),
-                    int(m.group('month')),
-                    int(m.group('day')),
-                    int(m.group('hour')),
-                    int(m.group('min')),
-                    m.group('sec') and int(m.group('sec')) or 0,
-                    m.group('ss') and int(m.group('ss').ljust(6, '0')) or 0,
-                    tz)
+    return datetime(
+        int(m.group('year')), int(m.group('month')), int(m.group('day')),
+        int(m.group('hour')), int(m.group('min')),
+        m.group('sec') and int(m.group('sec')) or 0,
+        m.group('ss') and int(m.group('ss').ljust(6, '0')) or 0,
+        tz
+    )
+
 
 #
 # POSIX timestamp from datetime()
 #
-
 
 UTC = FixedOffsetTimezone(0)
 TZ_EPOCH = datetime.fromtimestamp(0, UTC)
@@ -151,27 +127,6 @@ def datetime_to_timestamp(dt, local_time=True):
     whether it's UTC or local time.
 
     Returns seconds since epoch as float.
-
-    >>> datetime_to_timestamp(parse_iso_timestamp("2005-06-01 15:00:59.5 +02"))
-    1117630859.5
-    >>> datetime_to_timestamp(datetime.fromtimestamp(1117630859.5, UTC))
-    1117630859.5
-    >>> datetime_to_timestamp(datetime.fromtimestamp(1117630859.5))
-    1117630859.5
-    >>> now = datetime.utcnow()
-    >>> now2 = datetime.utcfromtimestamp(datetime_to_timestamp(now, False))
-    >>> abs(now2.microsecond - now.microsecond) < 100
-    True
-    >>> now2 = now2.replace(microsecond = now.microsecond)
-    >>> now == now2
-    True
-    >>> now = datetime.now()
-    >>> now2 = datetime.fromtimestamp(datetime_to_timestamp(now))
-    >>> abs(now2.microsecond - now.microsecond) < 100
-    True
-    >>> now2 = now2.replace(microsecond = now.microsecond)
-    >>> now == now2
-    True
     """
     if dt.tzinfo:
         delta = dt - TZ_EPOCH

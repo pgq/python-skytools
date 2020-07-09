@@ -2,30 +2,7 @@ r"""UTF-8 sanitizer.
 
 Python's UTF-8 parser is quite relaxed, this creates problems when
 talking with other software that uses stricter parsers.
-
->>> _norm(safe_utf8_decode(b"foobar"))
-(True, ['f', 'o', 'o', 'b', 'a', 'r'])
->>> _norm(safe_utf8_decode(b'X\0Z'))
-(False, ['X', 65533, 'Z'])
->>> _norm(safe_utf8_decode(b'OK'))
-(True, ['O', 'K'])
->>> _norm(safe_utf8_decode(b'X\xF1Y'))
-(False, ['X', 65533, 'Y'])
-
->>> _norm_str(sanitize_unicode(u'\uD801\uDC01'))
-[66561]
-
->>> sanitize_unicode(b'qwe')
-Traceback (most recent call last):
-    ...
-TypeError: Need unicode string
 """
-
-## these give different results in py27 and py35
-# >>> _norm(safe_utf8_decode(b'X\xed\xa0\x80Y\xed\xb0\x89Z'))
-# (False, ['X', 65533, 65533, 65533, 'Y', 65533, 65533, 65533, 'Z'])
-# >>> _norm(safe_utf8_decode(b'X\xed\xa0\x80\xed\xb0\x89Z'))
-# (False, ['X', 65533, 65533, 65533, 65533, 65533, 65533, 'Z'])
 
 import codecs
 import re

@@ -1,13 +1,4 @@
 """File utilities
-
->>> import tempfile, os
->>> pidfn = tempfile.mktemp('.pid')
->>> write_atomic(pidfn, "1")
->>> write_atomic(pidfn, "2")
->>> os.remove(pidfn)
->>> write_atomic(pidfn, "1", '.bak')
->>> write_atomic(pidfn, "2", '.bak')
->>> os.remove(pidfn)
 """
 
 
@@ -87,7 +78,7 @@ def signal_pidfile(pidfile, sig):
     except (IOError, OSError) as ex:
         if ex.errno not in (errno.ESRCH, errno.ENOENT):
             raise
-    except ValueError as ex:
+    except ValueError:
         # this leaves slight race when someone is just creating the file,
         # but more common case is old empty file.
         if not ln:

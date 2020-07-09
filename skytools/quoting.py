@@ -1,17 +1,19 @@
-# quoting.py
-
-"""Various helpers for string quoting/unquoting."""
-
+"""Various helpers for string quoting/unquoting.
+"""
 
 import json
 import re
 
 try:
-    from skytools._cquoting import (db_urldecode, db_urlencode, quote_bytea_raw,
-                                    quote_copy, quote_literal, unescape, unquote_literal)
+    from skytools._cquoting import (
+        db_urldecode, db_urlencode, quote_bytea_raw,
+        quote_copy, quote_literal, unescape, unquote_literal,
+    )
 except ImportError:
-    from skytools._pyquoting import (db_urldecode, db_urlencode, quote_bytea_raw,
-                                     quote_copy, quote_literal, unescape, unquote_literal)
+    from skytools._pyquoting import (
+        db_urldecode, db_urlencode, quote_bytea_raw,
+        quote_copy, quote_literal, unescape, unquote_literal,
+    )
 
 __all__ = [
     # _pyqoting / _cquoting
@@ -99,12 +101,6 @@ def quote_fqident(s):
 
     The '.' is taken as namespace separator and
     all parts are quoted separately
-
-    Example:
-    >>> quote_fqident('tbl')
-    'public.tbl'
-    >>> quote_fqident('Baz.Foo.Bar')
-    '"Baz"."Foo.Bar"'
     """
     tmp = s.split('.', 1)
     if len(tmp) == 1:
@@ -142,12 +138,6 @@ def quote_json(s):
 
 def unescape_copy(val):
     r"""Removes C-style escapes, also converts "\N" to None.
-
-    Example:
-    >>> unescape_copy(r'baz\tfo\'o')
-    "baz\tfo'o"
-    >>> unescape_copy(r'\N') is None
-    True
     """
     if val == r"\N":
         return None
@@ -156,11 +146,6 @@ def unescape_copy(val):
 
 def unquote_ident(val):
     """Unquotes possibly quoted SQL identifier.
-
-    >>> unquote_ident('Foo')
-    'foo'
-    >>> unquote_ident('"Wei "" rd"')
-    'Wei " rd'
     """
     if len(val) > 1 and val[0] == '"' and val[-1] == '"':
         return val[1:-1].replace('""', '"')
@@ -171,11 +156,6 @@ def unquote_ident(val):
 
 def unquote_fqident(val):
     """Unquotes fully-qualified possibly quoted SQL identifier.
-
-    >>> unquote_fqident('foo')
-    'foo'
-    >>> unquote_fqident('"Foo"."Bar "" z"')
-    'Foo.Bar " z'
     """
     tmp = val.split('.', 1)
     return '.'.join([unquote_ident(i) for i in tmp])
@@ -183,24 +163,12 @@ def unquote_fqident(val):
 
 def json_encode(val=None, **kwargs):
     """Creates JSON string from Python object.
-
-    >>> json_encode({'a': 1})
-    '{"a": 1}'
-    >>> json_encode('a')
-    '"a"'
-    >>> json_encode(['a'])
-    '["a"]'
-    >>> json_encode(a=1)
-    '{"a": 1}'
     """
     return json.dumps(val or kwargs)
 
 
 def json_decode(s):
     """Parses JSON string into Python object.
-
-    >>> json_decode('[1]')
-    [1]
     """
     return json.loads(s)
 
@@ -229,13 +197,6 @@ def _quote_pgarray_elem(s):
 def make_pgarray(lst):
     r"""Formats Python list as Postgres array.
     Reverse of parse_pgarray().
-
-    >>> make_pgarray([])
-    '{}'
-    >>> make_pgarray(['foo_3',1,'',None])
-    '{foo_3,1,"",NULL}'
-    >>> make_pgarray([None,',','\\',"'",'"',"{","}",'_'])
-    '{NULL,",","\\\\","\'","\\"","{","}",_}'
     """
 
     global _pgarray_bad_rc

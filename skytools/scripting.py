@@ -600,7 +600,7 @@ class BaseScript:
         except UsageError as d:
             self.log.error(str(d))
             sys.exit(1)
-        except MemoryError as d:
+        except MemoryError:
             try:  # complex logging may not succeed
                 self.log.exception("Job %s out of memory, exiting", self.job_name)
             except MemoryError:
@@ -612,7 +612,7 @@ class BaseScript:
                 self.log.info("got SystemExit(%s), exiting", str(d))
             self.reset()
             raise d
-        except KeyboardInterrupt as d:
+        except KeyboardInterrupt:
             self.send_stats()
             if prefer_looping and self.looping and self.loop_delay > 0:
                 self.log.info("got KeyboardInterrupt, exiting")

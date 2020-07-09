@@ -1,5 +1,8 @@
 
-from skytools.querybuilder import DList, PlanCache
+from skytools.querybuilder import (
+    PARAM_DBAPI, PARAM_INLINE, PARAM_PLPY, DList,
+    PlanCache, QueryBuilder, plpy, plpy_exec,
+)
 
 
 def test_dlist():
@@ -48,4 +51,51 @@ def test_cached_plan():
 
     p1x = cache.get_plan('sql1', ['text'])
     assert p1 is not p1x
+
+
+def test_querybuilder_core():
+    args = {'success': 't', 'total': 45, 'ccy': 'EEK', 'id': 556}
+    q = QueryBuilder("update orders set total = {total} where id = {id}", args)
+    q.add(" and optional = {non_exist}")
+    q.add(" and final = {success}")
+    exp = "update orders set total = '45' where id = '556' and final = 't'"
+    assert q.get_sql(PARAM_INLINE) == exp
+    exp = "update orders set total = %s where id = %s and final = %s"
+    assert q.get_sql(PARAM_DBAPI) == exp
+    exp = "update orders set total = $1 where id = $2 and final = $3"
+    assert q.get_sql(PARAM_PLPY) == exp
+
+
+def test_plpy_exec():
+    GD = {}
+    plpy.log.clear()
+    plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
+    assert plpy.log == [
+        "DBG: plpy.prepare('select $1, $2, $3', ['text', 'int4', 'text'])",
+        "DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['1', '2', '1'])",
+    ]
+
+    plpy.log.clear()
+    plpy_exec(None, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
+    assert plpy.log == [
+        """DBG: plpy.execute("select '1', '2', '1'", ())"""
+    ]
+
+    plpy.log.clear()
+    plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3', 'arg2': '4'})
+    assert plpy.log == [
+        "DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['3', '4', '3'])"
+    ]
+
+    plpy.log.clear()
+    plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3'})
+    assert plpy.log == [
+        """DBG: plpy.error("Missing arguments: [arg2]  QUERY: 'select {arg1}, {arg2:int4}, {arg1}'")"""
+    ]
+
+    plpy.log.clear()
+    plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3'}, False)
+    assert plpy.log == [
+        "DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['3', None, '3'])"
+    ]
 

@@ -30,7 +30,7 @@ def _py_abspath(path):
 def distribution_version(name):
     """try to get the version of the named distribution,
     returs None on failure"""
-    from pkg_resources import get_distribution, DistributionNotFound
+    from pkg_resources import DistributionNotFound, get_distribution
     try:
         dist = get_distribution(name)
     except DistributionNotFound:

@@ -6,7 +6,6 @@ import re
 
 import skytools.quoting
 
-
 locations = [
     "/opt/src/pgsql/postgresql/src/include/parser/kwlist.h",
     "~/src/pgsql/postgres/src/include/parser/kwlist.h",

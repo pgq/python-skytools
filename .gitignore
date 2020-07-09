@@ -16,6 +16,8 @@ debian/python3-skytools
 .tox
 .coverage
 .pybuild
+cover
+*.xml
 MANIFEST
 build
 tmp

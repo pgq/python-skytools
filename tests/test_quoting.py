@@ -3,17 +3,19 @@
 
 from decimal import Decimal
 
+import pytest
 import skytools._cquoting
 import skytools._pyquoting
 import skytools.psycopgwrapper
-from skytools.testing import ordered_dict
-
-import pytest
+from skytools.quoting import (
+    json_decode, json_encode, make_pgarray,
+    quote_fqident, unescape_copy, unquote_fqident,
+)
 
 
 class fake_cursor:
     """create a DictCursor row"""
-    index = ordered_dict({'id': 0, 'data': 1})
+    index = {'id': 0, 'data': 1}
     description = ['x', 'x']
 
 
@@ -154,6 +156,11 @@ def test_quote_ident():
     try_func(skytools.quote_ident, sql_ident)
 
 
+def test_fqident():
+    assert quote_fqident('tbl') == 'public.tbl'
+    assert quote_fqident('Baz.Foo.Bar') == '"Baz"."Foo.Bar"'
+
+
 def _sort_urlenc(func):
     def wrapper(data):
         res = func(data)
@@ -167,7 +174,7 @@ def test_db_urlencode():
         [{'a': 1}, "a=1"],
         [{'a': None}, "a"],
         [{'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'],
-        [ordered_dict({'qwe': 1, u'zz': u"qwe"}), 'qwe=1&zz=qwe'],
+        [{'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'],
         [{'a': '\000%&'}, "a=%00%25%26"],
         [dbrow, 'data=value&id=123'],
         [{'a': Decimal("1")}, "a=1"],
@@ -254,6 +261,8 @@ def test_unquote_ident():
         [u'qwe', 'qwe'],
         ['"qwe"', 'qwe'],
         ['"q""w\\\\e"', 'q"w\\\\e'],
+        ['Foo', 'foo'],
+        ['"Wei "" rd"', 'Wei " rd'],
     ]
     try_func(skytools.unquote_ident, idents)
 
@@ -261,4 +270,34 @@ def test_unquote_ident():
 def test_unquote_ident_fail():
     with pytest.raises(Exception):
         skytools.unquote_ident('asd"asd')
+
+
+def test_unescape_copy():
+    assert unescape_copy(r'baz\tfo\'o') == "baz\tfo'o"
+    assert unescape_copy(r'\N') is None
+
+
+def test_unquote_fqident():
+    assert unquote_fqident('Foo') == 'foo'
+    assert unquote_fqident('"Foo"."Bar "" z"') == 'Foo.Bar " z'
+
+
+def test_json_encode():
+    assert json_encode({'a': 1}) == '{"a": 1}'
+    assert json_encode('a') == '"a"'
+    assert json_encode(['a']) == '["a"]'
+    assert json_encode(a=1) == '{"a": 1}'
+
+
+def test_json_decode():
+    assert json_decode('[1]') == [1]
+
+
+def test_make_pgarray():
+    assert make_pgarray([]) == '{}'
+    assert make_pgarray(['foo_3', 1, '', None]) == '{foo_3,1,"",NULL}'
+
+    res = make_pgarray([None, ',', '\\', "'", '"', "{", "}", '_'])
+    exp = '{NULL,",","\\\\","\'","\\"","{","}",_}'
+    assert res == exp
 
