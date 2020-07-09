@@ -22,22 +22,19 @@ def gzip_append(filename, data, level=6):
 
     # compress data
     buf = BytesIO()
-    g = gzip.GzipFile(fileobj=buf, compresslevel=level, mode="w")
-    g.write(data)
-    g.close()
+    with gzip.GzipFile(fileobj=buf, compresslevel=level, mode="w") as g:
+        g.write(data)
     zdata = buf.getvalue()
 
     # append, safely
-    f = open(filename, "ab+", 0)
-    f.seek(0, 2)
-    pos = f.tell()
-    try:
-        f.write(zdata)
-        f.close()
-    except Exception as ex:
-        # rollback on error
-        f.seek(pos, 0)
-        f.truncate()
-        f.close()
-        raise ex
+    with open(filename, "ab+", 0) as f:
+        f.seek(0, 2)
+        pos = f.tell()
+        try:
+            f.write(zdata)
+        except Exception as ex:
+            # rollback on error
+            f.seek(pos, 0)
+            f.truncate()
+            raise ex
 

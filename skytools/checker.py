@@ -134,10 +134,9 @@ class TableRepair(object):
 
     def dump_table(self, copy_cmd, curs, fn):
         """Dump table to disk."""
-        f = open(fn, "w", 64 * 1024)
-        curs.copy_expert(copy_cmd, f)
-        self.log.info('%s: Got %d bytes', self.table_name, f.tell())
-        f.close()
+        with open(fn, "w", 64 * 1024) as f:
+            curs.copy_expert(copy_cmd, f)
+            self.log.info('%s: Got %d bytes', self.table_name, f.tell())
 
     def get_row(self, ln):
         """Parse a row into dict."""
@@ -196,6 +195,8 @@ class TableRepair(object):
                       " missed: %d inserts, %d updates, %d deletes",
                       self.table_name, self.total_src, self.total_dst,
                       self.cnt_insert, self.cnt_update, self.cnt_delete)
+        f1.close()
+        f2.close()
 
     def got_missed_insert(self, src_row, fn):
         """Create sql for missed insert."""
@@ -244,7 +245,8 @@ class TableRepair(object):
     def show_fix(self, q, desc, fn):
         """Print/write/apply repair sql."""
         self.log.debug("missed %s: %s", desc, q)
-        open(fn, "a").write("%s\n" % q)
+        with open(fn, "a") as f:
+            f.write("%s\n" % q)
 
         if self.apply_fixes:
             self.apply_cursor.execute(q)

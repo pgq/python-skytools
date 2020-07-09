@@ -537,7 +537,8 @@ class DBObject(object):
             fn = self.find_file()
             if log:
                 log.info("  Reading from %s" % fn)
-            sql = open(fn, "r").read()
+            with open(fn, "r") as f:
+                sql = f.read()
         else:
             raise Exception('object not defined')
         for stmt in skytools.parse_statements(sql):
@@ -617,7 +618,8 @@ def installer_find_file(filename):
 def installer_apply_file(db, filename, log):
     """Find SQL file and apply it to db, statement-by-statement."""
     fn = installer_find_file(filename)
-    sql = open(fn, "r").read()
+    with open(fn, "r") as f:
+        sql = f.read()
     if log:
         log.info("applying %s" % fn)
     curs = db.cursor()
