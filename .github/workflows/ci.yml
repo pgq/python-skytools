@@ -63,7 +63,7 @@ jobs:
       - name: "Test"
         env:
            TOXENV: ${{matrix.test.TOXENV}}
-        run: python -m tox -r
+        run: python -m tox -r -- --color=yes
 
   database:
     if: false
@@ -86,12 +86,6 @@ jobs:
       - name: "Install tox"
         run: |
           python -m pip -q install tox
-
-      - name: "Lint"
-        env:
-          TOXENV: lint
-        run: |
-          python -m tox -r
 
       - name: "InstallDB"
         run: |
@@ -126,7 +120,7 @@ jobs:
         env:
            TOXENV: ${{matrix.test.TOXENV}}
         run: |
-          python -m tox -r
+          python -m tox -r -- --color=yes
 
       - name: "StopDB"
         run: |

@@ -1,9 +1,6 @@
 """Extra tests for quoting module.
 """
 
-
-import sys
-import time
 from decimal import Decimal
 
 import skytools._cquoting
@@ -11,12 +8,11 @@ import skytools._pyquoting
 import skytools.psycopgwrapper
 from skytools.testing import ordered_dict
 
-from nose.tools import *
-
-# create a DictCursor row
+import pytest
 
 
 class fake_cursor:
+    """create a DictCursor row"""
     index = ordered_dict({'id': 0, 'data': 1})
     description = ['x', 'x']
 
@@ -29,12 +25,13 @@ dbrow[1] = 'value'
 def try_func(qfunc, data_list):
     for val, exp in data_list:
         got = qfunc(val)
-        eq_(got, exp)
+        assert got == exp
 
 
 def try_catch(qfunc, data_list, exc):
     for d in data_list:
-        assert_raises(exc, qfunc, d)
+        with pytest.raises(exc):
+            qfunc(d)
 
 
 def test_quote_literal():
@@ -87,9 +84,12 @@ def test_unquote_literal():
     try_func(skytools.unquote_literal, qliterals_nonstd)
 
     for v1, v2 in bad_dol_literals:
-        assert_raises(ValueError, skytools._pyquoting.unquote_literal, v1)
-        assert_raises(ValueError, skytools._cquoting.unquote_literal, v1)
-        assert_raises(ValueError, skytools.unquote_literal, v1)
+        with pytest.raises(ValueError):
+            skytools._pyquoting.unquote_literal(v1)
+        with pytest.raises(ValueError):
+            skytools._cquoting.unquote_literal(v1)
+        with pytest.raises(ValueError):
+            skytools.unquote_literal(v1)
 
 
 def test_unquote_literal_std():
@@ -100,9 +100,9 @@ def test_unquote_literal_std():
         (r"'\\''z'", r"\\'z"),
     ]
     for val, exp in qliterals_std:
-        eq_(skytools._cquoting.unquote_literal(val, True), exp)
-        eq_(skytools._pyquoting.unquote_literal(val, True), exp)
-        eq_(skytools.unquote_literal(val, True), exp)
+        assert skytools._cquoting.unquote_literal(val, True) == exp
+        assert skytools._pyquoting.unquote_literal(val, True) == exp
+        assert skytools.unquote_literal(val, True) == exp
 
 
 def test_quote_copy():
@@ -135,7 +135,8 @@ def test_quote_bytea_raw():
 
 
 def test_quote_bytea_raw_fail():
-    assert_raises(TypeError, skytools._pyquoting.quote_bytea_raw, u'qwe')
+    with pytest.raises(TypeError):
+        skytools._pyquoting.quote_bytea_raw(u'qwe')
     #assert_raises(TypeError, skytools._cquoting.quote_bytea_raw, u'qwe')
     #assert_raises(TypeError, skytools.quote_bytea_raw, 'qwe')
 
@@ -229,11 +230,11 @@ def test_quote_bytea_copy():
 def test_quote_statement():
     sql = "set a=%s, b=%s, c=%s"
     args = [None, u"qwe'qwe", 6.6]
-    eq_(skytools.quote_statement(sql, args), "set a=null, b='qwe''qwe', c='6.6'")
+    assert skytools.quote_statement(sql, args) == "set a=null, b='qwe''qwe', c='6.6'"
 
     sql = "set a=%(a)s, b=%(b)s, c=%(c)s"
     args = dict(a=None, b="qwe'qwe", c=6.6)
-    eq_(skytools.quote_statement(sql, args), "set a=null, b='qwe''qwe', c='6.6'")
+    assert skytools.quote_statement(sql, args) == "set a=null, b='qwe''qwe', c='6.6'"
 
 
 def test_quote_json():
@@ -257,7 +258,7 @@ def test_unquote_ident():
     try_func(skytools.unquote_ident, idents)
 
 
-@raises(Exception)
 def test_unquote_ident_fail():
-    skytools.unquote_ident('asd"asd')
+    with pytest.raises(Exception):
+        skytools.unquote_ident('asd"asd')
 

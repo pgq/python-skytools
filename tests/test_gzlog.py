@@ -5,8 +5,6 @@ import tempfile
 
 from skytools.gzlog import gzip_append
 
-from nose.tools import *
-
 
 def test_gzlog():
     fd, tmpname = tempfile.mkstemp(suffix='.gz')
@@ -27,5 +25,6 @@ def test_gzlog():
                 read_total += len(blk)
     finally:
         os.remove(tmpname)
-    eq_(read_total, write_total)
+
+    assert read_total == write_total
 

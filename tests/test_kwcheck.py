@@ -1,14 +1,11 @@
 """Check if SQL keywords are up-to-date.
 """
 
-
 import os.path
 import re
-import sys
 
 import skytools.quoting
 
-from nose.tools import *
 
 locations = [
     "/opt/src/pgsql/postgresql/src/include/parser/kwlist.h",
@@ -72,8 +69,8 @@ def test_kwcheck():
             # slightly obsolete
             obsolete_list.append((k, '!CUR'))
 
-    eq_(new_list, [])
+    assert new_list == []
 
     # here we need to keep older keywords around longer
-    #eq_(obsolete_list, [])
+    #assert obsolete_list == []
 

@@ -3,12 +3,12 @@ import io
 import os.path
 import sys
 
+import pytest
+
 from skytools.config import (
-    Config, ConfigError, ExtendedCompatConfigParser, ExtendedConfigParser,
+    Config, ConfigError, ExtendedCompatConfigParser,
     InterpolationError, NoOptionError, NoSectionError,
 )
-
-from nose.tools import *
 
 TOP = os.path.dirname(__file__)
 CONFIG = os.path.join(TOP, 'config.ini')
@@ -16,150 +16,172 @@ CONFIG = os.path.join(TOP, 'config.ini')
 
 def test_config_str():
     cf = Config('base', CONFIG)
-    eq_(cf.get('foo'), '1')
-    eq_(cf.get('missing', 'q'), 'q')
-    assert_raises(NoOptionError, cf.get, 'missing')
+    assert cf.get('foo') == '1'
+    assert cf.get('missing', 'q') == 'q'
+    with pytest.raises(NoOptionError):
+        cf.get('missing')
 
 
 def test_config_int():
     cf = Config('base', CONFIG)
-    eq_(cf.getint('foo'), 1)
-    eq_(cf.getint('missing', 2), 2)
-    assert_raises(NoOptionError, cf.getint, 'missing')
+    assert cf.getint('foo') == 1
+    assert cf.getint('missing', 2) == 2
+    with pytest.raises(NoOptionError):
+        cf.getint('missing')
 
 
 def test_config_float():
     cf = Config('base', CONFIG)
-    eq_(cf.getfloat('float-val'), 2.0)
-    eq_(cf.getfloat('missing', 3.0), 3.0)
-    assert_raises(NoOptionError, cf.getfloat, 'missing')
+    assert cf.getfloat('float-val') == 2.0
+    assert cf.getfloat('missing', 3.0) == 3.0
+    with pytest.raises(NoOptionError):
+        cf.getfloat('missing')
 
 
 def test_config_bool():
     cf = Config('base', CONFIG)
-    eq_(cf.getboolean('bool-true1'), True)
-    eq_(cf.getboolean('bool-true2'), True)
-    eq_(cf.getboolean('missing', True), True)
-    assert_raises(NoOptionError, cf.getboolean, 'missing')
+    assert cf.getboolean('bool-true1') == True
+    assert cf.getboolean('bool-true2') == True
+    assert cf.getboolean('missing', True) == True
+    with pytest.raises(NoOptionError):
+        cf.getboolean('missing')
 
-    eq_(cf.getboolean('bool-false1'), False)
-    eq_(cf.getboolean('bool-false2'), False)
-    eq_(cf.getboolean('missing', False), False)
-    assert_raises(NoOptionError, cf.getbool, 'missing')
+    assert cf.getboolean('bool-false1') == False
+    assert cf.getboolean('bool-false2') == False
+    assert cf.getboolean('missing', False) == False
+    with pytest.raises(NoOptionError):
+        cf.getbool('missing')
 
 
 def test_config_list():
     cf = Config('base', CONFIG)
-    eq_(cf.getlist('list-val1'), [])
-    eq_(cf.getlist('list-val2'), ['a', '1', 'asd', 'ppp'])
-    eq_(cf.getlist('missing', [1]), [1])
-    assert_raises(NoOptionError, cf.getlist, 'missing')
+    assert cf.getlist('list-val1') == []
+    assert cf.getlist('list-val2'), ['a', '1', 'asd' == 'ppp']
+    assert cf.getlist('missing', [1]) == [1]
+    with pytest.raises(NoOptionError):
+        cf.getlist('missing')
 
 
 def test_config_dict():
     cf = Config('base', CONFIG)
-    eq_(cf.getdict('dict-val1'), {})
-    eq_(cf.getdict('dict-val2'), {'a': '1', 'b': '2', 'z': 'z'})
-    eq_(cf.getdict('missing', {'a': 1}), {'a': 1})
-    assert_raises(NoOptionError, cf.getdict, 'missing')
+    assert cf.getdict('dict-val1') == {}
+    assert cf.getdict('dict-val2') == {'a': '1', 'b': '2', 'z': 'z'}
+    assert cf.getdict('missing', {'a': 1}) == {'a': 1}
+    with pytest.raises(NoOptionError):
+        cf.getdict('missing')
 
 
 def test_config_file():
     cf = Config('base', CONFIG)
-    eq_(cf.getfile('file-val1'), '-')
+    assert cf.getfile('file-val1') == '-'
     if sys.platform != 'win32':
-        eq_(cf.getfile('file-val2')[0], '/')
-    eq_(cf.getfile('missing', 'qwe'), 'qwe')
-    assert_raises(NoOptionError, cf.getfile, 'missing')
+        assert cf.getfile('file-val2')[0] == '/'
+    assert cf.getfile('missing', 'qwe') == 'qwe'
+    with pytest.raises(NoOptionError):
+        cf.getfile('missing')
 
 
 def test_config_bytes():
     cf = Config('base', CONFIG)
-    eq_(cf.getbytes('bytes-val1'), 4)
-    eq_(cf.getbytes('bytes-val2'), 2048)
-    eq_(cf.getbytes('missing', '3k'), 3072)
-    assert_raises(NoOptionError, cf.getbytes, 'missing')
+    assert cf.getbytes('bytes-val1') == 4
+    assert cf.getbytes('bytes-val2') == 2048
+    assert cf.getbytes('missing', '3k') == 3072
+    with pytest.raises(NoOptionError):
+        cf.getbytes('missing')
 
 
 def test_config_wildcard():
     cf = Config('base', CONFIG)
 
-    eq_(cf.get_wildcard('wild-*-*', ['a', 'b']), 'w.a.b')
-    eq_(cf.get_wildcard('wild-*-*', ['a', 'x']), 'w.a')
-    eq_(cf.get_wildcard('wild-*-*', ['q', 'b']), 'w2')
-    eq_(cf.get_wildcard('missing-*-*', ['1', '2'], 'def'), 'def')
-    assert_raises(NoOptionError, cf.get_wildcard, 'missing-*-*', ['1', '2'])
+    assert cf.get_wildcard('wild-*-*', ['a', 'b']) == 'w.a.b'
+    assert cf.get_wildcard('wild-*-*', ['a', 'x']) == 'w.a'
+    assert cf.get_wildcard('wild-*-*', ['q', 'b']) == 'w2'
+    assert cf.get_wildcard('missing-*-*', ['1', '2'], 'def') == 'def'
+    with pytest.raises(NoOptionError):
+        cf.get_wildcard('missing-*-*', ['1', '2'])
 
 
 def test_config_default():
     cf = Config('base', CONFIG)
-    eq_(cf.get('all'), 'yes')
+    assert cf.get('all') == 'yes'
 
 
 def test_config_other():
     cf = Config('base', CONFIG)
-    eq_(sorted(cf.sections()), ['base', 'other'])
-    assert_true(cf.has_section('base'))
-    assert_true(cf.has_section('other'))
-    assert_false(cf.has_section('missing'))
-    assert_false(cf.has_section('DEFAULT'))
+    assert sorted(cf.sections()), ['base' == 'other']
+    assert cf.has_section('base') == True
+    assert cf.has_section('other') == True
+    assert cf.has_section('missing') == False
+    assert cf.has_section('DEFAULT') == False
 
-    assert_false(cf.has_option('missing'))
-    assert_true(cf.has_option('all'))
-    assert_true(cf.has_option('foo'))
+    assert cf.has_option('missing') == False
+    assert cf.has_option('all') == True
+    assert cf.has_option('foo') == True
 
     cf2 = cf.clone('other')
-    eq_(sorted(cf2.options()), ['all', 'config_dir', 'config_file',
-                                'host_name', 'job_name', 'service_name', 'test'])
-    eq_(len(cf2.items()), len(cf2.options()))
+    opts = list(sorted(cf2.options()))
+    assert opts == [
+        'all', 'config_dir', 'config_file', 'host_name',
+        'job_name', 'service_name', 'test'
+    ]
+    assert len(cf2.items()) == len(cf2.options())
 
 
 def test_loading():
-    assert_raises(NoSectionError, Config, 'random', CONFIG)
-    assert_raises(ConfigError, Config, 'random', 'random.ini')
+    with pytest.raises(NoSectionError):
+        Config('random', CONFIG)
+    with pytest.raises(NoSectionError):
+        Config('random', CONFIG)
+    with pytest.raises(ConfigError):
+        Config('random', 'random.ini')
 
 
 def test_nofile():
     cf = Config('base', None, user_defs={'a': '1'})
-    eq_(cf.sections(), ['base'])
-    eq_(cf.get('a'), '1')
+    assert cf.sections() == ['base']
+    assert cf.get('a') == '1'
 
     cf = Config('base', None, user_defs={'a': '1'}, ignore_defs=True)
-    eq_(cf.get('a', '2'), '2')
+    assert cf.get('a', '2') == '2'
 
 
 def test_override():
     cf = Config('base', CONFIG, override={'foo': 'overrided'})
-    eq_(cf.get('foo'), 'overrided')
+    assert cf.get('foo') == 'overrided'
 
 
 def test_vars():
     cf = Config('base', CONFIG)
-    eq_(cf.get('vars1'), 'V2=V3=Q3')
+    assert cf.get('vars1') == 'V2=V3=Q3'
 
-    assert_raises(InterpolationError, cf.get, 'bad1')
+    with pytest.raises(InterpolationError):
+        cf.get('bad1')
 
 
 def test_extended_compat():
     config = u'[foo]\nkey = ${sub} $${nosub}\nsub = 2\n[bar]\nkey = ${foo:key}\n'
     cf = ExtendedCompatConfigParser()
-    cf.readfp(io.StringIO(config), 'conf.ini')
-    eq_(cf.get('bar', 'key'), '2 ${nosub}')
+    cf.read_file(io.StringIO(config), 'conf.ini')
+    assert cf.get('bar', 'key') == '2 ${nosub}'
 
     config = u'[foo]\nloop1= ${loop1}\nloop2 = ${loop3}\nloop3 = ${loop2}\n'
     cf = ExtendedCompatConfigParser()
-    cf.readfp(io.StringIO(config), 'conf.ini')
-    assert_raises(InterpolationError, cf.get, 'foo', 'loop1')
-    assert_raises(InterpolationError, cf.get, 'foo', 'loop2')
+    cf.read_file(io.StringIO(config), 'conf.ini')
+    with pytest.raises(InterpolationError):
+        cf.get('foo', 'loop1')
+    with pytest.raises(InterpolationError):
+        cf.get('foo', 'loop2')
 
     config = u'[foo]\nkey = %(sub)s ${sub}\nsub = 2\n[bar]\nkey = %(foo:key)s\nkey2 = ${foo:key}\n'
     cf = ExtendedCompatConfigParser()
-    cf.readfp(io.StringIO(config), 'conf.ini')
-    eq_(cf.get('bar', 'key2'), '2 2')
-    assert_raises(NoOptionError, cf.get, 'bar', 'key')
+    cf.read_file(io.StringIO(config), 'conf.ini')
+    assert cf.get('bar', 'key2') == '2 2'
+    with pytest.raises(NoOptionError):
+        cf.get('bar', 'key')
 
     config = u'[foo]\nkey = ${bad:xxx}\n[bad]\nsub = 1\n'
     cf = ExtendedCompatConfigParser()
-    cf.readfp(io.StringIO(config), 'conf.ini')
-    assert_raises(NoOptionError, cf.get, 'foo', 'key')
+    cf.read_file(io.StringIO(config), 'conf.ini')
+    with pytest.raises(NoOptionError):
+        cf.get('foo', 'key')
 
