@@ -93,6 +93,8 @@ def set_nonblocking(fd, onoff=True):
     >>> set_nonblocking(s, None)
     True
     """
+    if fcntl is None:
+        return onoff
 
     flags = fcntl.fcntl(fd, fcntl.F_GETFL)
     if onoff is None:
