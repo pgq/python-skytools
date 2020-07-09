@@ -89,10 +89,10 @@ def quote_bytea_raw(s):
                 _bytea_map[c] = '%c' % i
     return "".join([_bytea_map[b] for b in s])
 
+
 #
 # Database specific urlencode and urldecode.
 #
-
 
 def db_urlencode(dict_val):
     """Database specific urlencode.
@@ -134,10 +134,10 @@ def db_urldecode(qs):
             res[name] = unquote_plus(pair[1])
     return res
 
+
 #
 # Remove C-like backslash escapes
 #
-
 
 _esc_re = r"\\([0-7]{1,3}|.)"
 _esc_rc = re.compile(_esc_re)
