@@ -5,7 +5,7 @@
 Here is pure Python that should match C code in _cquoting.
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import re
 
@@ -28,6 +28,7 @@ __all__ = [
 # SQL quoting
 #
 
+
 def quote_literal(s):
     r"""Quote a literal value for SQL.
 
@@ -46,6 +47,7 @@ def quote_literal(s):
         return "E'" + s2 + "'"
     return "'" + s2 + "'"
 
+
 def quote_copy(s):
     """Quoting for copy command.  None is converted to \\N.
 
@@ -61,7 +63,10 @@ def quote_copy(s):
     s = s.replace("\r", "\\r")
     return s
 
+
 _bytea_map = None
+
+
 def quote_bytea_raw(s):
     """Quoting for bytea parser.  Returns None as None.
 
@@ -88,6 +93,7 @@ def quote_bytea_raw(s):
 # Database specific urlencode and urldecode.
 #
 
+
 def db_urlencode(dict_val):
     """Database specific urlencode.
 
@@ -105,6 +111,7 @@ def db_urlencode(dict_val):
             elem = quote_plus(str(k)) + '=' + quote_plus(str(v))
         elem_list.append(elem)
     return '&'.join(elem_list)
+
 
 def db_urldecode(qs):
     """Database specific urldecode.
@@ -131,6 +138,7 @@ def db_urldecode(qs):
 # Remove C-like backslash escapes
 #
 
+
 _esc_re = r"\\([0-7]{1,3}|.)"
 _esc_rc = re.compile(_esc_re)
 _esc_map = {
@@ -144,6 +152,7 @@ _esc_map = {
     '\\': '\\',
 }
 
+
 def _sub_unescape_c(m):
     """unescape single escape seq."""
     v = m.group(1)
@@ -155,14 +164,18 @@ def _sub_unescape_c(m):
     else:
         return chr(int(v, 8))
 
+
 def unescape(val):
     """Removes C-style escapes from string.
     Python implementation.
     """
     return _esc_rc.sub(_sub_unescape_c, val)
 
+
 _esql_re = r"''|\\([0-7]{1,3}|.)"
 _esql_rc = re.compile(_esql_re)
+
+
 def _sub_unescape_sqlext(m):
     """Unescape extended-quoted string."""
     if m.group() == "''":
@@ -174,6 +187,7 @@ def _sub_unescape_sqlext(m):
         except KeyError:
             return v
     return chr(int(v, 8))
+
 
 def unquote_literal(val, stdstr=False):
     """Unquotes SQL string.
@@ -194,7 +208,7 @@ def unquote_literal(val, stdstr=False):
         p1 = val.find('$', 1)
         p2 = val.rfind('$', 1, -1)
         if p1 > 0 and p2 > p1:
-            t1 = val[:p1+1]
+            t1 = val[:p1 + 1]
             t2 = val[p2:]
             if t1 == t2:
                 return val[len(t1):-len(t1)]

@@ -1,10 +1,10 @@
 """Various low-level utility functions for sockets."""
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import sys
 import os
 import socket
+import sys
 
 try:
     import fcntl
@@ -13,7 +13,8 @@ except ImportError:
 
 __all__ = ['set_tcp_keepalive', 'set_nonblocking', 'set_cloexec']
 
-def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4*60, tcp_keepcnt=4, tcp_keepintvl=15):
+
+def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4 * 60, tcp_keepcnt=4, tcp_keepintvl=15):
     """Turn on TCP keepalive.  The fd can be either numeric or socket
     object with 'fileno' method.
 
@@ -72,7 +73,7 @@ def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4*60, tcp_keepcnt=4, tcp_
     elif TCP_KEEPALIVE is not None:
         s.setsockopt(socket.IPPROTO_TCP, TCP_KEEPALIVE, tcp_keepidle)
     elif SIO_KEEPALIVE_VALS is not None and fcntl:
-        fcntl.ioctl(s.fileno(), SIO_KEEPALIVE_VALS, (1, tcp_keepidle*1000, tcp_keepintvl*1000))
+        fcntl.ioctl(s.fileno(), SIO_KEEPALIVE_VALS, (1, tcp_keepidle * 1000, tcp_keepintvl * 1000))
 
 
 def set_nonblocking(fd, onoff=True):

@@ -47,7 +47,7 @@ TypeError: Object type not supported: <built-in function divmod>
 
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import codecs
 
@@ -62,6 +62,7 @@ except NameError:
 _memstr_types = (unicode, bytes, memoryview)
 _struct_types = (list, tuple, dict)
 _inttypes = (int, long)
+
 
 def _dumps(dst, val):
     if isinstance(val, _struct_types):
@@ -102,21 +103,24 @@ def _dumps(dst, val):
     dst.append(tval)
     return len(tval)
 
+
 _decode_utf8 = codecs.getdecoder('utf8')
+
+
 def _loads(buf):
     pos = 0
     maxlen = min(len(buf), 9)
-    while buf[pos:pos+1] != b':':
+    while buf[pos:pos + 1] != b':':
         pos += 1
         if pos > maxlen:
             raise ValueError("Too large length")
-    lenbytes = buf[ : pos].tobytes()
+    lenbytes = buf[: pos].tobytes()
     tlen = int(lenbytes)
     ofs = len(lenbytes) + 1
     endofs = ofs + tlen
 
-    val = buf[ofs : endofs]
-    code = buf[endofs : endofs + 1]
+    val = buf[ofs: endofs]
+    code = buf[endofs: endofs + 1]
     rest = buf[endofs + 1:]
     if len(val) + 1 != tlen + len(code):
         raise ValueError("failed to load value, invalid length")
@@ -158,12 +162,14 @@ def _loads(buf):
 # Public API
 #
 
+
 def dumps(val):
     """Dump object tree as TNetString value.
     """
     dst = []
     _dumps(dst, val)
     return b''.join(dst)
+
 
 def loads(binval):
     """Parse TNetstring from byte string.
@@ -174,6 +180,7 @@ def loads(binval):
     if rest:
         raise ValueError("Not all data processed")
     return obj
+
 
 # old compat?
 parse = loads

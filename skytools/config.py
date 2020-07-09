@@ -1,7 +1,7 @@
 
 """Nicer config class."""
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 import os.path
@@ -51,6 +51,7 @@ __all__ = [
     'ConfigParser', 'ExtendedConfigParser', 'ExtendedCompatConfigParser'
 ]
 
+
 class Config(object):
     """Bit improved ConfigParser.
 
@@ -92,7 +93,7 @@ class Config(object):
         if filename is None:
             self.cf.add_section(main_section)
         elif not os.path.isfile(filename):
-            raise ConfigError('Config file not found: '+filename)
+            raise ConfigError('Config file not found: ' + filename)
 
         self.reload()
 
@@ -272,7 +273,6 @@ class Config(object):
 
     # define some aliases (short-cuts / backward compatibility cruft)
     getbool = getboolean
-
 
 
 class ExtendedInterpolationCompat(Interpolation):

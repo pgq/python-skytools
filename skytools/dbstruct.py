@@ -1,18 +1,17 @@
 """Find table structure and allow CREATE/DROP elements from it.
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import re
 
 import skytools
-
-from skytools import quote_ident, quote_fqident
+from skytools import quote_fqident, quote_ident
 
 __all__ = ['TableStruct', 'SeqStruct',
-    'T_TABLE', 'T_CONSTRAINT', 'T_INDEX', 'T_TRIGGER',
-    'T_RULE', 'T_GRANT', 'T_OWNER', 'T_PKEY', 'T_ALL',
-    'T_SEQUENCE', 'T_PARENT', 'T_DEFAULT']
+           'T_TABLE', 'T_CONSTRAINT', 'T_INDEX', 'T_TRIGGER',
+           'T_RULE', 'T_GRANT', 'T_OWNER', 'T_PKEY', 'T_ALL',
+           'T_SEQUENCE', 'T_PARENT', 'T_DEFAULT']
 
 T_TABLE = 1 << 0
 T_CONSTRAINT = 1 << 1
@@ -31,6 +30,7 @@ T_ALL = (T_TABLE | T_CONSTRAINT | T_INDEX | T_SEQUENCE
 #
 # Utility functions
 #
+
 
 def find_new_name(curs, name):
     """Create new object name for case the old exists.
@@ -53,6 +53,7 @@ def find_new_name(curs, name):
     # failed
     raise Exception('find_new_name failed')
 
+
 def rx_replace(rx, sql, new_part):
     """Find a regex match and replace that part with new_part."""
     m = re.search(rx, sql, re.I)
@@ -65,6 +66,7 @@ def rx_replace(rx, sql, new_part):
 #
 # Schema objects
 #
+
 
 class TElem(object):
     """Keeps info about one metadata object."""
@@ -81,6 +83,7 @@ class TElem(object):
     def get_load_sql(cls, pgver):
         """Return SQL statement for finding objects."""
         return cls.SQL
+
 
 class TConstraint(TElem):
     """Info about constraint."""
@@ -130,6 +133,7 @@ class TConstraint(TElem):
         sql = fmt % (quote_fqident(self.table_name), quote_ident(self.name))
         return sql
 
+
 class TIndex(TElem):
     """Info about index."""
     type = T_INDEX
@@ -174,6 +178,7 @@ class TIndex(TElem):
 
     def get_drop_sql(self, curs):
         return 'DROP INDEX %s;' % quote_fqident(self.name)
+
 
 class TRule(TElem):
     """Info about rule."""
@@ -256,6 +261,7 @@ class TTrigger(TElem):
             sql += "NOT tgisconstraint"
         return sql
 
+
 class TParent(TElem):
     """Info about trigger."""
     type = T_PARENT
@@ -295,6 +301,7 @@ class TOwner(TElem):
             new_name = self.table_name
         return 'ALTER TABLE %s\n  OWNER TO %s;' % (quote_fqident(new_name), quote_ident(self.owner))
 
+
 class TGrant(TElem):
     """Info about permissions."""
     type = T_GRANT
@@ -326,7 +333,7 @@ class TGrant(TElem):
         lst2 = []
         while i < len(acl):
             a = self.acl_map[acl[i]]
-            if i+1 < len(acl) and acl[i+1] == '*':
+            if i + 1 < len(acl) and acl[i + 1] == '*':
                 lst2.append(a)
                 i += 2
             else:
@@ -376,6 +383,7 @@ class TGrant(TElem):
             sql_list.append(sql)
         return "\n".join(sql_list)
 
+
 class TColumnDefault(TElem):
     """Info about table column default value."""
     type = T_DEFAULT
@@ -398,12 +406,13 @@ class TColumnDefault(TElem):
         """Generate creation SQL."""
         tbl = new_name or self.table_name
         sql = "ALTER TABLE ONLY %s ALTER COLUMN %s\n  SET DEFAULT %s;" % (
-                quote_fqident(tbl), quote_ident(self.name), self.expr)
+            quote_fqident(tbl), quote_ident(self.name), self.expr)
         return sql
 
     def get_drop_sql(self, curs):
         return "ALTER TABLE %s ALTER COLUMN %s\n  DROP DEFAULT;" % (
-                quote_fqident(self.table_name), quote_ident(self.name))
+            quote_fqident(self.table_name), quote_ident(self.name))
+
 
 class TColumn(TElem):
     """Info about table column."""
@@ -542,7 +551,7 @@ class TSeq(TElem):
         # we are in table def, forget full def
         if self.owner:
             sql = "ALTER SEQUENCE %s\n  OWNED BY %s;" % (
-                    quote_fqident(self.name), self.owner)
+                quote_fqident(self.name), self.owner)
             return sql
 
         name = self.name
@@ -559,6 +568,7 @@ class TSeq(TElem):
 #
 # Main table object, loads all the others
 #
+
 
 class BaseStruct(object):
     """Collects and manages all info about a higher-level db object.
@@ -625,6 +635,7 @@ class BaseStruct(object):
                     res.append(sql)
         return "".join(res)
 
+
 class TableStruct(BaseStruct):
     """Collects and manages all info about table.
 
@@ -686,6 +697,7 @@ class TableStruct(BaseStruct):
             res.append(c.name)
         return res
 
+
 class SeqStruct(BaseStruct):
     """Collects and manages all info about sequence.
 
@@ -707,6 +719,7 @@ class SeqStruct(BaseStruct):
         # load table struct
         self.object_list = self._load_elem(curs, seq_name, args, TSeq)
 
+
 def manual_check():
     from skytools import connect_database
     db = connect_database("dbname=fooz")
@@ -718,6 +731,7 @@ def manual_check():
     s.create(curs, T_ALL)
     s.create(curs, T_ALL, "data1_new")
     s.create(curs, T_PKEY)
+
 
 if __name__ == '__main__':
     manual_check()

@@ -1,14 +1,15 @@
 """Catch moment when tables are in sync on master and slave.
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import sys
-import time
 import os
 import subprocess
+import sys
+import time
 
 import skytools
+
 
 class TableRepair(object):
     """Checks that tables in two databases are in sync."""
@@ -133,7 +134,7 @@ class TableRepair(object):
 
     def dump_table(self, copy_cmd, curs, fn):
         """Dump table to disk."""
-        f = open(fn, "w", 64*1024)
+        f = open(fn, "w", 64 * 1024)
         curs.copy_expert(copy_cmd, f)
         self.log.info('%s: Got %d bytes', self.table_name, f.tell())
         f.close()
@@ -151,12 +152,14 @@ class TableRepair(object):
     def dump_compare(self, src_fn, dst_fn, fix):
         """Dump + compare single table."""
         self.log.info("Comparing dumps: %s", self.table_name)
-        f1 = open(src_fn, "r", 64*1024)
-        f2 = open(dst_fn, "r", 64*1024)
+        f1 = open(src_fn, "r", 64 * 1024)
+        f2 = open(dst_fn, "r", 64 * 1024)
         src_ln = f1.readline()
         dst_ln = f2.readline()
-        if src_ln: self.total_src += 1
-        if dst_ln: self.total_dst += 1
+        if src_ln:
+            self.total_src += 1
+        if dst_ln:
+            self.total_dst += 1
 
         if os.path.isfile(fix):
             os.unlink(fix)
@@ -182,15 +185,17 @@ class TableRepair(object):
 
             if not keep_src:
                 src_ln = f1.readline()
-                if src_ln: self.total_src += 1
+                if src_ln:
+                    self.total_src += 1
             if not keep_dst:
                 dst_ln = f2.readline()
-                if dst_ln: self.total_dst += 1
+                if dst_ln:
+                    self.total_dst += 1
 
-        self.log.info("finished %s: src: %d rows, dst: %d rows,"\
-                    " missed: %d inserts, %d updates, %d deletes",
-                self.table_name, self.total_src, self.total_dst,
-                self.cnt_insert, self.cnt_update, self.cnt_delete)
+        self.log.info("finished %s: src: %d rows, dst: %d rows,"
+                      " missed: %d inserts, %d updates, %d deletes",
+                      self.table_name, self.total_src, self.total_dst,
+                      self.cnt_insert, self.cnt_update, self.cnt_delete)
 
     def got_missed_insert(self, src_row, fn):
         """Create sql for missed insert."""
@@ -203,7 +208,7 @@ class TableRepair(object):
             v = skytools.unescape_copy(src_row[f])
             val_list.append(skytools.quote_literal(v))
         q = "insert into %s (%s) values (%s);" % (
-                self.fq_table_name, ", ".join(fq_list), ", ".join(val_list))
+            self.fq_table_name, ", ".join(fq_list), ", ".join(val_list))
         self.show_fix(q, 'insert', fn)
 
     def got_missed_update(self, src_row, dst_row, fn):
@@ -224,7 +229,7 @@ class TableRepair(object):
             self.addcmp(whe_list, skytools.quote_ident(f), skytools.unescape_copy(v2))
 
         q = "update only %s set %s where %s;" % (
-                self.fq_table_name, ", ".join(set_list), " and ".join(whe_list))
+            self.fq_table_name, ", ".join(set_list), " and ".join(whe_list))
         self.show_fix(q, 'update', fn)
 
     def got_missed_delete(self, dst_row, fn):
@@ -355,7 +360,7 @@ class Syncer(skytools.DBScript):
         setup_curs.execute("select to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS')")
         tpos = setup_curs.fetchone()[0]
         # now wait
-        while 1:
+        while True:
             time.sleep(0.5)
 
             q = "select now() - lag > timestamp %s, now(), lag from pgq.get_consumer_info(%s, %s)"
@@ -434,7 +439,7 @@ class Syncer(skytools.DBScript):
         cur_pos = res[0]
 
         start = time.time()
-        while 1:
+        while True:
             time.sleep(0.5)
             curs.execute(q, [queue_name])
             res = curs.fetchone()
@@ -545,7 +550,7 @@ class Checker(Syncer):
                 where = where_expr % dst_row
 
                 self.log.info('Source: db=%s host=%s queue=%s consumer=%s',
-                                  s_db, s_host, queue_name, consumer_name)
+                              s_db, s_host, queue_name, consumer_name)
                 self.log.info('Target: db=%s host=%s where=%s', d_db, d_host, where)
 
                 for tbl in self.table_list:
@@ -575,7 +580,7 @@ class Checker(Syncer):
 
         self.log.info('Counting %s', tbl)
 
-        q = "select count(1) as cnt, sum(hashtext(t.*::text)) as chksum from only _TABLE_ t where %s;" %  where
+        q = "select count(1) as cnt, sum(hashtext(t.*::text)) as chksum from only _TABLE_ t where %s;" % where
         q = self.cf.get('compare_sql', q)
         q = q.replace('_TABLE_', skytools.quote_fqident(tbl))
 

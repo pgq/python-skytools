@@ -10,13 +10,14 @@ datetime_to_timestamp:
 
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import re
 import time
 from datetime import datetime, timedelta, tzinfo
 
 __all__ = ['parse_iso_timestamp', 'FixedOffsetTimezone', 'datetime_to_timestamp']
+
 
 class FixedOffsetTimezone(tzinfo):
     """Fixed offset in minutes east from UTC."""
@@ -45,6 +46,7 @@ class FixedOffsetTimezone(tzinfo):
     def dst(self, dt):
         return ZERO
 
+
 ZERO = timedelta(0)
 
 #
@@ -68,6 +70,7 @@ _iso_regex = r"""
     \s* $
     """
 _iso_rc = None
+
 
 def parse_iso_timestamp(s, default_tz=None):
     """Parse ISO timestamp to datetime object.
@@ -124,21 +127,23 @@ def parse_iso_timestamp(s, default_tz=None):
         tz = UTC
 
     return datetime(int(m.group('year')),
-                int(m.group('month')),
-                int(m.group('day')),
-                int(m.group('hour')),
-                int(m.group('min')),
-                m.group('sec') and int(m.group('sec')) or 0,
-                m.group('ss') and int(m.group('ss').ljust(6, '0')) or 0,
-                tz)
+                    int(m.group('month')),
+                    int(m.group('day')),
+                    int(m.group('hour')),
+                    int(m.group('min')),
+                    m.group('sec') and int(m.group('sec')) or 0,
+                    m.group('ss') and int(m.group('ss').ljust(6, '0')) or 0,
+                    tz)
 
 #
 # POSIX timestamp from datetime()
 #
 
+
 UTC = FixedOffsetTimezone(0)
 TZ_EPOCH = datetime.fromtimestamp(0, UTC)
 UTC_NOTZ_EPOCH = datetime.utcfromtimestamp(0)
+
 
 def datetime_to_timestamp(dt, local_time=True):
     """Get posix timestamp from datetime() object.

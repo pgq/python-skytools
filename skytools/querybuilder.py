@@ -12,7 +12,7 @@ See L{plpy_exec} for examples.
 
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import skytools
 
@@ -26,7 +26,7 @@ __all__ = [
     "run_query", "run_query_row", "run_lookup", "run_exists",
 ]
 
-PARAM_INLINE = 0 # quote_literal()
+PARAM_INLINE = 0  # quote_literal()
 PARAM_DBAPI = 1  # %()s
 PARAM_PLPY = 2   # $n
 
@@ -34,6 +34,7 @@ PARAM_PLPY = 2   # $n
 class QArgConf(object):
     """Per-query arg-type config object."""
     param_type = None
+
 
 class QArg(object):
     """Place-holder for a query parameter."""
@@ -90,7 +91,7 @@ class CachedPlan(DList):
     __slots__ = ('key', 'plan')
     def __init__(self, key, plan):
         super(CachedPlan, self).__init__()
-        self.key = key # (sql, (types))
+        self.key = key  # (sql, (types))
         self.plan = plan
 
 
@@ -186,7 +187,7 @@ class QueryBuilderCore(object):
         if pfx:
             parts.append(pfx)
         pos = 0
-        while 1:
+        while True:
             # find start of next argument
             a1 = expr.find('{', pos)
             if a1 < 0:
@@ -196,7 +197,7 @@ class QueryBuilderCore(object):
             # find end end of argument name
             a2 = expr.find('}', a1)
             if a2 < 0:
-                raise Exception("missing argument terminator: "+expr)
+                raise Exception("missing argument terminator: " + expr)
 
             # add plain sql
             if a1 > pos:
@@ -204,12 +205,12 @@ class QueryBuilderCore(object):
             pos = a2 + 1
 
             # get arg name, check if exists
-            k = expr[a1 + 1 : a2]
+            k = expr[a1 + 1: a2]
             # split name from type
             tpos = k.rfind(':')
             if tpos > 0:
                 kparam = k[:tpos]
-                ktype = k[tpos+1 : ]
+                ktype = k[tpos + 1:]
             else:
                 kparam = k
                 ktype = sql_type
@@ -217,7 +218,7 @@ class QueryBuilderCore(object):
             # params==None means params are checked later
             if params is not None and kparam not in params:
                 if required:
-                    raise Exception("required parameter missing: "+kparam)
+                    raise Exception("required parameter missing: " + kparam)
                 # optional fragment, param missing, skip it
                 return
 
@@ -240,6 +241,7 @@ class QueryBuilderCore(object):
             self._arg_value_list.extend(values)
         self._nargs = nargs
 
+
 class QueryBuilder(QueryBuilderCore):
     def execute(self, curs):
         """Client-side query execution on DB-API 2.0 cursor.
@@ -253,6 +255,7 @@ class QueryBuilder(QueryBuilderCore):
         q = self.get_sql(PARAM_DBAPI)
         args = self._params
         return curs.execute(q, args)
+
 
 class PLPyQueryBuilder(QueryBuilderCore):
 
@@ -333,6 +336,7 @@ class PLPyQuery(object):
     def __repr__(self):
         return 'PLPyQuery<%s>' % self.sql
 
+
 def plpy_exec(gd, sql, args, all_keys_required=True):
     """Cached plan execution for PL/Python.
 
@@ -368,6 +372,7 @@ def plpy_exec(gd, sql, args, all_keys_required=True):
 
 # some helper functions for convenient sql execution
 
+
 def run_query(cur, sql, params=None, **kwargs):
     """ Helper function if everything you need is just paramertisized execute
         Sets rows_found that is coneninet to use when you don't need result just
@@ -382,6 +387,7 @@ def run_query(cur, sql, params=None, **kwargs):
         rows = [skytools.dbdict(r) for r in rows]
     return rows
 
+
 def run_query_row(cur, sql, params=None, **kwargs):
     """ Helper function if everything you need is just paramertisized execute to
         fetch one row only. If not found none is returned
@@ -391,6 +397,7 @@ def run_query_row(cur, sql, params=None, **kwargs):
     if len(rows) == 0:
         return None
     return rows[0]
+
 
 def run_lookup(cur, sql, params=None, **kwargs):
     """ Helper function to fetch one value Takes away all the hassle of preparing statements
@@ -403,6 +410,7 @@ def run_lookup(cur, sql, params=None, **kwargs):
     if row is None:
         return None
     return row[0]
+
 
 def run_exists(cur, sql, params=None, **kwargs):
     """ Helper function to fetch one value Takes away all the hassle of preparing statements
@@ -422,6 +430,7 @@ class fake_plpy(object):
         print("DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args)))
     def error(self, msg):
         print("DBG: plpy.error(%s)" % repr(msg))
+
 
 # make plpy available
 if not plpy:

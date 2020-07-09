@@ -10,11 +10,11 @@
 >>> os.remove(pidfn)
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import sys
-import os
 import errno
+import os
+import sys
 
 __all__ = ['write_atomic', 'signal_pidfile']
 
@@ -24,6 +24,8 @@ except NameError:
     unicode = str   # noqa
 
 # non-win32
+
+
 def write_atomic_unix(fn, data, bakext=None, mode='b'):
     """Write file with rename."""
 
@@ -57,11 +59,12 @@ def write_atomic_unix(fn, data, bakext=None, mode='b'):
     if sys.platform == 'win32':
         try:
             os.remove(fn)
-        except:
+        except BaseException:
             pass
 
     # atomically replace file
     os.rename(fn2, fn)
+
 
 def signal_pidfile(pidfile, sig):
     """Send a signal to process whose ID is located in pidfile.
@@ -93,6 +96,7 @@ def signal_pidfile(pidfile, sig):
         raise ValueError('Corrupt pidfile: %s' % pidfile)
     return False
 
+
 def win32_detect_pid(pid):
     """Process detection for win32."""
 
@@ -123,6 +127,7 @@ def win32_detect_pid(pid):
     k.GetExitCodeProcess(h, ctypes.byref(code))
     k.CloseHandle(h)
     return code.value == STILL_ACTIVE
+
 
 def win32_write_atomic(fn, data, bakext=None, mode='b'):
     """Write file with rename for win32."""
@@ -156,11 +161,12 @@ def win32_write_atomic(fn, data, bakext=None, mode='b'):
     else:
         try:
             os.remove(fn)
-        except:
+        except BaseException:
             pass
 
     # replace file
     os.rename(fn2, fn)
+
 
 if sys.platform == 'win32':
     write_atomic = win32_write_atomic

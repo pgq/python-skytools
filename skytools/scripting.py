@@ -3,7 +3,7 @@
 
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import errno
 import logging
@@ -29,12 +29,14 @@ __pychecker__ = 'no-badexcept'
 
 __all__ = ['BaseScript', 'UsageError', 'daemonize', 'DBScript']
 
+
 class UsageError(Exception):
     """User induced error."""
 
 #
 # daemon mode
 #
+
 
 def daemonize():
     """Turn the process into daemon.
@@ -61,6 +63,7 @@ def daemonize():
 #
 # Pidfile locking+cleanup & daemonization combined
 #
+
 
 def run_single_process(runnable, daemon, pidfile):
     """Run runnable class, possibly daemonized, locked on pidfile."""
@@ -91,14 +94,17 @@ def run_single_process(runnable, daemon, pidfile):
         if own_pidfile:
             try:
                 os.remove(pidfile)
-            except: pass
+            except BaseException:
+                pass
 
 #
 # logging setup
 #
 
+
 _log_config_done = 0
 _log_init_done = {}
+
 
 def _load_log_config(fn, defs):
     """Fixed fileConfig."""
@@ -114,6 +120,7 @@ def _load_log_config(fn, defs):
         root = logging.getLogger()
         for lg in root.manager.loggerDict.values():
             lg.disabled = 0
+
 
 def _init_log(job_name, service_name, cf, log_level, is_daemon):
     """Logging setup happens here."""
@@ -164,7 +171,7 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
 
     # compatibility: specify ini file in script config
     def_fmt = '%(asctime)s %(process)s %(levelname)s %(message)s'
-    def_datefmt = '' # None
+    def_datefmt = ''  # None
     logfile = cf.getfile("logfile", "")
     if logfile:
         fstr = cf.get('logfmt_file', def_fmt)
@@ -173,10 +180,10 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
             fstr = cf.get('logfmt_file_verbose', fstr)
             fstr_date = cf.get('logdatefmt_file_verbose', fstr_date)
         fmt = logging.Formatter(fstr, fstr_date)
-        size = cf.getint('log_size', 10*1024*1024)
+        size = cf.getint('log_size', 10 * 1024 * 1024)
         num = cf.getint('log_count', 3)
         file_hdlr = logging.handlers.RotatingFileHandler(
-                    logfile, 'a', size, num)
+            logfile, 'a', size, num)
         file_hdlr.setFormatter(fmt)
         root.addHandler(file_hdlr)
 
@@ -353,7 +360,7 @@ class BaseScript(object):
         pos = doc and doc.rfind('::\n') or -1
         if pos < 0:
             return
-        doc = doc[pos+2 : ].rstrip()
+        doc = doc[pos + 2:].rstrip()
         doc = skytools.dedent(doc)
 
         # merge overrided options into output
@@ -422,9 +429,9 @@ class BaseScript(object):
         p.add_option("-V", "--version", action="store_true",
                      help="print version info and exit")
         p.add_option("", "--ini", action="store_true",
-                    help="display sample ini file")
+                     help="display sample ini file")
         p.add_option("", "--set", action="append",
-                    help="override config setting (--set 'PARAM=VAL')")
+                     help="override config setting (--set 'PARAM=VAL')")
 
         # control options
         g = optparse.OptionGroup(p, 'control running process')
@@ -487,8 +494,8 @@ class BaseScript(object):
         self.loop_delay = self.cf.getfloat("loop_delay", self.loop_delay)
         self.exception_sleep = self.cf.getfloat("exception_sleep", 20)
         self.exception_quiet = self.cf.getlist("exception_quiet", [])
-        self.exception_grace = self.cf.getfloat("exception_grace", 5*60)
-        self.exception_reset = self.cf.getfloat("exception_reset", 15*60)
+        self.exception_grace = self.cf.getfloat("exception_grace", 5 * 60)
+        self.exception_reset = self.cf.getfloat("exception_reset", 15 * 60)
 
     def hook_sighup(self, sig, frame):
         "Internal SIGHUP handler.  Minimal code here."
@@ -547,7 +554,7 @@ class BaseScript(object):
         # run startup, safely
         self.run_func_safely(self.startup)
 
-        while 1:
+        while True:
             # reload config, if needed
             if self.need_reload:
                 self.reload()
@@ -595,7 +602,7 @@ class BaseScript(object):
             self.log.error(str(d))
             sys.exit(1)
         except MemoryError as d:
-            try: # complex logging may not succeed
+            try:  # complex logging may not succeed
                 self.log.exception("Job %s out of memory, exiting", self.job_name)
             except MemoryError:
                 self.log.fatal("Out of memory")
@@ -613,9 +620,9 @@ class BaseScript(object):
             self.reset()
             sys.exit(1)
         except Exception as d:
-            try: # this may fail too
+            try:  # this may fail too
                 self.send_stats()
-            except:
+            except BaseException:
                 pass
             if self.last_func_fail is None:
                 self.last_func_fail = time.time()
@@ -704,8 +711,10 @@ class BaseScript(object):
 ##  DBScript
 ##
 
+
 #: how old connections need to be closed
-DEF_CONN_AGE = 20*60  # 20 min
+DEF_CONN_AGE = 20 * 60  # 20 min
+
 
 class DBScript(BaseScript):
     """Base class for database scripts.
@@ -735,7 +744,7 @@ class DBScript(BaseScript):
         """
         self.db_cache = {}
         self._db_defaults = {}
-        self._listen_map = {} # dbname: channel_list
+        self._listen_map = {}  # dbname: channel_list
         super(DBScript, self).__init__(service_name, args)
 
     def connection_hook(self, dbname, conn):
@@ -846,7 +855,7 @@ class DBScript(BaseScript):
             sql = getattr(curs, 'query', None) or '?'
             if isinstance(sql, bytes):
                 sql = sql.decode('utf8')
-            if len(sql) > 200: # avoid logging londiste huge batched queries
+            if len(sql) > 200:  # avoid logging londiste huge batched queries
                 sql = sql[:60] + " ..."
             lm = "Job %s got error on connection '%s': %s.   Query: %s" % (
                 self.job_name, cname, emsg, sql)
@@ -1004,7 +1013,7 @@ class DBScript(BaseScript):
                 if not sql_retry or tried >= sql_retry_max_count or time.time() - stime >= sql_retry_max_time:
                     raise
                 self.log.info("Job %s got error on connection %s: %s", self.job_name, dbname, e)
-            except:
+            except BaseException:
                 raise
             # y = a + bx , apply cap
             y = sql_retry_formula_a + sql_retry_formula_b * tried
@@ -1045,6 +1054,7 @@ class DBScript(BaseScript):
             clist.remove(channel)
         except ValueError:
             pass
+
 
 class DBCachedConn(object):
     """Cache a db connection."""
@@ -1127,10 +1137,12 @@ class DBCachedConn(object):
         # close
         try:
             conn.close()
-        except: pass
+        except BaseException:
+            pass
 
     def check_connstr(self, connstr):
         """Drop connection if connect string has changed.
         """
         if self.loc != connstr:
             self.reset()
+

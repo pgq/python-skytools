@@ -1,10 +1,11 @@
 
 """Database tools."""
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import os
 import io
+import os
+
 import skytools
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "DBLanguage", "db_install", "installer_find_file", "installer_apply_file",
     "dbdict", "mk_insert_sql", "mk_update_sql", "mk_delete_sql",
 ]
+
 
 class dbdict(dict):
     """Wrapper on actual dict that allows accessing dict keys as attributes.
@@ -59,6 +61,7 @@ class dbdict(dict):
 # Fully qualified table name
 #
 
+
 def fq_name_parts(tbl):
     """Return fully qualified name parts.
 
@@ -75,6 +78,7 @@ def fq_name_parts(tbl):
         return ['public', tbl]
     return tmp
 
+
 def fq_name(tbl):
     """Return fully qualified name.
 
@@ -90,6 +94,8 @@ def fq_name(tbl):
 #
 # info about table
 #
+
+
 def get_table_oid(curs, table_name):
     """Find Postgres OID for table."""
     schema, name = fq_name_parts(table_name)
@@ -99,8 +105,9 @@ def get_table_oid(curs, table_name):
     curs.execute(q, [schema, name])
     res = curs.fetchall()
     if len(res) == 0:
-        raise Exception('Table not found: '+table_name)
+        raise Exception('Table not found: ' + table_name)
     return res[0][0]
+
 
 def get_table_pkeys(curs, tbl):
     """Return list of pkey column names."""
@@ -111,6 +118,7 @@ def get_table_pkeys(curs, tbl):
         " ORDER BY k.attnum"
     curs.execute(q, [oid])
     return [row[0] for row in curs.fetchall()]
+
 
 def get_table_columns(curs, tbl):
     """Return list of column names for table."""
@@ -125,12 +133,15 @@ def get_table_columns(curs, tbl):
 #
 # exist checks
 #
+
+
 def exists_schema(curs, schema):
     """Does schema exists?"""
     q = "select count(1) from pg_namespace where nspname = %s"
     curs.execute(q, [schema])
     res = curs.fetchone()
     return res[0]
+
 
 def exists_table(curs, table_name):
     """Does table exists?"""
@@ -142,6 +153,7 @@ def exists_table(curs, table_name):
     res = curs.fetchone()
     return res[0]
 
+
 def exists_sequence(curs, seq_name):
     """Does sequence exists?"""
     schema, name = fq_name_parts(seq_name)
@@ -151,6 +163,7 @@ def exists_sequence(curs, seq_name):
     curs.execute(q, [schema, name])
     res = curs.fetchone()
     return res[0]
+
 
 def exists_view(curs, view_name):
     """Does view exists?"""
@@ -162,6 +175,7 @@ def exists_view(curs, view_name):
     res = curs.fetchone()
     return res[0]
 
+
 def exists_type(curs, type_name):
     """Does type exists?"""
     schema, name = fq_name_parts(type_name)
@@ -171,6 +185,7 @@ def exists_type(curs, type_name):
     curs.execute(q, [schema, name])
     res = curs.fetchone()
     return res[0]
+
 
 def exists_function(curs, function_name, nargs):
     """Does function exists?"""
@@ -189,6 +204,7 @@ def exists_function(curs, function_name, nargs):
 
     return res[0]
 
+
 def exists_language(curs, lang_name):
     """Does PL exists?"""
     q = """select count(1) from pg_language
@@ -196,6 +212,7 @@ def exists_language(curs, lang_name):
     curs.execute(q, [lang_name])
     res = curs.fetchone()
     return res[0]
+
 
 def exists_temp_table(curs, tbl):
     """Does temp table exists?"""
@@ -208,6 +225,7 @@ def exists_temp_table(curs, tbl):
 #
 # Support for PostgreSQL snapshot
 #
+
 
 class Snapshot(object):
     """Represents a PostgreSQL snapshot.
@@ -260,12 +278,14 @@ class Snapshot(object):
 # Copy helpers
 #
 
+
 def _gen_dict_copy(tbl, row, fields, qfields):
     tmp = []
     for f in fields:
         v = row.get(f)
         tmp.append(skytools.quote_copy(v))
     return "\t".join(tmp)
+
 
 def _gen_dict_insert(tbl, row, fields, qfields):
     tmp = []
@@ -274,6 +294,7 @@ def _gen_dict_insert(tbl, row, fields, qfields):
         tmp.append(skytools.quote_literal(v))
     fmt = "insert into %s (%s) values (%s);"
     return fmt % (tbl, ",".join(qfields), ",".join(tmp))
+
 
 def _gen_list_copy(tbl, row, fields, qfields):
     tmp = []
@@ -285,6 +306,7 @@ def _gen_list_copy(tbl, row, fields, qfields):
         tmp.append(skytools.quote_copy(v))
     return "\t".join(tmp)
 
+
 def _gen_list_insert(tbl, row, fields, qfields):
     tmp = []
     for i in range(len(fields)):
@@ -295,6 +317,7 @@ def _gen_list_insert(tbl, row, fields, qfields):
         tmp.append(skytools.quote_literal(v))
     fmt = "insert into %s (%s) values (%s);"
     return fmt % (tbl, ",".join(qfields), ",".join(tmp))
+
 
 def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_table=False):
     r"""Copy/insert a list of dict/list data to database.
@@ -336,7 +359,7 @@ def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_ta
         return None
 
     if fields is not None:
-        fields = list(fields) # get rid of iterator
+        fields = list(fields)  # get rid of iterator
 
     # decide how to process
     if hasattr(data[0], 'keys'):
@@ -390,11 +413,12 @@ def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_ta
 # Full COPY of table from one db to another
 #
 
+
 class CopyPipe(io.TextIOBase):
     """Splits one big COPY to chunks.
     """
 
-    def __init__(self, dstcurs, tablename=None, limit=512*1024, sql_from=None):
+    def __init__(self, dstcurs, tablename=None, limit=512 * 1024, sql_from=None):
         super(CopyPipe, self).__init__()
         self.tablename = tablename
         self.sql_from = sql_from
@@ -418,7 +442,7 @@ class CopyPipe(io.TextIOBase):
         if self.write_hook:
             data = self.write_hook(self, data)
 
-        self.total_bytes += len(data) # it's chars now...
+        self.total_bytes += len(data)  # it's chars now...
         self.total_rows += 1
 
         self.buf.write(data)
@@ -445,8 +469,8 @@ class CopyPipe(io.TextIOBase):
 
 
 def full_copy(tablename, src_curs, dst_curs, column_list=(), condition=None,
-        dst_tablename=None, dst_column_list=None,
-        write_hook=None, flush_hook=None):
+              dst_tablename=None, dst_column_list=None,
+              write_hook=None, flush_hook=None):
     """COPY table from one db to another."""
 
     # default dst table and dst columns to source ones
@@ -524,17 +548,20 @@ class DBObject(object):
         """Find install script file."""
         return installer_find_file(self.sql_file)
 
+
 class DBSchema(DBObject):
     """Handles db schema."""
     def exists(self, curs):
         """Does schema exists."""
         return exists_schema(curs, self.name)
 
+
 class DBTable(DBObject):
     """Handles db table."""
     def exists(self, curs):
         """Does table exists."""
         return exists_table(curs, self.name)
+
 
 class DBFunction(DBObject):
     """Handles db function."""
@@ -546,6 +573,7 @@ class DBFunction(DBObject):
         """Does function exists."""
         return exists_function(curs, self.name, self.nargs)
 
+
 class DBLanguage(DBObject):
     """Handles db language."""
     def __init__(self, name):
@@ -555,6 +583,7 @@ class DBLanguage(DBObject):
         """Does PL exists."""
         return exists_language(curs, self.name)
 
+
 def db_install(curs, obj_list, log=None):
     """Installs list of objects into db."""
     for obj in obj_list:
@@ -563,6 +592,7 @@ def db_install(curs, obj_list, log=None):
         else:
             if log:
                 log.info('%s is installed' % obj.name)
+
 
 def installer_find_file(filename):
     """Find SQL script from pre-defined paths."""
@@ -580,8 +610,9 @@ def installer_find_file(filename):
                 break
 
     if not full_fn:
-        raise Exception('File not found: '+filename)
+        raise Exception('File not found: ' + filename)
     return full_fn
+
 
 def installer_apply_file(db, filename, log):
     """Find SQL file and apply it to db, statement-by-statement."""
@@ -597,6 +628,7 @@ def installer_apply_file(db, filename, log):
 #
 # Generate INSERT/UPDATE/DELETE statement
 #
+
 
 def mk_insert_sql(row, tbl, pkey_list=None, field_map=None):
     """Generate INSERT statement from dict data.
@@ -623,7 +655,8 @@ def mk_insert_sql(row, tbl, pkey_list=None, field_map=None):
     col_str = ", ".join(col_list)
     val_str = ", ".join(val_list)
     return "insert into %s (%s) values (%s);" % (
-                    skytools.quote_fqident(tbl), col_str, val_str)
+        skytools.quote_fqident(tbl), col_str, val_str)
+
 
 def mk_update_sql(row, tbl, pkey_list, field_map=None):
     r"""Generate UPDATE statement from dict data.
@@ -665,7 +698,8 @@ def mk_update_sql(row, tbl, pkey_list, field_map=None):
                 val = skytools.quote_literal(val)
                 set_list.append("%s = %s" % (col, val))
     return "update only %s set %s where %s;" % (skytools.quote_fqident(tbl),
-            ", ".join(set_list), " and ".join(whe_list))
+                                                ", ".join(set_list), " and ".join(whe_list))
+
 
 def mk_delete_sql(row, tbl, pkey_list, field_map=None):
     """Generate DELETE statement from dict data.

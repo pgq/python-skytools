@@ -1,10 +1,9 @@
 """ Class used to handle multiset receiving and returning PL/Python procedures
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import skytools
-
 from skytools import dbdict
 
 try:
@@ -18,11 +17,12 @@ except NameError:
     basestring = str    # noqa
 
 __all__ = ['DBService', 'ServiceContext',
-    'get_record', 'get_record_list',
-    'make_record', 'make_record_array',
-    'TableAPI',
-    #'log_result', 'transform_fields'
-]
+           'get_record', 'get_record_list',
+           'make_record', 'make_record_array',
+           'TableAPI',
+           #'log_result', 'transform_fields'
+           ]
+
 
 def transform_fields(rows, key_fields, name_field, data_field):
     """Convert multiple-rows per key input array
@@ -56,6 +56,8 @@ def transform_fields(rows, key_fields, name_field, data_field):
     return res
 
 # render_table
+
+
 def render_table(rows, fields):
     """ Render result rows as a table.
         Returns array of lines.
@@ -72,12 +74,13 @@ def render_table(rows, fields):
 
     lines = []
     lines.append(fmt % tuple(fields))
-    lines.append(fmt % tuple(['-'*15] * len(fields)))
+    lines.append(fmt % tuple(['-' * 15] * len(fields)))
     for row in rows:
         lines.append(fmt % tuple([str(row.get(k)) for k in fields]))
     return lines
 
 # data conversion to and from url
+
 
 def get_record(arg):
     """ Parse data for one urlencoded record.
@@ -96,6 +99,7 @@ def get_record(arg):
     # parse record
     return dbdict(skytools.db_urldecode(arg))
 
+
 def get_record_list(array):
     """ Parse array of urlencoded records.
         Useful for turning incoming serialized data into structure usable for manipulation.
@@ -107,6 +111,7 @@ def get_record_list(array):
         array = skytools.parse_pgarray(array)
     return [get_record(el) for el in array]
 
+
 def get_record_lists(tbl, field):
     """ Create dictionary of lists from given list using field as grouping criteria
         Used for master detail operatons to group detail records according to master id
@@ -117,6 +122,7 @@ def get_record_lists(tbl, field):
         records.setdefault(master_id, []).append(rec)
     return records
 
+
 def _make_record_convert(row):
     """Converts complex values."""
     d = row.copy()
@@ -124,6 +130,7 @@ def _make_record_convert(row):
         if isinstance(v, list):
             d[k] = skytools.make_pgarray(v)
     return skytools.db_urlencode(d)
+
 
 def make_record(row):
     """ Takes record as dict and returns it as urlencoded string.
@@ -134,11 +141,13 @@ def make_record(row):
             return _make_record_convert(row)
     return skytools.db_urlencode(row)
 
+
 def make_record_array(rowlist):
     """ Takes list of records got from plpy execute and turns it into postgers aray string.
         Used to send data out of db service layer.
     """
-    return '{' + ','.join([make_record(row) for row in rowlist]) +  '}'
+    return '{' + ','.join([make_record(row) for row in rowlist]) + '}'
+
 
 def get_result_items(rec_list, name):
     """ Get return values from result
@@ -147,6 +156,7 @@ def get_result_items(rec_list, name):
         if r['res_code'] == name:
             return get_record_list(r['res_rows'])
     return None
+
 
 def log_result(log, rec_list):
     """ Sends dbservice execution logs to logfile
@@ -349,8 +359,6 @@ class DBService(object):
         return missing
 
 
-
-
 # TableAPI
 class TableAPI(object):
     """ Class for managing one record updates using primary key
@@ -358,10 +366,10 @@ class TableAPI(object):
     _table = None   # schema name and table name
     _where = None   # where condition used for update and delete
     _id = None      # name of the primary key filed
-    _id_type = None # column type of primary key
+    _id_type = None  # column type of primary key
     _op = None      # operation currently carried out
     _ctx = None     # context object for username and version
-    _logging = True # should tapi log data changed
+    _logging = True  # should tapi log data changed
     _row = None     # row identifer from calling program
 
     def __init__(self, ctx, table, create_log=True, id_type='int8'):
@@ -394,18 +402,18 @@ class TableAPI(object):
     def _version_check(self, original, version):
         if original is None:
             self._ctx.tell_user(self._ctx.INFO, "dbsXXXX",
-                "Record ({table}.{field}={id}) has been deleted by other user "\
-                "while you were editing. Check version ({ver}) in changelog for details.",
-                table=self._table, field=self._id, id=original[self._id],
-                ver=original.version, _row=self._row)
+                                "Record ({table}.{field}={id}) has been deleted by other user "
+                                "while you were editing. Check version ({ver}) in changelog for details.",
+                                table=self._table, field=self._id, id=original[self._id],
+                                ver=original.version, _row=self._row)
         if version is not None and original.version is not None:
             if int(version) != int(original.version):
                 self._ctx.tell_user(self._ctx.INFO, "dbsXXXX",
-                            "Record ({table}.{field}={id}) has been changed by other user while you were editing. "\
-                            "Version in db: ({db_ver}) and version sent by caller ({caller_ver}). "\
-                            "See changelog for details.",
-                        table=self._table, field=self._id, id=original[self._id], db_ver=original.version,
-                        caller_ver=version, _row=self._row)
+                                    "Record ({table}.{field}={id}) has been changed by other user while you were editing. "
+                                    "Version in db: ({db_ver}) and version sent by caller ({caller_ver}). "
+                                    "See changelog for details.",
+                                    table=self._table, field=self._id, id=original[self._id], db_ver=original.version,
+                                    caller_ver=version, _row=self._row)
 
     def _insert(self, data):
         fields = []
@@ -464,13 +472,15 @@ class TableAPI(object):
             pass
         else:
             self._ctx.tell_user(self._ctx.ERROR, "dbsXXXX",
-                "Unahndled _op='{op}' value in TableAPI (table={table}, id={id})",
-                op=self._op, table=self._table, id=data[self._id])
+                                "Unahndled _op='{op}' value in TableAPI (table={table}, id={id})",
+                                op=self._op, table=self._table, id=data[self._id])
         result[self._ctx.OP] = self._op
         result[self._ctx.ROW] = self._row
         return result
 
 # ServiceContext
+
+
 class ServiceContext(DBService):
     OP = "_op"              # name of the fake field where record modificaton operation is stored
 
@@ -496,9 +506,9 @@ class ServiceContext(DBService):
         """
         self.run_query(
             "select log.log_change( {version}, {username}, {object_type}, {key_object}, {change_op}, {payload} );",
-                version=self.version, username=self.username,
-                object_type=_object_type, key_object=_key_object,
-                change_op=_change_op, payload=_payload)
+            version=self.version, username=self.username,
+            object_type=_object_type, key_object=_key_object,
+            change_op=_change_op, payload=_payload)
 
     # data conversion to and from url
 
@@ -611,3 +621,4 @@ class ServiceContext(DBService):
             If dict was not provied with call it is created
         """
         return fields
+

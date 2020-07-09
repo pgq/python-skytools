@@ -3,7 +3,7 @@
 
 # pylint:disable=redefined-builtin,unused-wildcard-import,wildcard-import
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 try:
     import skytools.apipkg as _apipkg

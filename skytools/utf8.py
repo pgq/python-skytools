@@ -28,8 +28,8 @@ TypeError: Need unicode string
 # (False, ['X', 65533, 65533, 65533, 65533, 65533, 65533, 'Z'])
 # from __future__ import division, absolute_import, print_function
 
-import re
 import codecs
+import re
 
 try:
     unichr
@@ -37,14 +37,17 @@ except NameError:
     unichr = chr        # noqa
     unicode = str       # noqa
 
+
 def _norm_char(uchr):
     code = ord(uchr)
     if code >= 0x20 and code < 0x7f:
         return chr(code)
     return code
 
+
 def _norm_str(ustr):
     return [_norm_char(c) for c in ustr]
+
 
 def _norm(tup):
     flg, ustr = tup
@@ -55,6 +58,7 @@ __all__ = ['safe_utf8_decode']
 
 # by default, use same symbol as 'replace'
 REPLACEMENT_SYMBOL = unichr(0xFFFD)   # 65533
+
 
 def _fix_utf8(m):
     """Merge UTF16 surrogates, replace others"""
@@ -69,7 +73,9 @@ def _fix_utf8(m):
         # use replacement symbol
         return REPLACEMENT_SYMBOL
 
+
 _urc = None
+
 
 def sanitize_unicode(u):
     """Fix invalid symbols in unicode string."""
@@ -89,6 +95,7 @@ def sanitize_unicode(u):
         u = _urc.sub(_fix_utf8, u)
     return u
 
+
 def safe_replace(exc):
     """Replace only one symbol at a time.
 
@@ -104,8 +111,10 @@ def safe_replace(exc):
 
     return c2, exc.start + 1
 
+
 # register, it will be globally available
 codecs.register_error("safe_replace", safe_replace)
+
 
 def safe_utf8_decode(s):
     """Decode UTF-8 safely.

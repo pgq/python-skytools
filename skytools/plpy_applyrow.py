@@ -3,14 +3,15 @@
 PLPY helper module for applying row events from pgq.logutriga().
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
+
+import skytools
 
 try:
     import plpy
 except ImportError:
     pass
 
-import skytools
 
 ## TODO: automatic fkey detection
 # find FK columns
@@ -26,11 +27,14 @@ SELECT (SELECT array_agg( (SELECT attname::text FROM pg_attribute
  WHERE conrelid = {tbl}::regclass AND contype='f'
 """
 
+
 class DataError(Exception):
     "Invalid data"
 
+
 def colfilter_full(rnew, rold):
     return rnew
+
 
 def colfilter_changed(rnew, rold):
     res = {}
@@ -39,8 +43,10 @@ def colfilter_changed(rnew, rold):
             res[k] = rnew[k]
     return res
 
+
 def canapply_dummy(rnew, rold):
     return True
+
 
 def canapply_tstamp_helper(rnew, rold, tscol):
     tnew = rnew[tscol]
@@ -50,6 +56,7 @@ def canapply_tstamp_helper(rnew, rold, tscol):
     if not told[0].isdigit():
         raise DataError('invalid timestamp')
     return tnew > told
+
 
 def applyrow(tblname, ev_type, new_row,
              backup_row=None,
@@ -79,7 +86,7 @@ def applyrow(tblname, ev_type, new_row,
     # parse ev_type
     tmp = ev_type.split(':', 1)
     if len(tmp) != 2 or tmp[0] not in ('I', 'U', 'D'):
-        raise DataError('Unsupported ev_type: '+repr(ev_type))
+        raise DataError('Unsupported ev_type: ' + repr(ev_type))
     if not tmp[1]:
         raise DataError('No pkey in event')
 
@@ -115,8 +122,8 @@ def applyrow(tblname, ev_type, new_row,
             tmp.append("%s = {%s}" % (skytools.quote_ident(rk), k))
         fkey_expr = " and ".join(tmp)
         q = "select 1 from only %s where %s" % (
-                skytools.quote_fqident(fkey_ref_table),
-                fkey_expr)
+            skytools.quote_fqident(fkey_ref_table),
+            fkey_expr)
         res = skytools.plpy_exec(gd, q, fields)
         if not res:
             return "IGN: parent row does not exist"

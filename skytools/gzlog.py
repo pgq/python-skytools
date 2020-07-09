@@ -5,7 +5,7 @@ The point is - if several gzip streams are concatenated,
 they are read back as one whole stream.
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import gzip
 from io import BytesIO
@@ -15,6 +15,8 @@ __all__ = ['gzip_append']
 #
 # gzip storage
 #
+
+
 def gzip_append(filename, data, level=6):
     """Append a block of data to file with safety checks."""
 
@@ -38,3 +40,4 @@ def gzip_append(filename, data, level=6):
         f.truncate()
         f.close()
         raise ex
+

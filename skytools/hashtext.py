@@ -28,10 +28,10 @@ True
 True
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import sys
 import struct
+import sys
 
 try:
     from skytools._chashtext import hashtext_old, hashtext_new
@@ -46,6 +46,7 @@ __all__ = ["hashtext_old", "hashtext_new"]
 # pad for last partial block
 PADDING = b'\0' * 12
 
+
 def uint32(x):
     """python does not have 32 bit integer so we need this hack to produce uint32 after bit operations"""
     return x & 0xffffffff
@@ -54,22 +55,43 @@ def uint32(x):
 # Old Postgres hashtext() - lookup2 with custom initval
 #
 
+
 FMT_OLD = struct.Struct("<LLL")
+
 
 def mix_old(a, b, c):
     c = uint32(c)
 
-    a -= b; a -= c; a = uint32(a ^ (c>>13))
-    b -= c; b -= a; b = uint32(b ^ (a<<8))
-    c -= a; c -= b; c = uint32(c ^ (b>>13))
-    a -= b; a -= c; a = uint32(a ^ (c>>12))
-    b -= c; b -= a; b = uint32(b ^ (a<<16))
-    c -= a; c -= b; c = uint32(c ^ (b>>5))
-    a -= b; a -= c; a = uint32(a ^ (c>>3))
-    b -= c; b -= a; b = uint32(b ^ (a<<10))
-    c -= a; c -= b; c = uint32(c ^ (b>>15))
+    a -= b
+    a -= c
+    a = uint32(a ^ (c >> 13))
+    b -= c
+    b -= a
+    b = uint32(b ^ (a << 8))
+    c -= a
+    c -= b
+    c = uint32(c ^ (b >> 13))
+    a -= b
+    a -= c
+    a = uint32(a ^ (c >> 12))
+    b -= c
+    b -= a
+    b = uint32(b ^ (a << 16))
+    c -= a
+    c -= b
+    c = uint32(c ^ (b >> 5))
+    a -= b
+    a -= c
+    a = uint32(a ^ (c >> 3))
+    b -= c
+    b -= a
+    b = uint32(b ^ (a << 10))
+    c -= a
+    c -= b
+    c = uint32(c ^ (b >> 15))
 
     return a, b, c
+
 
 def hashtext_old_py(k):
     """Old Postgres hashtext()"""
@@ -107,31 +129,55 @@ def hashtext_old_py(k):
 # - shifted c in last block on little-endian
 #
 
+
 FMT_NEW = struct.Struct("=LLL")
 
+
 def rol32(x, k):
-    return ((x)<<(k)) | (uint32(x)>>(32-(k)))
+    return ((x) << (k)) | (uint32(x) >> (32 - (k)))
+
 
 def mix_new(a, b, c):
-    a -= c;  a ^= rol32(c, 4);  c += b
-    b -= a;  b ^= rol32(a, 6);  a += c
-    c -= b;  c ^= rol32(b, 8);  b += a
-    a -= c;  a ^= rol32(c, 16); c += b
-    b -= a;  b ^= rol32(a, 19); a += c
-    c -= b;  c ^= rol32(b, 4);  b += a
+    a -= c
+    a ^= rol32(c, 4)
+    c += b
+    b -= a
+    b ^= rol32(a, 6)
+    a += c
+    c -= b
+    c ^= rol32(b, 8)
+    b += a
+    a -= c
+    a ^= rol32(c, 16)
+    c += b
+    b -= a
+    b ^= rol32(a, 19)
+    a += c
+    c -= b
+    c ^= rol32(b, 4)
+    b += a
 
     return uint32(a), uint32(b), uint32(c)
+
 
 def final_new(a, b, c):
-    c ^= b; c -= rol32(b, 14)
-    a ^= c; a -= rol32(c, 11)
-    b ^= a; b -= rol32(a, 25)
-    c ^= b; c -= rol32(b, 16)
-    a ^= c; a -= rol32(c, 4)
-    b ^= a; b -= rol32(a, 14)
-    c ^= b; c -= rol32(b, 24)
+    c ^= b
+    c -= rol32(b, 14)
+    a ^= c
+    a -= rol32(c, 11)
+    b ^= a
+    b -= rol32(a, 25)
+    c ^= b
+    c -= rol32(b, 16)
+    a ^= c
+    a -= rol32(c, 4)
+    b ^= a
+    b -= rol32(a, 14)
+    c ^= b
+    c -= rol32(b, 24)
 
     return uint32(a), uint32(b), uint32(c)
+
 
 def hashtext_new_py(k):
     """New Postgres hashtext()"""

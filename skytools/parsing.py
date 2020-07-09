@@ -1,9 +1,10 @@
 
 """Various parsers for Postgres-specific data formats."""
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import re
+
 import skytools
 
 __all__ = [
@@ -13,6 +14,7 @@ __all__ = [
     "parse_connect_string", "merge_connect_string"]
 
 _rc_listelem = re.compile(r'( [^,"}]+ | ["] ( [^"\\]+ | [\\]. )* ["] )', re.X)
+
 
 def parse_pgarray(array):
     r"""Parse Postgres array and return list of items inside it.
@@ -45,7 +47,7 @@ def parse_pgarray(array):
         pos = array.find('{') + 1
         if pos < 1:
             raise ValueError("bad array format 2: must be surrounded with {}")
-    while 1:
+    while True:
         m = _rc_listelem.search(array, pos)
         if not m:
             break
@@ -74,6 +76,7 @@ def parse_pgarray(array):
 # parse logtriga partial sql
 #
 
+
 class _logtriga_parser(object):
     """Parses logtriga/sqltriga partial SQL to values."""
     pklist = None
@@ -87,7 +90,7 @@ class _logtriga_parser(object):
         # (col1, col2) values ('data', null)
         if next(tk) != "(":
             raise Exception("syntax error")
-        while 1:
+        while True:
             fields.append(next(tk))
             t = next(tk)
             if t == ")":
@@ -98,21 +101,21 @@ class _logtriga_parser(object):
             raise Exception("syntax error, expected VALUES")
         if next(tk) != "(":
             raise Exception("syntax error, expected (")
-        while 1:
+        while True:
             values.append(next(tk))
             t = next(tk)
             if t == ")":
                 break
             if t == ",":
                 continue
-            raise Exception("expected , or ) got "+t)
+            raise Exception("expected , or ) got " + t)
         t = next(tk)
         raise Exception("expected EOF, got " + repr(t))
 
     def parse_update(self, tk, fields, values, key_fields, key_values):
         """Handler for updates."""
         # col1 = 'data1', col2 = null where pk1 = 'pk1' and pk2 = 'pk2'
-        while 1:
+        while True:
             fields.append(next(tk))
             if next(tk) != "=":
                 raise Exception("syntax error")
@@ -123,8 +126,8 @@ class _logtriga_parser(object):
             elif t.lower() == "where":
                 break
             else:
-                raise Exception("syntax error, expected WHERE or , got "+repr(t))
-        while 1:
+                raise Exception("syntax error, expected WHERE or , got " + repr(t))
+        while True:
             fld = next(tk)
             key_fields.append(fld)
             self.pklist.append(fld)
@@ -133,12 +136,12 @@ class _logtriga_parser(object):
             key_values.append(next(tk))
             t = next(tk)
             if t.lower() != "and":
-                raise Exception("syntax error, expected AND got "+repr(t))
+                raise Exception("syntax error, expected AND got " + repr(t))
 
     def parse_delete(self, tk, fields, values, key_fields, key_values):
         """Handler for deletes."""
         # pk1 = 'pk1' and pk2 = 'pk2'
-        while 1:
+        while True:
             fld = next(tk)
             key_fields.append(fld)
             self.pklist.append(fld)
@@ -147,7 +150,7 @@ class _logtriga_parser(object):
             key_values.append(next(tk))
             t = next(tk)
             if t.lower() != "and":
-                raise Exception("syntax error, expected AND, got "+repr(t))
+                raise Exception("syntax error, expected AND, got " + repr(t))
 
     def _create_dbdict(self, fields, values):
         fields = [skytools.unquote_ident(f) for f in fields]
@@ -177,15 +180,17 @@ class _logtriga_parser(object):
             # last sanity check
             if (len(fields) + len(key_fields) == 0 or
                 len(fields) != len(values) or
-                len(key_fields) != len(key_values)):
+                    len(key_fields) != len(key_values)):
                 raise Exception("syntax error, fields do not match values")
         if splitkeys:
             return (self._create_dbdict(key_fields, key_values),
                     self._create_dbdict(fields, values))
         return self._create_dbdict(fields + key_fields, values + key_values)
 
+
 def parse_logtriga_sql(op, sql, splitkeys=False):
     return parse_sqltriga_sql(op, sql, splitkeys=splitkeys)
+
 
 def parse_sqltriga_sql(op, sql, pklist=None, splitkeys=False):
     """Parse partial SQL used by pgq.sqltriga() back to data values.
@@ -296,6 +301,7 @@ _ext_sql_fq = r"""(?: (?P<str> [E]? %s ) | %s )""" % (_extstr, _base_sql_fq)
 _std_sql_rc = _ext_sql_rc = None
 _std_sql_fq_rc = _ext_sql_fq_rc = None
 
+
 def sql_tokenizer(sql, standard_quoting=False, ignore_whitespace=False,
                   fqident=False, show_location=False):
     r"""Parser SQL to tokens.
@@ -336,7 +342,7 @@ def sql_tokenizer(sql, standard_quoting=False, ignore_whitespace=False,
             rc = _ext_sql_rc
 
     pos = 0
-    while 1:
+    while True:
         m = rc.match(sql, pos)
         if not m:
             break
@@ -350,8 +356,11 @@ def sql_tokenizer(sql, standard_quoting=False, ignore_whitespace=False,
         else:
             yield (typ, tk)
 
+
 _copy_from_stdin_re = r"copy.*from\s+stdin"
 _copy_from_stdin_rc = None
+
+
 def parse_statements(sql, standard_quoting=False):
     """Parse multi-statement string into separate statements.
 
@@ -377,7 +386,7 @@ def parse_statements(sql, standard_quoting=False):
     if not _copy_from_stdin_rc:
         _copy_from_stdin_rc = re.compile(_copy_from_stdin_re, re.X | re.I)
     tokens = []
-    pcount = 0 # '(' level
+    pcount = 0  # '(' level
     for typ, t in sql_tokenizer(sql, standard_quoting=standard_quoting):
         # skip whitespace and comments before statement
         if len(tokens) == 0 and typ == "ws":
@@ -399,6 +408,7 @@ def parse_statements(sql, standard_quoting=False):
     if pcount != 0:
         raise ValueError("syntax error - unbalanced parenthesis")
 
+
 _acl_name = r'(?: [0-9a-z_]+ | " (?: [^"]+ | "" )* " )'
 _acl_re = r'''
     \s* (?: group \s+ | user \s+ )?
@@ -408,6 +418,7 @@ _acl_re = r'''
     \s* $
     ''' % (_acl_name, _acl_name)
 _acl_rc = None
+
 
 def parse_acl(acl):
     """Parse ACL entry.
@@ -471,7 +482,7 @@ def dedent(doc):
             if not ln:
                 continue
             wslen = len(ln) - len(ln.lstrip())
-            pfx = ln[ : wslen]
+            pfx = ln[: wslen]
         if pfx:
             if ln.startswith(pfx):
                 ln = ln[len(pfx):]
@@ -498,12 +509,14 @@ def hsize_to_bytes(input_str):
 # Connect string parsing
 #
 
+
 _cstr_rx = r""" \s* (\w+) \s* = \s* ( ' ( \\.| [^'\\] )* ' | \S+ ) \s* """
 _cstr_unesc_rx = r"\\(.)"
 _cstr_badval_rx = r"[\s'\\]"
 _cstr_rc = None
 _cstr_unesc_rc = None
 _cstr_badval_rc = None
+
 
 def parse_connect_string(cstr):
     r"""Parse Postgres connect string.
@@ -535,6 +548,7 @@ def parse_connect_string(cstr):
             v = _cstr_unesc_rc.sub(r"\1", v)
         res.append((k, v))
     return res
+
 
 def merge_connect_string(cstr_arg_list):
     """Put fragments back together.

@@ -1,14 +1,13 @@
 """Our log handlers for Python's logging package.
 """
 
-from __future__ import division, absolute_import, print_function
-
-import os
-import socket
-import time
+from __future__ import absolute_import, division, print_function
 
 import logging
 import logging.handlers
+import os
+import socket
+import time
 from logging import LoggerAdapter
 
 import skytools
@@ -32,7 +31,7 @@ _job_name = 'unknown_job'
 _hostname = socket.gethostname()
 try:
     _hostaddr = socket.gethostbyname(_hostname)
-except:
+except BaseException:
     _hostaddr = "0.0.0.0"
 _log_extra = {
     'job_name': _job_name,
@@ -40,6 +39,8 @@ _log_extra = {
     'hostname': _hostname,
     'hostaddr': _hostaddr,
 }
+
+
 def set_service_name(service_name, job_name):
     """Set info about current script."""
     global _service_name, _job_name
@@ -53,17 +54,21 @@ def set_service_name(service_name, job_name):
 
 # Make extra fields available to all log records
 _old_factory = logging.getLogRecordFactory()
+
+
 def _new_factory(*args, **kwargs):
     record = _old_factory(*args, **kwargs)
     record.__dict__.update(_log_extra)
     return record
+
+
 logging.setLogRecordFactory(_new_factory)
 
 
 # configurable file logger
 class EasyRotatingFileHandler(logging.handlers.RotatingFileHandler):
     """Easier setup for RotatingFileHandler."""
-    def __init__(self, filename, maxBytes=10*1024*1024, backupCount=3):
+    def __init__(self, filename, maxBytes=10 * 1024 * 1024, backupCount=3):
         """Args same as for RotatingFileHandler, but in filename '~' is expanded."""
         fn = os.path.expanduser(filename)
         super(EasyRotatingFileHandler, self).__init__(fn, maxBytes=maxBytes, backupCount=backupCount)
@@ -75,10 +80,10 @@ class UdpLogServerHandler(logging.handlers.DatagramHandler):
 
     # map logging levels to logserver levels
     _level_map = {
-        logging.DEBUG   : 'DEBUG',
-        logging.INFO    : 'INFO',
-        logging.WARNING : 'WARN',
-        logging.ERROR   : 'ERROR',
+        logging.DEBUG: 'DEBUG',
+        logging.INFO: 'INFO',
+        logging.WARNING: 'WARN',
+        logging.ERROR: 'ERROR',
         logging.CRITICAL: 'FATAL',
     }
 
@@ -106,8 +111,8 @@ class UdpLogServerHandler(logging.handlers.DatagramHandler):
         hostaddr = _hostaddr
         jobname = _job_name
         svcname = _service_name
-        pkt = self._log_template % (time.time()*1000, txt_level, skytools.quote_json(msg),
-                jobname, svcname, hostname, hostaddr)
+        pkt = self._log_template % (time.time() * 1000, txt_level, skytools.quote_json(msg),
+                                    jobname, svcname, hostname, hostaddr)
         return pkt
 
     def send(self, s):
@@ -134,7 +139,7 @@ class UdpTNetStringsHandler(logging.handlers.DatagramHandler):
         """ Create message in TNetStrings format.
         """
         msg = {}
-        self.format(record) # render 'message' attribute and others
+        self.format(record)  # render 'message' attribute and others
         for k in self.send_fields:
             msg[k] = record.__dict__[k]
         tnetstr = skytools.tnetstrings.dumps(msg)
@@ -164,10 +169,10 @@ class LogDBHandler(logging.handlers.SocketHandler):
 
     # map codes to string
     _level_map = {
-        logging.DEBUG   : 'DEBUG',
-        logging.INFO    : 'INFO',
-        logging.WARNING : 'WARNING',
-        logging.ERROR   : 'ERROR',
+        logging.DEBUG: 'DEBUG',
+        logging.INFO: 'INFO',
+        logging.WARNING: 'WARNING',
+        logging.ERROR: 'ERROR',
         logging.CRITICAL: 'FATAL',
     }
 
@@ -189,7 +194,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
     def createSocket(self):
         try:
             super(LogDBHandler, self).createSocket()
-        except:
+        except BaseException:
             self.sock = self.makeSocket()
 
     def makeSocket(self, timeout=1):
@@ -197,7 +202,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         In this case its not socket but database connection."""
 
         db = skytools.connect_database(self.connect_string)
-        db.set_isolation_level(0) # autocommit
+        db.set_isolation_level(0)  # autocommit
         return db
 
     def emit(self, record):
@@ -211,7 +216,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
             self.process_rec(record)
         except (SystemExit, KeyboardInterrupt):
             raise
-        except:
+        except BaseException:
             self.handleError(record)
 
     def process_rec(self, record):
@@ -324,8 +329,9 @@ class SysLogHandler(logging.handlers.SysLogHandler):
                 self.socket.sendall(msg)
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except BaseException:
             self.handleError(record)
+
 
 class SysLogHostnameHandler(SysLogHandler):
     """Slightly modified standard SysLogHandler - sends also hostname and service type"""
@@ -344,6 +350,7 @@ if not hasattr(LoggerAdapter, 'fatal'):
 if not hasattr(LoggerAdapter, 'warn'):
     LoggerAdapter.warn = LoggerAdapter.warning
 
+
 class SkyLogger(LoggerAdapter):
     def __init__(self, logger, extra):
         super(SkyLogger, self).__init__(logger, extra)
@@ -358,6 +365,7 @@ class SkyLogger(LoggerAdapter):
         """See if the underlying logger is enabled for the specified level."""
         return self.logger.isEnabledFor(level)
 
+
 def getLogger(name=None, **kwargs_extra):
     """Get logger with extra functionality.
 
@@ -368,3 +376,4 @@ def getLogger(name=None, **kwargs_extra):
     """
     log = logging.getLogger(name)
     return SkyLogger(log, kwargs_extra)
+

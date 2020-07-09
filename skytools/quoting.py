@@ -2,17 +2,17 @@
 
 """Various helpers for string quoting/unquoting."""
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import re
 import json
+import re
 
 try:
     from skytools._cquoting import (db_urldecode, db_urlencode, quote_bytea_raw,
-            quote_copy, quote_literal, unescape, unquote_literal)
+                                    quote_copy, quote_literal, unescape, unquote_literal)
 except ImportError:
     from skytools._pyquoting import (db_urldecode, db_urlencode, quote_bytea_raw,
-            quote_copy, quote_literal, unescape, unquote_literal)
+                                     quote_copy, quote_literal, unescape, unquote_literal)
 
 __all__ = [
     # _pyqoting / _cquoting
@@ -30,15 +30,18 @@ __all__ = [
 # SQL quoting
 #
 
+
 def quote_bytea_literal(s):
     """Quote bytea for regular SQL."""
 
     return quote_literal(quote_bytea_raw(s))
 
+
 def quote_bytea_copy(s):
     """Quote bytea for COPY."""
 
     return quote_copy(quote_bytea_raw(s))
+
 
 def quote_statement(sql, dict_or_list):
     """Quote whole statement.
@@ -54,28 +57,31 @@ def quote_statement(sql, dict_or_list):
         qvals = [quote_literal(v) for v in dict_or_list]
         return sql % tuple(qvals)
 
+
 # reserved keywords (RESERVED_KEYWORD + TYPE_FUNC_NAME_KEYWORD)
 _ident_kwmap = {
-"all":1, "analyse":1, "analyze":1, "and":1, "any":1, "array":1, "as":1,
-"asc":1, "asymmetric":1, "authorization":1, "between":1, "binary":1, "both":1, "case":1,
-"cast":1, "check":1, "collate":1, "collation":1, "column":1, "concurrently":1,
-"constraint":1, "create":1, "cross":1, "current_catalog":1, "current_date":1,
-"current_role":1, "current_schema":1, "current_time":1, "current_timestamp":1,
-"current_user":1, "default":1, "deferrable":1, "desc":1, "distinct":1,
-"do":1, "else":1, "end":1, "errors":1, "except":1, "false":1, "fetch":1,
-"for":1, "foreign":1, "freeze":1, "from":1, "full":1, "grant":1, "group":1,
-"having":1, "ilike":1, "in":1, "initially":1, "inner":1, "intersect":1,
-"into":1, "is":1, "isnull":1, "join":1, "lateral":1, "leading":1, "left":1,
-"like":1, "limit":1, "localtime":1, "localtimestamp":1, "natural":1, "new":1,
-"not":1, "notnull":1, "null":1, "off":1, "offset":1, "old":1, "on":1, "only":1,
-"or":1, "order":1, "outer":1, "over":1, "overlaps":1, "placing":1, "primary":1,
-"references":1, "returning":1, "right":1, "select":1, "session_user":1,
-"similar":1, "some":1, "symmetric":1, "table":1, "tablesample":1, "then":1, "to":1, "trailing":1,
-"true":1, "union":1, "unique":1, "user":1, "using":1, "variadic":1, "verbose":1,
-"when":1, "where":1, "window":1, "with":1,
+    "all": 1, "analyse": 1, "analyze": 1, "and": 1, "any": 1, "array": 1, "as": 1,
+    "asc": 1, "asymmetric": 1, "authorization": 1, "between": 1, "binary": 1, "both": 1, "case": 1,
+    "cast": 1, "check": 1, "collate": 1, "collation": 1, "column": 1, "concurrently": 1,
+    "constraint": 1, "create": 1, "cross": 1, "current_catalog": 1, "current_date": 1,
+    "current_role": 1, "current_schema": 1, "current_time": 1, "current_timestamp": 1,
+    "current_user": 1, "default": 1, "deferrable": 1, "desc": 1, "distinct": 1,
+    "do": 1, "else": 1, "end": 1, "errors": 1, "except": 1, "false": 1, "fetch": 1,
+    "for": 1, "foreign": 1, "freeze": 1, "from": 1, "full": 1, "grant": 1, "group": 1,
+    "having": 1, "ilike": 1, "in": 1, "initially": 1, "inner": 1, "intersect": 1,
+    "into": 1, "is": 1, "isnull": 1, "join": 1, "lateral": 1, "leading": 1, "left": 1,
+    "like": 1, "limit": 1, "localtime": 1, "localtimestamp": 1, "natural": 1, "new": 1,
+    "not": 1, "notnull": 1, "null": 1, "off": 1, "offset": 1, "old": 1, "on": 1, "only": 1,
+    "or": 1, "order": 1, "outer": 1, "over": 1, "overlaps": 1, "placing": 1, "primary": 1,
+    "references": 1, "returning": 1, "right": 1, "select": 1, "session_user": 1,
+    "similar": 1, "some": 1, "symmetric": 1, "table": 1, "tablesample": 1, "then": 1, "to": 1, "trailing": 1,
+    "true": 1, "union": 1, "unique": 1, "user": 1, "using": 1, "variadic": 1, "verbose": 1,
+    "when": 1, "where": 1, "window": 1, "with": 1,
 }
 
 _ident_bad = re.compile(r"[^a-z0-9_]|^[0-9]")
+
+
 def quote_ident(s):
     """Quote SQL identifier.
 
@@ -87,6 +93,7 @@ def quote_ident(s):
     elif not s:
         return '""'
     return s
+
 
 def quote_fqident(s):
     """Quote fully qualified SQL identifier.
@@ -109,12 +116,14 @@ def quote_fqident(s):
 # quoting for JSON strings
 #
 
+
 _jsre = re.compile(r'[\x00-\x1F\\/"]')
 _jsmap = {
     "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r",
     "\t": "\\t", "\\": "\\\\", '"': '\\"',
     "/": "\\/",   # to avoid html attacks
 }
+
 
 def _json_quote_char(m):
     """Quote single char."""
@@ -124,11 +133,13 @@ def _json_quote_char(m):
     except KeyError:
         return r"\u%04x" % ord(c)
 
+
 def quote_json(s):
     """JSON style quoting."""
     if s is None:
         return "null"
     return '"%s"' % _jsre.sub(_json_quote_char, s)
+
 
 def unescape_copy(val):
     r"""Removes C-style escapes, also converts "\N" to None.
@@ -142,6 +153,7 @@ def unescape_copy(val):
     if val == r"\N":
         return None
     return unescape(val)
+
 
 def unquote_ident(val):
     """Unquotes possibly quoted SQL identifier.
@@ -157,6 +169,7 @@ def unquote_ident(val):
         raise Exception('unsupported syntax')
     return val.lower()
 
+
 def unquote_fqident(val):
     """Unquotes fully-qualified possibly quoted SQL identifier.
 
@@ -167,6 +180,7 @@ def unquote_fqident(val):
     """
     tmp = val.split('.', 1)
     return '.'.join([unquote_ident(i) for i in tmp])
+
 
 def json_encode(val=None, **kwargs):
     """Creates JSON string from Python object.
@@ -182,6 +196,7 @@ def json_encode(val=None, **kwargs):
     """
     return json.dumps(val or kwargs)
 
+
 def json_decode(s):
     """Parses JSON string into Python object.
 
@@ -194,9 +209,11 @@ def json_decode(s):
 # Create Postgres array
 #
 
+
 # any chars not in "good" set?  main bad ones: [ ,{}\"]
 _pgarray_bad_rx = r"[^0-9a-z_.%&=()<>*/+-]"
 _pgarray_bad_rc = None
+
 
 def _quote_pgarray_elem(s):
     if s is None:
@@ -208,6 +225,7 @@ def _quote_pgarray_elem(s):
     elif not s:
         return '""'
     return s
+
 
 def make_pgarray(lst):
     r"""Formats Python list as Postgres array.

@@ -3,14 +3,16 @@ import io
 import os.path
 import sys
 
-from nose.tools import *
+from skytools.config import (
+    Config, ConfigError, ExtendedCompatConfigParser, ExtendedConfigParser,
+    InterpolationError, NoOptionError, NoSectionError,
+)
 
-from skytools.config import (Config, NoOptionError, NoSectionError,
-        ConfigError, InterpolationError,
-        ExtendedConfigParser, ExtendedCompatConfigParser)
+from nose.tools import *
 
 TOP = os.path.dirname(__file__)
 CONFIG = os.path.join(TOP, 'config.ini')
+
 
 def test_config_str():
     cf = Config('base', CONFIG)
@@ -18,17 +20,20 @@ def test_config_str():
     eq_(cf.get('missing', 'q'), 'q')
     assert_raises(NoOptionError, cf.get, 'missing')
 
+
 def test_config_int():
     cf = Config('base', CONFIG)
     eq_(cf.getint('foo'), 1)
     eq_(cf.getint('missing', 2), 2)
     assert_raises(NoOptionError, cf.getint, 'missing')
 
+
 def test_config_float():
     cf = Config('base', CONFIG)
     eq_(cf.getfloat('float-val'), 2.0)
     eq_(cf.getfloat('missing', 3.0), 3.0)
     assert_raises(NoOptionError, cf.getfloat, 'missing')
+
 
 def test_config_bool():
     cf = Config('base', CONFIG)
@@ -42,6 +47,7 @@ def test_config_bool():
     eq_(cf.getboolean('missing', False), False)
     assert_raises(NoOptionError, cf.getbool, 'missing')
 
+
 def test_config_list():
     cf = Config('base', CONFIG)
     eq_(cf.getlist('list-val1'), [])
@@ -49,12 +55,14 @@ def test_config_list():
     eq_(cf.getlist('missing', [1]), [1])
     assert_raises(NoOptionError, cf.getlist, 'missing')
 
+
 def test_config_dict():
     cf = Config('base', CONFIG)
     eq_(cf.getdict('dict-val1'), {})
     eq_(cf.getdict('dict-val2'), {'a': '1', 'b': '2', 'z': 'z'})
-    eq_(cf.getdict('missing', {'a':1}), {'a':1})
+    eq_(cf.getdict('missing', {'a': 1}), {'a': 1})
     assert_raises(NoOptionError, cf.getdict, 'missing')
+
 
 def test_config_file():
     cf = Config('base', CONFIG)
@@ -64,12 +72,14 @@ def test_config_file():
     eq_(cf.getfile('missing', 'qwe'), 'qwe')
     assert_raises(NoOptionError, cf.getfile, 'missing')
 
+
 def test_config_bytes():
     cf = Config('base', CONFIG)
     eq_(cf.getbytes('bytes-val1'), 4)
     eq_(cf.getbytes('bytes-val2'), 2048)
     eq_(cf.getbytes('missing', '3k'), 3072)
     assert_raises(NoOptionError, cf.getbytes, 'missing')
+
 
 def test_config_wildcard():
     cf = Config('base', CONFIG)
@@ -80,9 +90,11 @@ def test_config_wildcard():
     eq_(cf.get_wildcard('missing-*-*', ['1', '2'], 'def'), 'def')
     assert_raises(NoOptionError, cf.get_wildcard, 'missing-*-*', ['1', '2'])
 
+
 def test_config_default():
     cf = Config('base', CONFIG)
     eq_(cf.get('all'), 'yes')
+
 
 def test_config_other():
     cf = Config('base', CONFIG)
@@ -98,24 +110,28 @@ def test_config_other():
 
     cf2 = cf.clone('other')
     eq_(sorted(cf2.options()), ['all', 'config_dir', 'config_file',
-        'host_name', 'job_name', 'service_name', 'test'])
+                                'host_name', 'job_name', 'service_name', 'test'])
     eq_(len(cf2.items()), len(cf2.options()))
+
 
 def test_loading():
     assert_raises(NoSectionError, Config, 'random', CONFIG)
     assert_raises(ConfigError, Config, 'random', 'random.ini')
 
+
 def test_nofile():
-    cf = Config('base', None, user_defs = {'a': '1'})
+    cf = Config('base', None, user_defs={'a': '1'})
     eq_(cf.sections(), ['base'])
     eq_(cf.get('a'), '1')
 
-    cf = Config('base', None, user_defs = {'a': '1'}, ignore_defs=True)
+    cf = Config('base', None, user_defs={'a': '1'}, ignore_defs=True)
     eq_(cf.get('a', '2'), '2')
 
+
 def test_override():
-    cf = Config('base', CONFIG, override = {'foo': 'overrided'})
+    cf = Config('base', CONFIG, override={'foo': 'overrided'})
     eq_(cf.get('foo'), 'overrided')
+
 
 def test_vars():
     cf = Config('base', CONFIG)
@@ -143,6 +159,7 @@ def test_extended_compat():
     assert_raises(NoOptionError, cf.get, 'bar', 'key')
 
     config = u'[foo]\nkey = ${bad:xxx}\n[bad]\nsub = 1\n'
-    cf = ExtendedCompatConfigParser(); cf.readfp(io.StringIO(config), 'conf.ini')
+    cf = ExtendedCompatConfigParser()
+    cf.readfp(io.StringIO(config), 'conf.ini')
     assert_raises(NoOptionError, cf.get, 'foo', 'key')
 

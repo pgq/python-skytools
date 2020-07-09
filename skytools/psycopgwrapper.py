@@ -54,7 +54,7 @@ Plain .fetchall() / .fetchone() give exact same result.
 
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import skytools
 from skytools.sockutil import set_tcp_keepalive
@@ -94,6 +94,7 @@ class _CompatRow(psycopg2.extras.DictRow):
     def __getattr__(self, k):
         return self[k]
 
+
 class _CompatCursor(psycopg2.extras.DictCursor):
     """Regular psycopg2 DictCursor with dict* methods."""
     def __init__(self, *args, **kwargs):
@@ -102,6 +103,7 @@ class _CompatCursor(psycopg2.extras.DictCursor):
     dictfetchone = psycopg2.extras.DictCursor.fetchone
     dictfetchall = psycopg2.extras.DictCursor.fetchall
     dictfetchmany = psycopg2.extras.DictCursor.fetchmany
+
 
 class _CompatConnection(psycopg2.extensions.connection):
     """Connection object that uses _CompatCursor."""
@@ -113,8 +115,9 @@ class _CompatConnection(psycopg2.extensions.connection):
         else:
             return super(_CompatConnection, self).cursor(cursor_factory=_CompatCursor)
 
+
 def connect_database(connstr, keepalive=True,
-                     tcp_keepidle=4*60,       # 7200
+                     tcp_keepidle=4 * 60,       # 7200
                      tcp_keepcnt=4,           # 9
                      tcp_keepintvl=15):       # 75
     """Create a db connection with connect_timeout and TCP keepalive.

@@ -1,6 +1,8 @@
 
+from skytools.querybuilder import CachedPlan, DList, PlanCache
+
 from nose.tools import *
-from skytools.querybuilder import DList, CachedPlan, PlanCache
+
 
 def test_dlist():
     root = DList()

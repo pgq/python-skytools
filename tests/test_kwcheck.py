@@ -1,11 +1,11 @@
 """Check if SQL keywords are up-to-date.
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import sys
-import re
 import os.path
+import re
+import sys
 
 import skytools.quoting
 
@@ -29,6 +29,7 @@ locations = [
     "/usr/include/postgresql/9.1/server/parser/kwlist.h",
 ]
 
+
 def _load_kwlist(fn, full_map, cur_map):
     fn = os.path.expanduser(fn)
     if not os.path.isfile(fn):
@@ -42,6 +43,7 @@ def _load_kwlist(fn, full_map, cur_map):
         if cat == 'COL_NAME_KEYWORD':
             continue
         cur_map[kw] = cat
+
 
 def test_kwcheck():
     """Compare keyword list in quoting.py to the one in postgres sources
@@ -66,10 +68,10 @@ def test_kwcheck():
     for k in sorted(kwset):
         if k not in full_map:
             # especially obsolete
-            obsolete_list.append( (k, '!FULL') )
+            obsolete_list.append((k, '!FULL'))
         elif k not in cur_map:
             # slightly obsolete
-            obsolete_list.append( (k, '!CUR') )
+            obsolete_list.append((k, '!CUR'))
 
     eq_(new_list, [])
 

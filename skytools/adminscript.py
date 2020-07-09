@@ -4,13 +4,15 @@
 # allow getargspec
 # pylint:disable=deprecated-method
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-import sys
 import inspect
+import sys
+
 import skytools
 
 __all__ = ['AdminScript']
+
 
 class AdminScript(skytools.DBScript):
     """Contains common admin script tools.
@@ -52,7 +54,7 @@ class AdminScript(skytools.DBScript):
 
         # check if correct number of arguments
         (args, varargs, ___varkw, ___defaults) = inspect.getargspec(fn)
-        n_args = len(args) - 1 # drop 'self'
+        n_args = len(args) - 1  # drop 'self'
         if varargs is None and n_args != len(cmdargs):
             helpstr = ""
             if n_args:
@@ -132,3 +134,4 @@ class AdminScript(skytools.DBScript):
         res = curs.fetchall()
         db.commit()
         return res
+

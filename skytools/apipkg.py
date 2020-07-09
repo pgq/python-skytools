@@ -12,7 +12,6 @@ import os
 import sys
 from types import ModuleType
 
-
 __version__ = '1.4'
 
 
@@ -208,3 +207,4 @@ def makeAliasModule(modname, modpath, attrname=None):
             delattr(getmod(), name)
 
     return AliasModule(str(modname))
+

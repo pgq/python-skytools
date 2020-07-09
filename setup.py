@@ -1,9 +1,9 @@
 """Setup for skytools module.
 """
 
-from setuptools import setup, Extension
-
 import sys
+
+from setuptools import Extension, setup
 
 # don't build C module on win32 as it's unlikely to have dev env
 BUILD_C_MOD = 1
@@ -20,16 +20,16 @@ if BUILD_C_MOD:
 
 # run actual setup
 setup(
-    name = "skytools",
-    license = "ISC",
-    version = '3.4',
-    url = "https://github.com/pgq/python-skytools",
-    maintainer = "Marko Kreen",
-    maintainer_email = "markokr@gmail.com",
-    description = "Utilities for database scripts",
-    packages = ['skytools'],
-    ext_modules = c_modules,
-    zip_safe = False,
+    name="skytools",
+    license="ISC",
+    version='3.4',
+    url="https://github.com/pgq/python-skytools",
+    maintainer="Marko Kreen",
+    maintainer_email="markokr@gmail.com",
+    description="Utilities for database scripts",
+    packages=['skytools'],
+    ext_modules=c_modules,
+    zip_safe=False,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
@@ -45,3 +45,4 @@ setup(
         "Topic :: Utilities",
     ],
 )
+
