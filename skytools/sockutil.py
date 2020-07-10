@@ -40,8 +40,9 @@ def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4 * 60, tcp_keepcnt=4, tc
         s = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
 
     # skip if unix socket
-    if not isinstance(s.getsockname(), tuple):
-        return
+    if getattr(socket, 'AF_UNIX', None):
+        if not isinstance(s.getsockname(), tuple):
+            return
 
     # no keepalive?
     if not keepalive:
@@ -105,7 +106,7 @@ def set_cloexec(fd, onoff=True):
     Others do not (Python stdlib).
     """
     if fcntl is None:
-        return onoff
+        return True
 
     flags = fcntl.fcntl(fd, fcntl.F_GETFD)
     if onoff is None:
