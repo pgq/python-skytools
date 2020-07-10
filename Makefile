@@ -12,3 +12,21 @@ deb:
 
 xclean: clean
 	rm -rf .tox dist
+
+VERSION = $(shell python3 setup.py --version)
+RXVERSION = $(shell python3 setup.py --version | sed 's/\./[.]/g')
+TAG = v$(VERSION)
+
+checkver:
+	@echo "Checking version"
+	@grep -q '## Skytools $(RXVERSION)\b' NEWS.md \
+	|| { echo "Version '$(VERSION)' not in NEWS.md"; exit 1; }
+	@head debian/changelog | grep -q '[(]$(RXVERSION)-' debian/changelog \
+	|| { echo "Version '$(VERSION)' not in debian/changelog"; exit 1; }
+	@echo "Checking git repo"
+	@git diff --stat --exit-code || { echo "ERROR: Unclean repo"; exit 1; }
+
+release: checkver
+	git tag $(TAG)
+	git push github $(TAG):$(TAG)
+

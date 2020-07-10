@@ -7,7 +7,9 @@ sql_locations = [
     "/usr/share/skytools3",
 ]
 
-package_version = "3.4"
+# PEP 440 version: [N!]N(.N)*[{a|b|rc}N][.postN][.devN]
+
+package_version = "3.5"
 
 skylog = 0
 
