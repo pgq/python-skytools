@@ -1,16 +1,16 @@
-
-"""Various parsers for Postgres-specific data formats."""
-
+"""Various parsers for Postgres-specific data formats.
+"""
 
 import re
 
 import skytools
 
-__all__ = [
+__all__ = (
     "parse_pgarray", "parse_logtriga_sql", "parse_tabbed_table",
     "parse_statements", 'sql_tokenizer', 'parse_sqltriga_sql',
     "parse_acl", "dedent", "hsize_to_bytes",
-    "parse_connect_string", "merge_connect_string"]
+    "parse_connect_string", "merge_connect_string",
+)
 
 _rc_listelem = re.compile(r'( [^,"}]+ | ["] ( [^"\\]+ | [\\]. )* ["] )', re.X)
 
@@ -54,10 +54,10 @@ def parse_pgarray(array):
         raise ValueError("bad array format: failed to parse completely (pos=%d len=%d)" % (pos, len(array)))
     return res
 
+
 #
 # parse logtriga partial sql
 #
-
 
 class _logtriga_parser:
     """Parses logtriga/sqltriga partial SQL to values."""
@@ -395,10 +395,10 @@ def hsize_to_bytes(input_str):
     nbytes = int(m.group(1)) * 1024 ** units.index(m.group(2).upper())
     return nbytes
 
+
 #
 # Connect string parsing
 #
-
 
 _cstr_rx = r""" \s* (\w+) \s* = \s* ( ' ( \\.| [^'\\] )* ' | \S+ ) \s* """
 _cstr_unesc_rx = r"\\(.)"

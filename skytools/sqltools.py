@@ -1,11 +1,12 @@
-"""Database tools."""
+"""Database tools.
+"""
 
 import io
 import os
 
 import skytools
 
-__all__ = [
+__all__ = (
     "fq_name_parts", "fq_name", "get_table_oid", "get_table_pkeys",
     "get_table_columns", "exists_schema", "exists_table", "exists_type",
     "exists_sequence", "exists_temp_table", "exists_view",
@@ -13,7 +14,7 @@ __all__ = [
     "CopyPipe", "full_copy", "DBObject", "DBSchema", "DBTable", "DBFunction",
     "DBLanguage", "db_install", "installer_find_file", "installer_apply_file",
     "dbdict", "mk_insert_sql", "mk_update_sql", "mk_delete_sql",
-]
+)
 
 
 class dbdict(dict):
@@ -37,10 +38,10 @@ class dbdict(dict):
             if key not in self:
                 self[key] = other[key]
 
+
 #
 # Fully qualified table name
 #
-
 
 def fq_name_parts(tbl):
     """Return fully qualified name parts.
@@ -57,10 +58,10 @@ def fq_name(tbl):
     """
     return '.'.join(fq_name_parts(tbl))
 
+
 #
 # info about table
 #
-
 
 def get_table_oid(curs, table_name):
     """Find Postgres OID for table."""
@@ -96,10 +97,10 @@ def get_table_columns(curs, tbl):
     curs.execute(q, [oid])
     return [row[0] for row in curs.fetchall()]
 
+
 #
 # exist checks
 #
-
 
 def exists_schema(curs, schema):
     """Does schema exists?"""
@@ -188,10 +189,10 @@ def exists_temp_table(curs, tbl):
     tmp = curs.fetchall()
     return len(tmp) > 0
 
+
 #
 # Support for PostgreSQL snapshot
 #
-
 
 class Snapshot:
     """Represents a PostgreSQL snapshot.
@@ -330,10 +331,10 @@ def magic_insert(curs, tablename, data, fields=None, use_insert=False, quoted_ta
         curs.copy_from(buf, hdr)
     return None
 
+
 #
 # Full COPY of table from one db to another
 #
-
 
 class CopyPipe(io.TextIOBase):
     """Splits one big COPY to chunks.
@@ -548,10 +549,10 @@ def installer_apply_file(db, filename, log):
         #log.debug(repr(stmt))
         curs.execute(stmt)
 
+
 #
 # Generate INSERT/UPDATE/DELETE statement
 #
-
 
 def mk_insert_sql(row, tbl, pkey_list=None, field_map=None):
     """Generate INSERT statement from dict data.

@@ -1,7 +1,6 @@
 """ Class used to handle multiset receiving and returning PL/Python procedures
 """
 
-
 import skytools
 from skytools import dbdict
 
@@ -9,11 +8,6 @@ try:
     import plpy
 except ImportError:
     pass
-
-try:
-    basestring
-except NameError:
-    basestring = str    # noqa
 
 __all__ = (
     'DBService', 'ServiceContext',
@@ -336,7 +330,7 @@ class DBService:
         for field in fields:
             params[self.FIELD] = field
             if field in record:
-                if record[field] is None or (isinstance(record[field], basestring) and len(record[field]) == 0):
+                if record[field] is None or (isinstance(record[field], str) and len(record[field]) == 0):
                     self.tell_user(severity, "dbsXXXX", "Required value missing: {%s}.{%s}" % (
                                    self.PARAM, self.FIELD), **params)
                     missing.append(field)

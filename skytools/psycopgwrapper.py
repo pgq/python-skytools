@@ -50,7 +50,6 @@ Sample usage::
 
 Deprecated interface:  .dictfetchall/.dictfetchone functions on cursor.
 Plain .fetchall() / .fetchone() give exact same result.
-
 """
 
 import psycopg2.extensions
@@ -60,8 +59,10 @@ from psycopg2 import Error as DBError
 from skytools.sockutil import set_tcp_keepalive
 from skytools.sqltools import dbdict
 
-__all__ = ['connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
-           'I_REPEATABLE_READ', 'I_SERIALIZABLE']
+__all__ = (
+    'connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
+    'I_REPEATABLE_READ', 'I_SERIALIZABLE',
+)
 
 I_AUTOCOMMIT = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 I_READ_COMMITTED = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
@@ -114,7 +115,7 @@ class _CompatConnection(psycopg2.extensions.connection):
 
 
 def connect_database(connstr, keepalive=True,
-                     tcp_keepidle=4 * 60,       # 7200
+                     tcp_keepidle=4 * 60,     # 7200
                      tcp_keepcnt=4,           # 9
                      tcp_keepintvl=15):       # 75
     """Create a db connection with connect_timeout and TCP keepalive.

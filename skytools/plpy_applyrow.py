@@ -1,8 +1,5 @@
-
+"""PLPY helper module for applying row events from pgq.logutriga().
 """
-PLPY helper module for applying row events from pgq.logutriga().
-"""
-
 
 import skytools
 
@@ -215,11 +212,13 @@ def ts_conflict_handler(gd, args):
     def ts_canapply(rnew, rold):
         return canapply_tstamp_helper(rnew, rold, timefield)
 
-    return applyrow(ev_extra1, ev_type, ev_data,
-                    backup_row=ev_extra2,
-                    alt_pkey_cols=altpk,
-                    fkey_ref_table=conf.get('fkey_ref_table'),
-                    fkey_ref_cols=conf.get('fkey_ref_cols'),
-                    fkey_cols=conf.get('fkey_cols'),
-                    fn_canapply=ts_canapply)
+    return applyrow(
+        ev_extra1, ev_type, ev_data,
+        backup_row=ev_extra2,
+        alt_pkey_cols=altpk,
+        fkey_ref_table=conf.get('fkey_ref_table'),
+        fkey_ref_cols=conf.get('fkey_ref_cols'),
+        fkey_cols=conf.get('fkey_cols'),
+        fn_canapply=ts_canapply
+    )
 

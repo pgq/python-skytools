@@ -1,59 +1,25 @@
-
-"""Nicer config class."""
-
+"""Nicer config class.
+"""
 
 import os
 import os.path
 import re
 import socket
 
+from configparser import Error as ConfigError
+from configparser import (
+    ExtendedInterpolation, Interpolation, InterpolationDepthError,
+    InterpolationError, NoOptionError, NoSectionError,
+    MAX_INTERPOLATION_DEPTH, ConfigParser,
+)
+
 import skytools
 
-try:
-    from configparser import MAX_INTERPOLATION_DEPTH, ConfigParser
-    from configparser import Error as ConfigError  # noqa
-    from configparser import (
-        ExtendedInterpolation, Interpolation, InterpolationDepthError,
-        InterpolationError, NoOptionError, NoSectionError,
-    )
-except ImportError:
-    from ConfigParser import MAX_INTERPOLATION_DEPTH
-    from ConfigParser import Error as ConfigError  # noqa
-    from ConfigParser import (
-        InterpolationDepthError, InterpolationError,
-        NoOptionError, NoSectionError, SafeConfigParser,
-    )
 
-    class Interpolation:
-        """Define Interpolation API from Python3."""
-
-        def before_get(self, parser, section, option, value, defaults):
-            return value
-
-        def before_set(self, parser, section, option, value):
-            return value
-
-        def before_read(self, parser, section, option, value):
-            return value
-
-        def before_write(self, parser, section, option, value):
-            return value
-
-    class ConfigParser(SafeConfigParser):
-        """Default Python's ConfigParser that uses _DEFAULT_INTERPOLATION"""
-        _DEFAULT_INTERPOLATION = None
-
-        def _interpolate(self, section, option, rawval, defs):
-            if self._DEFAULT_INTERPOLATION is None:
-                return SafeConfigParser._interpolate(self, section, option, rawval, defs)
-            return self._DEFAULT_INTERPOLATION.before_get(self, section, option, rawval, defs)
-
-
-__all__ = [
-    'Config',
-    'NoOptionError', 'ConfigError',
+__all__ = (
+    'Config', 'NoOptionError', 'ConfigError',
     'ConfigParser', 'ExtendedConfigParser', 'ExtendedCompatConfigParser'
-]
+)
 
 
 class Config:
@@ -340,15 +306,6 @@ class ExtendedInterpolationCompat(Interpolation):
             self._interpolate_ext(dst, parser, ksect, key, newpart, defaults, loop_detect)
 
         loop_detect.remove(xloop)
-
-
-try:
-    ExtendedInterpolation
-except NameError:
-    class ExtendedInterpolationPy2(ExtendedInterpolationCompat):
-        _var_rc = re.compile('(%s)' % ExtendedInterpolationCompat._EXT_VAR_RX)
-        _bad_rc = re.compile('[$]')
-    ExtendedInterpolation = ExtendedInterpolationPy2
 
 
 class ExtendedConfigParser(ConfigParser):

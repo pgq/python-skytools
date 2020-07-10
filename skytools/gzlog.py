@@ -1,26 +1,20 @@
-
 """Atomic append of gzipped data.
 
 The point is - if several gzip streams are concatenated,
 they are read back as one whole stream.
 """
 
-
 import gzip
-from io import BytesIO
+import io
 
-__all__ = ['gzip_append']
-
-#
-# gzip storage
-#
+__all__ = ('gzip_append',)
 
 
 def gzip_append(filename, data, level=6):
     """Append a block of data to file with safety checks."""
 
     # compress data
-    buf = BytesIO()
+    buf = io.BytesIO()
     with gzip.GzipFile(fileobj=buf, compresslevel=level, mode="w") as g:
         g.write(data)
     zdata = buf.getvalue()

@@ -1,16 +1,17 @@
 """Find table structure and allow CREATE/DROP elements from it.
 """
 
-
 import re
 
 import skytools
 from skytools import quote_fqident, quote_ident
 
-__all__ = ['TableStruct', 'SeqStruct',
-           'T_TABLE', 'T_CONSTRAINT', 'T_INDEX', 'T_TRIGGER',
-           'T_RULE', 'T_GRANT', 'T_OWNER', 'T_PKEY', 'T_ALL',
-           'T_SEQUENCE', 'T_PARENT', 'T_DEFAULT']
+__all__ = (
+    'TableStruct', 'SeqStruct',
+    'T_TABLE', 'T_CONSTRAINT', 'T_INDEX', 'T_TRIGGER',
+    'T_RULE', 'T_GRANT', 'T_OWNER', 'T_PKEY', 'T_ALL',
+    'T_SEQUENCE', 'T_PARENT', 'T_DEFAULT',
+)
 
 T_TABLE = 1 << 0
 T_CONSTRAINT = 1 << 1
@@ -26,10 +27,10 @@ T_PKEY = 1 << 20  # special, one of constraints
 T_ALL = (T_TABLE | T_CONSTRAINT | T_INDEX | T_SEQUENCE
          | T_TRIGGER | T_RULE | T_GRANT | T_OWNER | T_DEFAULT)
 
+
 #
 # Utility functions
 #
-
 
 def find_new_name(curs, name):
     """Create new object name for case the old exists.
@@ -62,10 +63,10 @@ def rx_replace(rx, sql, new_part):
     p2 = sql[m.end():]
     return p1 + new_part + p2
 
+
 #
 # Schema objects
 #
-
 
 class TElem:
     """Keeps info about one metadata object."""
@@ -564,10 +565,10 @@ class TSeq(TElem):
             return ''
         return 'DROP SEQUENCE %s;' % quote_fqident(self.name)
 
+
 #
 # Main table object, loads all the others
 #
-
 
 class BaseStruct:
     """Collects and manages all info about a higher-level db object.

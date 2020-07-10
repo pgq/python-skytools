@@ -1,7 +1,6 @@
 """Our log handlers for Python's logging package.
 """
 
-
 import logging
 import logging.handlers
 import os
@@ -12,10 +11,6 @@ from logging import LoggerAdapter
 import skytools
 import skytools.tnetstrings
 
-try:
-    unicode
-except NameError:
-    unicode = str   # noqa
 
 __all__ = ['getLogger']
 
@@ -305,7 +300,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         """
         msg = self._custom_format(record)
         # Message is a string. Convert to bytes as required by RFC 5424
-        if isinstance(msg, unicode):
+        if not isinstance(msg, bytes):
             msg = msg.encode('utf-8')
             ## this puts BOM in wrong place
             #if codecs:

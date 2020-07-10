@@ -1,7 +1,6 @@
 """Utilities for tests.
 """
 
-
 from collections import OrderedDict
 
 

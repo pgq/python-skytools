@@ -1,19 +1,11 @@
 """File utilities
 """
 
-
 import errno
 import os
 import sys
 
 __all__ = ['write_atomic', 'signal_pidfile']
-
-try:
-    unicode
-except NameError:
-    unicode = str   # noqa
-
-# non-win32
 
 
 def write_atomic_unix(fn, data, bakext=None, mode='b'):
@@ -21,7 +13,7 @@ def write_atomic_unix(fn, data, bakext=None, mode='b'):
 
     if mode not in ['', 'b', 't']:
         raise ValueError("unsupported fopen mode")
-    if mode == 'b' and isinstance(data, unicode):
+    if mode == 'b' and not isinstance(data, bytes):
         data = data.encode('utf8')
 
     # write new data to tmp file
@@ -125,7 +117,7 @@ def win32_write_atomic(fn, data, bakext=None, mode='b'):
     if mode not in ['', 'b', 't']:
         raise ValueError("unsupported fopen mode")
 
-    if mode == 'b' and isinstance(data, unicode):
+    if mode == 'b' and not isinstance(data, bytes):
         data = data.encode('utf8')
 
     # write new data to tmp file

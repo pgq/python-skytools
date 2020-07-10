@@ -16,10 +16,10 @@ try:
 except ImportError:
     plpy = None
 
-__all__ = [
+__all__ = (
     'QueryBuilder', 'PLPyQueryBuilder', 'PLPyQuery', 'plpy_exec',
     "run_query", "run_query_row", "run_lookup", "run_exists",
-]
+)
 
 PARAM_INLINE = 0  # quote_literal()
 PARAM_DBAPI = 1  # %()s

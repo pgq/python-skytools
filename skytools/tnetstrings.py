@@ -11,9 +11,9 @@ except NameError:
     unicode = str   # noqa
     long = int      # noqa
 
-_memstr_types = (unicode, bytes, memoryview)
+_memstr_types = (str, bytes, memoryview)
 _struct_types = (list, tuple, dict)
-_inttypes = (int, long)
+_inttypes = (int,)
 
 
 def _dumps(dst, val):
@@ -33,12 +33,12 @@ def _dumps(dst, val):
         dst[tlenpos] = b'%d:' % tlen
         return len(dst[tlenpos]) + tlen + 1
     elif isinstance(val, _memstr_types):
-        if isinstance(val, unicode):
+        if isinstance(val, str):
             bval = val.encode('utf8')
-        elif isinstance(val, memoryview):
-            bval = val.tobytes()
-        else:
+        elif isinstance(val, bytes):
             bval = val
+        else:
+            bval = memoryview(val).tobytes()
         tval = b'%d:%s,' % (len(bval), bval)
     elif isinstance(val, bool):
         tval = val and b'4:true!' or b'5:false!'
@@ -110,10 +110,10 @@ def _loads(buf):
     else:
         raise ValueError("failed to load value, invalid value code")
 
+
 #
 # Public API
 #
-
 
 def dumps(val):
     """Dump object tree as TNetString value.

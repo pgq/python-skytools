@@ -1,8 +1,5 @@
-
 """Useful functions and classes for database scripts.
-
 """
-
 
 import errno
 import logging
@@ -24,18 +21,19 @@ try:
 except ImportError:
     default_skylog = 0
 
-__pychecker__ = 'no-badexcept'
 
-__all__ = ['BaseScript', 'UsageError', 'daemonize', 'DBScript']
+__all__ = (
+    'BaseScript', 'UsageError', 'daemonize', 'DBScript',
+)
 
 
 class UsageError(Exception):
     """User induced error."""
 
+
 #
 # daemon mode
 #
-
 
 def daemonize():
     """Turn the process into daemon.
@@ -59,10 +57,10 @@ def daemonize():
     if fd > 2:
         os.close(fd)
 
+
 #
 # Pidfile locking+cleanup & daemonization combined
 #
-
 
 def run_single_process(runnable, daemon, pidfile):
     """Run runnable class, possibly daemonized, locked on pidfile."""
@@ -96,10 +94,10 @@ def run_single_process(runnable, daemon, pidfile):
             except BaseException:
                 pass
 
+
 #
 # logging setup
 #
-
 
 _log_config_done = 0
 _log_init_done = {}
@@ -706,10 +704,10 @@ class BaseScript:
     stat_add = stat_put                 # Old, deprecated function.
     stat_inc = stat_increase
 
+
 ##
 ##  DBScript
 ##
-
 
 #: how old connections need to be closed
 DEF_CONN_AGE = 20 * 60  # 20 min

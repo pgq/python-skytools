@@ -13,7 +13,9 @@ import re
 import time
 from datetime import datetime, timedelta, tzinfo
 
-__all__ = ('parse_iso_timestamp', 'FixedOffsetTimezone', 'datetime_to_timestamp')
+__all__ = (
+    'parse_iso_timestamp', 'FixedOffsetTimezone', 'datetime_to_timestamp',
+)
 
 
 class FixedOffsetTimezone(tzinfo):

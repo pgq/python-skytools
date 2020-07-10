@@ -15,7 +15,7 @@ except ImportError:
         quote_copy, quote_literal, unescape, unquote_literal,
     )
 
-__all__ = [
+__all__ = (
     # _pyqoting / _cquoting
     "db_urldecode", "db_urlencode", "quote_bytea_raw",
     "quote_copy", "quote_literal", "unescape", "unquote_literal",
@@ -25,12 +25,12 @@ __all__ = [
     "unquote_ident", "unquote_fqident",
     "json_encode", "json_decode",
     "make_pgarray",
-]
+)
+
 
 #
 # SQL quoting
 #
-
 
 def quote_bytea_literal(s):
     """Quote bytea for regular SQL."""
@@ -107,10 +107,10 @@ def quote_fqident(s):
         return 'public.' + quote_ident(s)
     return '.'.join([quote_ident(name) for name in tmp])
 
+
 #
 # quoting for JSON strings
 #
-
 
 _jsre = re.compile(r'[\x00-\x1F\\/"]')
 _jsmap = {
@@ -172,10 +172,10 @@ def json_decode(s):
     """
     return json.loads(s)
 
+
 #
 # Create Postgres array
 #
-
 
 # any chars not in "good" set?  main bad ones: [ ,{}\"]
 _pgarray_bad_rx = r"[^0-9a-z_.%&=()<>*/+-]"

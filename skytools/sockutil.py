@@ -10,7 +10,9 @@ try:
 except ImportError:
     fcntl = None
 
-__all__ = ['set_tcp_keepalive', 'set_nonblocking', 'set_cloexec']
+__all__ = (
+    'set_tcp_keepalive', 'set_nonblocking', 'set_cloexec',
+)
 
 
 def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4 * 60, tcp_keepcnt=4, tcp_keepintvl=15):
