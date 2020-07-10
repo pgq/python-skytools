@@ -5,6 +5,13 @@ import sys
 
 from setuptools import Extension, setup
 
+_version = None
+with open("skytools/installer_config.py") as f:
+    for ln in f:
+        if ln.startswith("package_version"):
+            _version = ln.split()[2].strip("\"'")
+len(_version)
+
 # don't build C module on win32 as it's unlikely to have dev env
 BUILD_C_MOD = 1
 if sys.platform == 'win32':
@@ -22,7 +29,7 @@ if BUILD_C_MOD:
 setup(
     name="skytools",
     license="ISC",
-    version='3.4',
+    version=_version,
     url="https://github.com/pgq/python-skytools",
     maintainer="Marko Kreen",
     maintainer_email="markokr@gmail.com",
