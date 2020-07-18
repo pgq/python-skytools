@@ -30,3 +30,12 @@ release: checkver
 	git tag $(TAG)
 	git push github $(TAG):$(TAG)
 
+TGZ = dist/skytools-$(VERSION).tar.gz
+URL = https://github.com/pgq/python-skytools/releases/download/v$(VERSION)/skytools-$(VERSION).tar.gz
+
+upload:
+	mkdir -p dist && rm -f dist/*
+	cd dist && wget -q $(URL)
+	tar tvf $(TGZ)
+	twine upload dist/*.gz
+
