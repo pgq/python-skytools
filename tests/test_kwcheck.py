@@ -3,25 +3,21 @@
 
 import os.path
 import re
+import sys
+import logging
 
 import skytools.quoting
 
+versions = [
+    "94", "95", "96", "9.4", "9.5", "9.6",
+    "10", "11", "12", "13", "14",
+    "15", "16", "17", "18", "19"
+]
+
 locations = [
-    "/opt/src/pgsql/postgresql/src/include/parser/kwlist.h",
-    "~/src/pgsql/postgres/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg95/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg94/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg93/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg92/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg91/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg90/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg84/src/include/parser/kwlist.h",
-    "~/src/pgsql/pg83/src/include/parser/kwlist.h",
-    "/usr/include/postgresql/9.5/server/parser/kwlist.h",
-    "/usr/include/postgresql/9.4/server/parser/kwlist.h",
-    "/usr/include/postgresql/9.3/server/parser/kwlist.h",
-    "/usr/include/postgresql/9.2/server/parser/kwlist.h",
-    "/usr/include/postgresql/9.1/server/parser/kwlist.h",
+    "/usr/include/postgresql/{VER}/server/parser/kwlist.h",
+    "~/src/pgsql/pg{VER}/src/include/parser/kwlist.h",
+    "~/src/pgsql/postgresql/src/include/parser/kwlist.h",
 ]
 
 
@@ -29,7 +25,8 @@ def _load_kwlist(fn, full_map, cur_map):
     fn = os.path.expanduser(fn)
     if not os.path.isfile(fn):
         return
-    data = open(fn, 'rt').read()
+    with open(fn, 'rt') as f:
+        data = f.read()
     rc = re.compile(r'PG_KEYWORD[(]"(.*)" , \s* \w+ , \s* (\w+) [)]', re.X)
     for kw, cat in rc.findall(data):
         full_map[kw] = cat
@@ -50,8 +47,14 @@ def test_kwcheck():
     new_list = []           # missing from kwset
     obsolete_list = []      # in kwset, but not in cur_map
 
-    for fn in locations:
-        _load_kwlist(fn, full_map, cur_map)
+    done = set()
+    for loc in locations:
+        for ver in versions:
+            fn = loc.format(VER=ver)
+            if fn not in done:
+                _load_kwlist(fn, full_map, cur_map)
+                done.add(fn)
+
     if not full_map:
         return
 
@@ -72,4 +75,7 @@ def test_kwcheck():
 
     # here we need to keep older keywords around longer
     #assert obsolete_list == []
+
+    # [('between', '!CUR'), ('errors', '!FULL'), ('new', '!CUR'),
+    #  ('off', '!CUR'), ('old', '!CUR'), ('over', '!CUR')]
 
