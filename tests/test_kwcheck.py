@@ -3,8 +3,6 @@
 
 import os.path
 import re
-import sys
-import logging
 
 import skytools.quoting
 
