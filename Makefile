@@ -16,11 +16,12 @@ xclean: clean
 VERSION = $(shell python3 setup.py --version)
 RXVERSION = $(shell python3 setup.py --version | sed 's/\./[.]/g')
 TAG = v$(VERSION)
+NEWS = NEWS.rst
 
 checkver:
 	@echo "Checking version"
-	@grep -q '## Skytools $(RXVERSION)\b' NEWS.md \
-	|| { echo "Version '$(VERSION)' not in NEWS.md"; exit 1; }
+	@grep -q '^Skytools $(RXVERSION)\b' $(NEWS) \
+	|| { echo "Version '$(VERSION)' not in $(NEWS)"; exit 1; }
 	@head debian/changelog | grep -q '[(]$(RXVERSION)-' debian/changelog \
 	|| { echo "Version '$(VERSION)' not in debian/changelog"; exit 1; }
 	@echo "Checking git repo"
@@ -30,12 +31,11 @@ release: checkver
 	git tag $(TAG)
 	git push github $(TAG):$(TAG)
 
-TGZ = dist/skytools-$(VERSION).tar.gz
-URL = https://github.com/pgq/python-skytools/releases/download/v$(VERSION)/skytools-$(VERSION).tar.gz
+unrelease:
+	git push github :$(TAG)
+	git tag -d $(TAG)
 
-upload:
-	mkdir -p dist && rm -f dist/*
-	cd dist && wget -q $(URL)
-	tar tvf $(TGZ)
-	twine upload dist/*.gz
+shownote:
+	awk -v VER="$(VERSION)" -f etc/note.awk $(NEWS) \
+	| pandoc -f rst -t gfm --wrap=none
 

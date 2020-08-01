@@ -1,3 +1,9 @@
+python-skytools (3.6a1.dev1-1) unstable; urgency=low
+
+  * v3.6a1
+
+ -- Marko Kreen <markokr@gmail.com>  Sat, 01 Aug 2020 12:22:39 +0300
+
 python-skytools (3.5-1) unstable; urgency=low
 
   * v3.5
