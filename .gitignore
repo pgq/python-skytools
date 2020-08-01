@@ -13,6 +13,8 @@ debian/files
 debian/python-skytools
 debian/python3-skytools
 
+.pytype
+.mypy_cache
 .tox
 .coverage
 .pybuild
