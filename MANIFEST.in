@@ -1,5 +1,5 @@
-include modules/*.h
+include modules/*.[ch]
 include tests/*.py tests/*.ini
-include tox.ini .prospector.yaml .coveragerc
+include tox.ini .coveragerc .pylintrc
 include MANIFEST.in
 include README.rst NEWS.rst

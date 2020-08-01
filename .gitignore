@@ -14,6 +14,7 @@ debian/python-skytools
 debian/python3-skytools
 
 .pytype
+.pytest_cache
 .mypy_cache
 .tox
 .coverage

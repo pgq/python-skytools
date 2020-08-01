@@ -5,6 +5,7 @@ import sys
 
 from setuptools import Extension, setup
 
+# load version
 _version = None
 with open("skytools/installer_config.py") as f:
     for ln in f:
@@ -17,18 +18,10 @@ with open("README.rst") as f:
     ldesc = f.read().strip()
     sdesc = ldesc.split("\n")[0].split("-", 1)[-1].strip()
 
-# don"t build C module on win32 as it"s unlikely to have dev env
-BUILD_C_MOD = 1
-if sys.platform == "win32":
-    BUILD_C_MOD = 1
-
-# check if building C is allowed
-c_modules = []
-if BUILD_C_MOD:
-    c_modules = [
-        Extension("skytools._cquoting", ["modules/cquoting.c"]),
-        Extension("skytools._chashtext", ["modules/hashtext.c"]),
-    ]
+c_modules = [
+    Extension("skytools._cquoting", ["modules/cquoting.c"]),
+    Extension("skytools._chashtext", ["modules/hashtext.c"]),
+]
 
 # run actual setup
 setup(
