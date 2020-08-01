@@ -7,21 +7,9 @@
 
 #include <stdbool.h>
 
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#define PY_SSIZE_T_MAX INT_MAX
-#define PY_SSIZE_T_MIN INT_MIN
-#endif
-
 #ifdef _MSC_VER
 #define inline __inline
 #define strcasecmp stricmp
-#endif
-
-#if PY_MAJOR_VERSION >= 3
-#define PyString_FromStringAndSize(s,l) PyUnicode_FromStringAndSize(s,l)
-#define PyString_FromString(s) PyUnicode_FromString(s)
-#define PyString_InternInPlace(p) PyUnicode_InternInPlace(p)
 #endif
 
 #include "get_buffer.h"
@@ -113,7 +101,7 @@ static PyObject *buf_pystr(struct Buf *buf, unsigned start_pos, unsigned char *n
 	PyObject *res;
 	if (newpos)
 		buf_set_target(buf, newpos);
-	res = PyString_FromStringAndSize((char *)buf->ptr + start_pos, buf->pos - start_pos);
+	res = PyUnicode_FromStringAndSize((char *)buf->ptr + start_pos, buf->pos - start_pos);
 	buf_free(buf);
 	return res;
 }
@@ -160,7 +148,7 @@ static PyObject *quote_literal_body(unsigned char *src, Py_ssize_t src_len)
 	unsigned int start_ofs = 1;
 
 	if (src == NULL)
-		return PyString_FromString("null");
+		return PyUnicode_FromString("null");
 
 	esc = dst = buf_init(&buf, src_len * 2 + 2 + 1);
         if (!dst)
@@ -199,7 +187,7 @@ static PyObject *quote_copy_body(unsigned char *src, Py_ssize_t src_len)
 	struct Buf buf;
 
 	if (src == NULL)
-		return PyString_FromString("\\N");
+		return PyUnicode_FromString("\\N");
 
 	dst = buf_init(&buf, src_len * 2);
         if (!dst)
@@ -367,7 +355,7 @@ static PyObject *do_dolq(unsigned char *src, Py_ssize_t src_len)
 	if (memcmp(src, p2, p1 - src) != 0)
 		goto failed;
 
-	return PyString_FromStringAndSize((char *)p1, p2 - p1);
+	return PyUnicode_FromStringAndSize((char *)p1, p2 - p1);
 
 failed:
 	PyErr_Format(PyExc_ValueError, "Broken dollar-quoted string");
@@ -557,11 +545,7 @@ static PyObject *encode_dictlike(PyObject *data)
 	if (!buf_init(&buf, 1024))
 		return NULL;
 
-#if PY_MAJOR_VERSION >= 3
 	iter = PyObject_CallMethod(data, "items", NULL);
-#else
-	iter = PyObject_CallMethod(data, "iteritems", NULL);
-#endif
 	if (iter == NULL) {
 		buf_free(&buf);
 		return NULL;
@@ -654,7 +638,7 @@ static PyObject *get_elem(unsigned char *buf, unsigned char **src_p, unsigned ch
 	}
 gotit:
 	*src_p = src;
-	return PyString_FromStringAndSize((char *)buf, dst - buf);
+	return PyUnicode_FromStringAndSize((char *)buf, dst - buf);
 
 hex_incomplete:
 	PyErr_Format(PyExc_ValueError, "Incomplete hex code");
@@ -678,13 +662,8 @@ static PyObject *db_urldecode(PyObject *self, PyObject *args)
 	PyObject *dict = NULL, *key = NULL, *value = NULL;
 	struct Buf buf;
 
-#if PY_MAJOR_VERSION >= 3
         if (!PyArg_ParseTuple(args, "s#", &src, &src_len))
                 return NULL;
-#else
-        if (!PyArg_ParseTuple(args, "t#", &src, &src_len))
-                return NULL;
-#endif
 
 	if (!buf_init(&buf, src_len))
 		return NULL;
@@ -717,7 +696,7 @@ static PyObject *db_urldecode(PyObject *self, PyObject *args)
 		}
 
 		/* lessen memory usage by intering */
-		PyString_InternInPlace(&key);
+		PyUnicode_InternInPlace(&key);
 
 		if (PyDict_SetItem(dict, key, value) < 0)
 			goto failed;
@@ -750,15 +729,6 @@ cquoting_methods[] = {
 	{ NULL }
 };
 
-#if PY_MAJOR_VERSION < 3
-PyMODINIT_FUNC
-init_cquoting(void)
-{
-	PyObject *module;
-	module = Py_InitModule("_cquoting", cquoting_methods);
-	PyModule_AddStringConstant(module, "__doc__", "fast quoting for skytools");
-}
-#else
 static struct PyModuleDef modInfo = {
 	PyModuleDef_HEAD_INIT,
 	"_cquoting",
@@ -779,5 +749,4 @@ PyInit__cquoting(void)
 	PyModule_AddStringConstant(module, "__doc__", "fast quoting for skytools");
 	return module;
 }
-#endif
 

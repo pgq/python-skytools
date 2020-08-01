@@ -5,16 +5,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#define PY_SSIZE_T_MAX INT_MAX
-#define PY_SSIZE_T_MIN INT_MIN
-#endif
-
-#if PY_MAJOR_VERSION >= 3
-#define PyInt_FromLong(v) PyLong_FromLong(v)
-#endif
-
 #include <stdint.h>
 #include <string.h>
 
@@ -342,7 +332,7 @@ static PyObject *run_hash(PyObject *args, hash_fn_t real_hash)
 		return NULL;
 	hash = real_hash(src, src_len);
 	Py_CLEAR(strtmp);
-	return PyInt_FromLong(hash);
+	return PyLong_FromLong(hash);
 }
 
 /*
@@ -369,15 +359,6 @@ static PyMethodDef methods[] = {
 	{ NULL }
 };
 
-#if PY_MAJOR_VERSION < 3
-PyMODINIT_FUNC
-init_chashtext(void)
-{
-	PyObject *module;
-	module = Py_InitModule("_chashtext", methods);
-	PyModule_AddStringConstant(module, "__doc__", "String hash functions");
-}
-#else
 static struct PyModuleDef modInfo = {
 	PyModuleDef_HEAD_INIT,
 	"_chashtext",
@@ -394,4 +375,4 @@ PyInit__chashtext(void)
 	PyModule_AddStringConstant(module, "__doc__", "String hash functions");
 	return module;
 }
-#endif
+
