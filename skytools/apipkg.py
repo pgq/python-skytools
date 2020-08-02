@@ -1,7 +1,7 @@
 """
-apipkg: control the exported namespace of a python package.
+apipkg: control the exported namespace of a Python package.
 
-see http://pypi.python.org/pypi/apipkg
+see https://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
@@ -12,7 +12,7 @@ import os
 import sys
 from types import ModuleType
 
-__version__ = '1.4'
+__version__ = "1.5"
 
 
 def _py_abspath(path):
@@ -30,7 +30,7 @@ def _py_abspath(path):
 def distribution_version(name):
     """try to get the version of the named distribution,
     returs None on failure"""
-    from pkg_resources import DistributionNotFound, get_distribution
+    from pkg_resources import get_distribution, DistributionNotFound
     try:
         dist = get_distribution(name)
     except DistributionNotFound:
@@ -41,6 +41,7 @@ def distribution_version(name):
 
 def initpkg(pkgname, exportdefs, attr=None, eager=False):
     """ initialize given package from the export definitions. """
+    attr = attr or {}
     oldmod = sys.modules.get(pkgname)
     d = {}
     f = getattr(oldmod, '__file__', None)
@@ -53,22 +54,24 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
         d['__path__'] = [_py_abspath(p) for p in oldmod.__path__]
+    if hasattr(oldmod, '__package__'):
+        d['__package__'] = oldmod.__package__
     if '__doc__' not in exportdefs and getattr(oldmod, '__doc__', None):
         d['__doc__'] = oldmod.__doc__
-    if attr:
-        d.update(attr)
+    d.update(attr)
     if hasattr(oldmod, "__dict__"):
         oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
     sys.modules[pkgname] = mod
     # eagerload in bypthon to avoid their monkeypatching breaking packages
     if 'bpython' in sys.modules or eager:
-        for module in sys.modules.values():
+        for module in list(sys.modules.values()):
             if isinstance(module, ApiModule):
-                len(module.__dict__)
+                module.__dict__
 
 
 def importobj(modpath, attrname):
+    """imports a module, then resolves the attrname on it"""
     module = __import__(modpath, None, None, ['__doc__'])
     if not attrname:
         return module
@@ -81,7 +84,7 @@ def importobj(modpath, attrname):
 
 
 class ApiModule(ModuleType):
-    __doc = None
+    """the magical lazy-loading module standing"""
     def __docget(self):
         try:
             return self.__doc
@@ -94,7 +97,7 @@ class ApiModule(ModuleType):
     __doc__ = property(__docget, __docset)
 
     def __init__(self, name, importspec, implprefix=None, attr=None):
-        super(ApiModule, self).__init__(name)
+        super().__init__(name)
         self.__all__ = [x for x in importspec if x != '__onfirstaccess__']
         self.__map__ = {}
         self.__implprefix__ = implprefix or name
@@ -117,7 +120,7 @@ class ApiModule(ModuleType):
 
                 if not attrname:
                     subname = '%s.%s' % (self.__name__, name)
-                    apimod = makeAliasModule(subname, modpath)
+                    apimod = AliasModule(subname, modpath)
                     sys.modules[subname] = apimod
                     if '.' not in name:
                         setattr(self, name, apimod)
@@ -125,13 +128,13 @@ class ApiModule(ModuleType):
                     self.__map__[name] = (modpath, attrname)
 
     def __repr__(self):
-        l = []
+        repr_list = []
         if hasattr(self, '__version__'):
-            l.append("version=" + repr(self.__version__))
+            repr_list.append("version=" + repr(self.__version__))
         if hasattr(self, '__file__'):
-            l.append('from ' + repr(self.__file__))
-        if l:
-            return '<ApiModule %r %s>' % (self.__name__, " ".join(l))
+            repr_list.append('from ' + repr(self.__file__))
+        if repr_list:
+            return '<ApiModule %r %s>' % (self.__name__, " ".join(repr_list))
         return '<ApiModule %r>' % (self.__name__,)
 
     def __makeattr(self, name):
@@ -164,18 +167,18 @@ class ApiModule(ModuleType):
         # force all the content of the module
         # to be loaded when __dict__ is read
         dictdescr = ModuleType.__dict__['__dict__']
-        mdict = dictdescr.__get__(self)
-        if mdict is not None:
+        dict = dictdescr.__get__(self)
+        if dict is not None:
             hasattr(self, 'some')
             for name in self.__all__:
                 try:
                     self.__makeattr(name)
                 except AttributeError:
                     pass
-        return mdict
+        return dict
 
 
-def makeAliasModule(modname, modpath, attrname=None):
+def AliasModule(modname, modpath, attrname=None):
     mod = []
 
     def getmod():
