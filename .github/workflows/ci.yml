@@ -36,18 +36,20 @@ jobs:
         run: python -m tox -r
 
   no_database:
-    name: "${{matrix.test.osname}} + Python ${{matrix.test.PY}}"
+    name: "${{matrix.test.osname}} + Python ${{matrix.test.PY}} ${{matrix.test.arch}}"
     runs-on: ${{matrix.test.os}}
     strategy:
       matrix:
         test:
-          - {os: "ubuntu-18.04", osname: "Ubuntu 18.04", PY: "3.6", TOXENV: "py36"}
-          - {os: "ubuntu-18.04", osname: "Ubuntu 18.04", PY: "3.7", TOXENV: "py37"}
-          - {os: "ubuntu-20.04", osname: "Ubuntu 20.04", PY: "3.8", TOXENV: "py38"}
-          - {os: "macos-10.15", osname: "MacOS 10.15", PY: "3.6", TOXENV: "py36"}
-          - {os: "macos-10.15", osname: "MacOS 10.15", PY: "3.8", TOXENV: "py38"}
-          - {os: "windows-2016", osname: "Windows 2016", PY: "3.6", TOXENV: "py36"}
-          - {os: "windows-2019", osname: "Windows 2019", PY: "3.8", TOXENV: "py38"}
+          - {os: "ubuntu-18.04", osname: "Ubuntu 18.04", PY: "3.6", TOXENV: "py36", arch: "x64"}
+          - {os: "ubuntu-18.04", osname: "Ubuntu 18.04", PY: "3.7", TOXENV: "py37", arch: "x64"}
+          - {os: "ubuntu-20.04", osname: "Ubuntu 20.04", PY: "3.8", TOXENV: "py38", arch: "x64"}
+          - {os: "macos-10.15", osname: "MacOS 10.15", PY: "3.6", TOXENV: "py36", arch: "x64"}
+          - {os: "macos-10.15", osname: "MacOS 10.15", PY: "3.8", TOXENV: "py38", arch: "x64"}
+          - {os: "windows-2016", osname: "Windows 2016", PY: "3.6", TOXENV: "py36", arch: "x86"}
+          - {os: "windows-2016", osname: "Windows 2016", PY: "3.7", TOXENV: "py37", arch: "x64"}
+          - {os: "windows-2019", osname: "Windows 2019", PY: "3.7", TOXENV: "py37", arch: "x86"}
+          - {os: "windows-2019", osname: "Windows 2019", PY: "3.8", TOXENV: "py38", arch: "x64"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
@@ -56,9 +58,14 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{matrix.test.PY}}
+          architecture: ${{matrix.test.arch}}
+
 
       - name: "Install tox"
         run: python -m pip -q install tox
+
+      - name: "Build"
+        run: python setup.py build
 
       - name: "Test"
         env:
@@ -126,4 +133,55 @@ jobs:
         run: |
           pg_ctl -D data stop
           rm -rf data log /tmp/.s.PGSQL*
+
+  test_linux_wheels:
+    name: "Wheel: manylinux1"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - run: |
+          python setup.py sdist
+          mv dist sdist
+      - uses: "docker://quay.io/pypa/manylinux1_x86_64:latest"
+        with: {entrypoint: "./.github/workflows/manylinux.sh"}
+      - uses: "docker://quay.io/pypa/manylinux1_i686:latest"
+        with: {entrypoint: "./.github/workflows/manylinux.sh"}
+      - uses: actions/upload-artifact@v2
+        with: {name: "dist", path: "dist"}
+
+  test_other_wheels:
+    name: "Wheel: ${{matrix.sys.name}}-${{matrix.sys.pyarch}}-${{matrix.pyver}}"
+    runs-on: ${{matrix.sys.os}}
+    strategy:
+      matrix:
+        sys:
+          - {os: "macos-10.15", name: "MacOS 10.15", pyarch: "x64", opts: "--build-option --py-limited-api=cp36", repack: false}
+          - {os: "windows-2019", name: "Windows 2019", pyarch: "x86", opts: "", repack: true}
+          - {os: "windows-2019", name: "Windows 2019", pyarch: "x64", opts: "", repack: true}
+        pyver: ["3.6"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with: {architecture: "${{matrix.sys.pyarch}}", python-version: "${{matrix.pyver}}"}
+      - run: |
+          python setup.py sdist
+          mv dist sdist
+      - name: "Build"
+        shell: bash
+        run: |
+          pip install --disable-pip-version-check -U wheel
+          pip wheel -v --disable-pip-version-check ${{matrix.sys.opts}} -w dist sdist/*.tar.gz
+          ls -l dist
+      - name: "Repack"
+        if: ${{matrix.sys.repack}}
+        shell: bash
+        run: |
+          mv dist dist2
+          python .github/workflows/win32abi3.py -d dist dist2/*.whl
+          ls -l dist
+      - uses: actions/upload-artifact@v2
+        with: {name: "dist", path: "dist"}
 
