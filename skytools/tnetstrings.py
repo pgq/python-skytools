@@ -5,15 +5,10 @@ import codecs
 
 __all__ = ['loads', 'dumps']
 
-try:
-    unicode
-except NameError:
-    unicode = str   # noqa
-    long = int      # noqa
-
 _memstr_types = (str, bytes, memoryview)
 _struct_types = (list, tuple, dict)
 _inttypes = (int,)
+_decode_utf8 = codecs.getdecoder('utf8')
 
 
 def _dumps(dst, val):
@@ -56,9 +51,6 @@ def _dumps(dst, val):
     return len(tval)
 
 
-_decode_utf8 = codecs.getdecoder('utf8')
-
-
 def _loads(buf):
     pos = 0
     maxlen = min(len(buf), 9)
@@ -93,7 +85,7 @@ def _loads(buf):
         dictobj = {}
         while val:
             k, val = _loads(val)
-            if not isinstance(k, unicode):
+            if not isinstance(k, str):
                 raise ValueError("failed to load value, invalid key type")
             dictobj[k], val = _loads(val)
         return dictobj, rest
