@@ -11,7 +11,6 @@ from logging import LoggerAdapter
 import skytools
 import skytools.tnetstrings
 
-
 __all__ = ['getLogger']
 
 # add TRACE level
@@ -65,7 +64,7 @@ class EasyRotatingFileHandler(logging.handlers.RotatingFileHandler):
     def __init__(self, filename, maxBytes=10 * 1024 * 1024, backupCount=3):
         """Args same as for RotatingFileHandler, but in filename '~' is expanded."""
         fn = os.path.expanduser(filename)
-        super(EasyRotatingFileHandler, self).__init__(fn, maxBytes=maxBytes, backupCount=backupCount)
+        super().__init__(fn, maxBytes=maxBytes, backupCount=backupCount)
 
 
 # send JSON message over UDP
@@ -105,8 +104,10 @@ class UdpLogServerHandler(logging.handlers.DatagramHandler):
         hostaddr = _hostaddr
         jobname = _job_name
         svcname = _service_name
-        pkt = self._log_template % (time.time() * 1000, txt_level, skytools.quote_json(msg),
-                                    jobname, svcname, hostname, hostaddr)
+        pkt = self._log_template % (
+            time.time() * 1000, txt_level, skytools.quote_json(msg),
+            jobname, svcname, hostname, hostaddr
+        )
         return pkt
 
     def send(self, s):
@@ -175,7 +176,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         Initializes the handler with a specific connection string.
         """
 
-        super(LogDBHandler, self).__init__(None, None)
+        super().__init__(None, None)
         self.closeOnError = 1
 
         self.connect_string = connect_string
@@ -187,7 +188,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
 
     def createSocket(self):
         try:
-            super(LogDBHandler, self).createSocket()
+            super().createSocket()
         except BaseException:
             self.sock = self.makeSocket()
 
@@ -341,23 +342,14 @@ class SysLogHostnameHandler(SysLogHandler):
 # add missing aliases (that are in Logger class)
 if not hasattr(LoggerAdapter, 'fatal'):
     LoggerAdapter.fatal = LoggerAdapter.critical
-if not hasattr(LoggerAdapter, 'warn'):
-    LoggerAdapter.warn = LoggerAdapter.warning
 
 
 class SkyLogger(LoggerAdapter):
-    def __init__(self, logger, extra):
-        super(SkyLogger, self).__init__(logger, extra)
-        self.name = logger.name
+    """Adds API to existing Logger.
+    """
     def trace(self, msg, *args, **kwargs):
-        """Log 'msg % args' with severity 'TRACE'."""
+        """Log message with severity TRACE."""
         self.log(TRACE, msg, *args, **kwargs)
-    def addHandler(self, hdlr):
-        """Add the specified handler to this logger."""
-        self.logger.addHandler(hdlr)
-    def isEnabledFor(self, level):
-        """See if the underlying logger is enabled for the specified level."""
-        return self.logger.isEnabledFor(level)
 
 
 def getLogger(name=None, **kwargs_extra):
