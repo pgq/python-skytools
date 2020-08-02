@@ -38,9 +38,7 @@ def parse_pgarray(array):
         if len(item) == 4 and item.upper() == "NULL":
             val = None
         else:
-            if len(item) > 0 and item[0] == '"':
-                if len(item) == 1 or item[-1] != '"':
-                    raise ValueError("bad array format: broken '\"'")
+            if item and item[0] == '"':
                 item = item[1:-1]
             val = skytools.unescape(item)
         res.append(val)
@@ -71,18 +69,18 @@ class _logtriga_parser:
         """Handler for inserts."""
         # (col1, col2) values ('data', null)
         if next(tk) != "(":
-            raise Exception("syntax error")
+            raise ValueError("syntax error")
         while True:
             fields.append(next(tk))
             t = next(tk)
             if t == ")":
                 break
             elif t != ",":
-                raise Exception("syntax error")
+                raise ValueError("syntax error")
         if next(tk).lower() != "values":
-            raise Exception("syntax error, expected VALUES")
+            raise ValueError("syntax error, expected VALUES")
         if next(tk) != "(":
-            raise Exception("syntax error, expected (")
+            raise ValueError("syntax error, expected (")
         while True:
             values.append(next(tk))
             t = next(tk)
@@ -90,9 +88,9 @@ class _logtriga_parser:
                 break
             if t == ",":
                 continue
-            raise Exception("expected , or ) got " + t)
+            raise ValueError("expected , or ) got " + t)
         t = next(tk)
-        raise Exception("expected EOF, got " + repr(t))
+        raise ValueError("expected EOF, got " + repr(t))
 
     def parse_update(self, tk, fields, values, key_fields, key_values):
         """Handler for updates."""
@@ -100,7 +98,7 @@ class _logtriga_parser:
         while True:
             fields.append(next(tk))
             if next(tk) != "=":
-                raise Exception("syntax error")
+                raise ValueError("syntax error")
             values.append(next(tk))
             t = next(tk)
             if t == ",":
@@ -108,17 +106,17 @@ class _logtriga_parser:
             elif t.lower() == "where":
                 break
             else:
-                raise Exception("syntax error, expected WHERE or , got " + repr(t))
+                raise ValueError("syntax error, expected WHERE or , got " + repr(t))
         while True:
             fld = next(tk)
             key_fields.append(fld)
             self.pklist.append(fld)
             if next(tk) != "=":
-                raise Exception("syntax error")
+                raise ValueError("syntax error")
             key_values.append(next(tk))
             t = next(tk)
             if t.lower() != "and":
-                raise Exception("syntax error, expected AND got " + repr(t))
+                raise ValueError("syntax error, expected AND got " + repr(t))
 
     def parse_delete(self, tk, fields, values, key_fields, key_values):
         """Handler for deletes."""
@@ -128,11 +126,11 @@ class _logtriga_parser:
             key_fields.append(fld)
             self.pklist.append(fld)
             if next(tk) != "=":
-                raise Exception("syntax error")
+                raise ValueError("syntax error")
             key_values.append(next(tk))
             t = next(tk)
             if t.lower() != "and":
-                raise Exception("syntax error, expected AND, got " + repr(t))
+                raise ValueError("syntax error, expected AND, got " + repr(t))
 
     def _create_dbdict(self, fields, values):
         fields = [skytools.unquote_ident(f) for f in fields]
@@ -157,13 +155,14 @@ class _logtriga_parser:
                 self.parse_update(tk, fields, values, key_fields, key_values)
             elif op == "D":
                 self.parse_delete(tk, fields, values, key_fields, key_values)
-            raise Exception("syntax error")
+            raise ValueError("syntax error")
         except StopIteration:
-            # last sanity check
-            if (len(fields) + len(key_fields) == 0 or
-                len(fields) != len(values) or
-                    len(key_fields) != len(key_values)):
-                raise Exception("syntax error, fields do not match values")
+            pass
+        # last sanity check
+        if (len(fields) + len(key_fields) == 0 or
+            len(fields) != len(values) or
+                len(key_fields) != len(key_values)):
+            raise ValueError("syntax error, fields do not match values")
         if splitkeys:
             return (self._create_dbdict(key_fields, key_values),
                     self._create_dbdict(fields, values))
