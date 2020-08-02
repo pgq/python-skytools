@@ -3,6 +3,7 @@
 
 from decimal import Decimal
 
+import psycopg2.extras
 import pytest
 import skytools._cquoting
 import skytools._pyquoting
@@ -19,7 +20,7 @@ class fake_cursor:
     description = ['x', 'x']
 
 
-dbrow = skytools.psycopgwrapper._CompatRow(fake_cursor())
+dbrow = psycopg2.extras.DictRow(fake_cursor())
 dbrow[0] = '123'
 dbrow[1] = 'value'
 
