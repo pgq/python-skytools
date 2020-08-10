@@ -8,9 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "get_buffer.h"
-
-typedef uint32_t (*hash_fn_t)(const void *src, unsigned src_len);
+typedef uint32_t (*hash_fn_t)(const void *src, Py_ssize_t src_len);
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -35,10 +33,11 @@ typedef uint32_t uint32;
   c -= a; c -= b; c ^= ((b)>>15); \
 }
 
-static uint32_t hash_old_hashtext(const void *_k, unsigned keylen)
+static uint32_t hash_old_hashtext(const void *_k, Py_ssize_t keylen)
 {
 	const unsigned char *k = _k;
-	register uint32 a, b, c, len;
+	uint32 a, b, c;
+	Py_ssize_t len;
 
 	/* Set up the internal state */
 	len = keylen;
@@ -57,7 +56,7 @@ static uint32_t hash_old_hashtext(const void *_k, unsigned keylen)
 	}
 
 	/* handle the last 11 bytes */
-	c += keylen;
+	c += (uint32)keylen;
 	switch (len)				/* all the case statements fall through */
 	{
 		case 11:
@@ -119,20 +118,20 @@ static uint32_t hash_old_hashtext(const void *_k, unsigned keylen)
   c ^= b; c -= rot(b,24); \
 }
 
-static uint32_t hash_new_hashtext(const void *_k, unsigned keylen)
+static uint32_t hash_new_hashtext(const void *_k, Py_ssize_t keylen)
 {
 	const unsigned char *k = _k;
-	uint32_t a, b, c, len;
+	uint32_t a, b, c;
+	Py_ssize_t len = keylen;
 
 	/* Set up the internal state */
-	len = keylen;
-	a = b = c = 0x9e3779b9 + len + 3923095;
+	a = b = c = 0x9e3779b9 + (uint32)len + 3923095;
 
 	/* If the source pointer is word-aligned, we use word-wide fetches */
-	if (((long) k & UINT32_ALIGN_MASK) == 0)
+	if (((uintptr_t) k & UINT32_ALIGN_MASK) == 0)
 	{
 		/* Code path for aligned source data */
-		register const uint32_t *ka = (const uint32_t *) k;
+		const uint32_t *ka = (const uint32_t *) k;
 
 		/* handle most of the key */
 		while (len >= 12)
@@ -321,17 +320,12 @@ static uint32_t hash_new_hashtext(const void *_k, unsigned keylen)
 static PyObject *run_hash(PyObject *args, hash_fn_t real_hash)
 {
 	unsigned char *src = NULL;
-        Py_ssize_t src_len;
-	PyObject *arg, *strtmp = NULL;
+        Py_ssize_t src_len = 0;
 	int32_t hash;
 
-        if (!PyArg_ParseTuple(args, "O", &arg))
+        if (!PyArg_ParseTuple(args, "s#", &src, &src_len))
                 return NULL;
-	src_len = get_buffer(arg, &src, &strtmp);
-	if (src_len < 0)
-		return NULL;
 	hash = real_hash(src, src_len);
-	Py_CLEAR(strtmp);
 	return PyLong_FromLong(hash);
 }
 

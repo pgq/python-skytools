@@ -20,11 +20,11 @@
 
 struct Buf {
 	unsigned char *ptr;
-	unsigned long pos;
-	unsigned long alloc;
+	Py_ssize_t pos;
+	Py_ssize_t alloc;
 };
 
-static unsigned char *buf_init(struct Buf *buf, unsigned init_size)
+static unsigned char *buf_init(struct Buf *buf, Py_ssize_t init_size)
 {
 	if (init_size < 256)
 		init_size = 256;
@@ -37,10 +37,10 @@ static unsigned char *buf_init(struct Buf *buf, unsigned init_size)
 }
 
 /* return new pos */
-static unsigned char *buf_enlarge(struct Buf *buf, unsigned need_room)
+static unsigned char *buf_enlarge(struct Buf *buf, Py_ssize_t need_room)
 {
-	unsigned alloc = buf->alloc;
-	unsigned need_size = buf->pos + need_room;
+	Py_ssize_t alloc = buf->alloc;
+	Py_ssize_t need_size = buf->pos + need_room;
 	unsigned char *ptr;
 
 	/* no alloc needed */
@@ -68,7 +68,7 @@ static void buf_free(struct Buf *buf)
 	buf->pos = buf->alloc = 0;
 }
 
-static inline unsigned char *buf_get_target_for(struct Buf *buf, unsigned len)
+static inline unsigned char *buf_get_target_for(struct Buf *buf, Py_ssize_t len)
 {
 	if (buf->pos + len <= buf->alloc)
 		return buf->ptr + buf->pos;
@@ -96,7 +96,7 @@ static inline int buf_put(struct Buf *buf, unsigned char c)
 	return 0;
 }
 
-static PyObject *buf_pystr(struct Buf *buf, unsigned start_pos, unsigned char *newpos)
+static PyObject *buf_pystr(struct Buf *buf, Py_ssize_t start_pos, unsigned char *newpos)
 {
 	PyObject *res;
 	if (newpos)

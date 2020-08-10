@@ -14,37 +14,32 @@ static Py_ssize_t get_buffer(PyObject *obj, unsigned char **buf_p, PyObject **tm
 		return -1;
 	}
 
-	/* is string or unicode ? */
-	if (PyUnicode_Check(obj)) {
-		*buf_p = (unsigned char *)PyUnicode_AsUTF8AndSize(obj, &res);
-		return res;
-	} else if (PyBytes_Check(obj)) {
+	/* quick path for bytes */
+	if (PyBytes_Check(obj)) {
 		if (PyBytes_AsStringAndSize(obj, (char**)buf_p, &res) < 0)
 			return -1;
 		return res;
 	}
 
-	/*
-	 * Not a string-like object, run str() or it.
-	 */
-
-	/* are we in recursion? */
-	if (tmp_obj_p == NULL) {
-		PyErr_Format(PyExc_TypeError, "Cannot convert to string - get_buffer() recusively failed");
+	/* convert to bytes */
+	if (PyUnicode_Check(obj)) {
+		/* no direct string access in abi3 */
+		*tmp_obj_p = PyUnicode_AsUTF8String(obj);
+	} else if (PyMemoryView_Check(obj) || PyByteArray_Check(obj)) {
+		/* no direct buffer access in abi3 */
+		*tmp_obj_p = PyBytes_FromObject(obj);
+	} else {
+		/* Not a string-like object, run str() or it. */
+		str = PyObject_Str(obj);
+		if (str == NULL)
+			return -1;
+		*tmp_obj_p = PyUnicode_AsUTF8String(str);
+		Py_CLEAR(str);
+	}
+	if (*tmp_obj_p == NULL)
 		return -1;
-	}
-
-	/* do str() then */
-	str = PyObject_Str(obj);
-	res = -1;
-	if (str != NULL) {
-		res = get_buffer(str, buf_p, NULL);
-		if (res >= 0) {
-			*tmp_obj_p = str;
-		} else {
-			Py_CLEAR(str);
-		}
-	}
+	if (PyBytes_AsStringAndSize(*tmp_obj_p, (char**)buf_p, &res) < 0)
+		return -1;
 	return res;
 }
 

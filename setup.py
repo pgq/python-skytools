@@ -18,10 +18,11 @@ with open("README.rst") as f:
     ldesc = f.read().strip()
     sdesc = ldesc.split("\n")[0].split("-", 1)[-1].strip()
 
-c_modules = [
-    Extension("skytools._cquoting", ["modules/cquoting.c"]),
-    Extension("skytools._chashtext", ["modules/hashtext.c"]),
-]
+# use only stable abi
+abi3_options = dict(
+    define_macros=[('Py_LIMITED_API', '0x03050000')],
+    py_limited_api=True,
+)
 
 # run actual setup
 setup(
@@ -34,7 +35,10 @@ setup(
     maintainer="Marko Kreen",
     maintainer_email="markokr@gmail.com",
     packages=["skytools"],
-    ext_modules=c_modules,
+    ext_modules = [
+        Extension("skytools._cquoting", ["modules/cquoting.c"], **abi3_options),
+        Extension("skytools._chashtext", ["modules/hashtext.c"], **abi3_options),
+    ],
     zip_safe=False,
     classifiers=[
         "Development Status :: 5 - Production/Stable",

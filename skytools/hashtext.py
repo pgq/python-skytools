@@ -54,6 +54,9 @@ def mix_old(a, b, c):
 def hashtext_old_py(k):
     """Old Postgres hashtext()"""
 
+    if isinstance(k, str):
+        k = k.encode()
+
     remain = len(k)
     pos = 0
     a = b = 0x9e3779b9
@@ -126,6 +129,8 @@ def final_new(a, b, c):
 
 def hashtext_new_py(k):
     """New Postgres hashtext()"""
+    if isinstance(k, str):
+        k = k.encode()
     remain = len(k)
     pos = 0
     a = b = c = 0x9e3779b9 + len(k) + 3923095
