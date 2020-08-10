@@ -5,7 +5,22 @@ NEWS
 Skytools 3.6a1.dev1
 -------------------
 
-* in development
+Feature removal:
+
+* Remove ancient compat code from psycopgwrapper:
+  - dict* and iter* methods
+  - getattr access to fields.
+  - Keepalive tuning from connect_database().
+    That is built-in to libpq since 9.0.
+  - Require psycpopg 2.5+
+
+Cleanups:
+
+* Switch C modules to use stable ABI only (abi3).
+* Remove Debian packaging.
+* Upgrade apipkg to 1.5.
+* Remove Py2 compat.
+
 
 Skytools 3.5 (2020-07-18)
 -------------------------
