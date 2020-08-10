@@ -8,6 +8,7 @@ Skytools 3.6a1.dev1
 Feature removal:
 
 * Remove ancient compat code from psycopgwrapper:
+
   - dict* and iter* methods
   - getattr access to fields.
   - Keepalive tuning from connect_database().
