@@ -5,16 +5,14 @@ import os
 import os.path
 import re
 import socket
-
+from configparser import MAX_INTERPOLATION_DEPTH, ConfigParser
 from configparser import Error as ConfigError
 from configparser import (
     ExtendedInterpolation, Interpolation, InterpolationDepthError,
     InterpolationError, NoOptionError, NoSectionError,
-    MAX_INTERPOLATION_DEPTH, ConfigParser,
 )
 
 import skytools
-
 
 __all__ = (
     'Config', 'NoOptionError', 'ConfigError',

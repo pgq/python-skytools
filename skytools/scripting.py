@@ -477,14 +477,14 @@ class BaseScript:
         # control options
         g = p.add_argument_group('control running process')
         g.add_argument("-r", "--reload",
-                     action="store_const", const="reload", dest="cmd",
-                     help="reload config (send SIGHUP)")
+                       action="store_const", const="reload", dest="cmd",
+                       help="reload config (send SIGHUP)")
         g.add_argument("-s", "--stop",
-                     action="store_const", const="stop", dest="cmd",
-                     help="stop program safely (send SIGINT)")
+                       action="store_const", const="stop", dest="cmd",
+                       help="stop program safely (send SIGINT)")
         g.add_argument("-k", "--kill",
-                     action="store_const", const="kill", dest="cmd",
-                     help="kill program immediately (send SIGTERM)")
+                       action="store_const", const="kill", dest="cmd",
+                       help="kill program immediately (send SIGTERM)")
 
         return p
 

@@ -1,5 +1,6 @@
 
 import pytest
+
 from skytools.utf8 import safe_utf8_decode, sanitize_unicode
 
 

@@ -7,7 +7,6 @@ talking with other software that uses stricter parsers.
 import codecs
 import re
 
-
 __all__ = ('safe_utf8_decode', 'sanitize_unicode')
 
 # by default, use same symbol as 'replace'

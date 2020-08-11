@@ -4,6 +4,7 @@ import os.path
 import sys
 
 import pytest
+
 from skytools.config import (
     Config, ConfigError, ExtendedCompatConfigParser,
     InterpolationError, NoOptionError, NoSectionError,

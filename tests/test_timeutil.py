@@ -2,6 +2,7 @@
 from datetime import datetime
 
 import pytest
+
 from skytools.timeutil import UTC, datetime_to_timestamp, parse_iso_timestamp
 
 

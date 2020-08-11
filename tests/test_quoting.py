@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import psycopg2.extras
 import pytest
+
 import skytools._cquoting
 import skytools._pyquoting
 import skytools.psycopgwrapper

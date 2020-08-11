@@ -4,9 +4,7 @@ Here is pure Python that should match C code in _cquoting.
 """
 
 import re
-
 from urllib.parse import quote_plus, unquote_plus  # noqa
-
 
 __all__ = (
     "quote_literal", "quote_copy", "quote_bytea_raw",

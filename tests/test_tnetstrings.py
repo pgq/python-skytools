@@ -1,5 +1,6 @@
 
 import pytest
+
 from skytools.tnetstrings import dumps, loads
 
 

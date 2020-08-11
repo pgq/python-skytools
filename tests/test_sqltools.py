@@ -1,5 +1,6 @@
 
 import pytest
+
 from skytools.sqltools import (
     Snapshot, dbdict, fq_name, fq_name_parts, magic_insert,
     mk_delete_sql, mk_insert_sql, mk_update_sql,

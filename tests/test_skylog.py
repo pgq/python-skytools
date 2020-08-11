@@ -1,7 +1,7 @@
 
-import skytools
 import logging
 
+import skytools
 from skytools import skylog
 
 
