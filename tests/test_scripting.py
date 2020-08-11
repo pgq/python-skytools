@@ -1,8 +1,8 @@
 
 import os
+import signal
 import sys
 import time
-import signal
 
 import pytest
 
@@ -10,6 +10,7 @@ import skytools
 from skytools.scripting import run_single_process
 
 WIN32 = sys.platform == "win32"
+CONF = os.path.join(os.path.dirname(__file__), "config.ini")
 
 
 def checklog(log, word):
@@ -52,4 +53,84 @@ def test_bg_process(tmp_path):
 
     assert checklog(logfile, "STEP2")
     assert not checklog(logfile, "STEP3")
+
+
+class OptScript(skytools.BaseScript):
+    ARGPARSE = False
+    looping = 0
+
+    def send_signal(self, code):
+        print("signal: %s" % code)
+        sys.exit(0)
+
+    def work(self):
+        print("opt=%s" % self.cf.get("opt"))
+
+
+class ArgScript(OptScript):
+    ARGPARSE = True
+
+
+def test_optparse_script(capsys):
+    with pytest.raises(SystemExit):
+        OptScript("testscript", ["-h"])
+    res = capsys.readouterr()
+    assert "display" in res.out
+
+
+def test_argparse_script(capsys):
+    with pytest.raises(SystemExit):
+        ArgScript("testscript", ["-h"])
+    res = capsys.readouterr()
+    assert "display" in res.out
+
+
+@pytest.mark.skipif(WIN32, reason="use signals on win32")
+def test_optparse_signals(capsys):
+    with pytest.raises(SystemExit):
+        OptScript("testscript", ["-s", CONF])
+    res = capsys.readouterr()
+    assert "SIGINT" in res.out
+
+    with pytest.raises(SystemExit):
+        OptScript("testscript", ["-r", CONF])
+    res = capsys.readouterr()
+    assert "SIGHUP" in res.out
+
+    with pytest.raises(SystemExit):
+        OptScript("testscript", ["-k", CONF])
+    res = capsys.readouterr()
+    assert "SIGTERM" in res.out
+
+
+@pytest.mark.skipif(WIN32, reason="need to use signals")
+def test_argparse_signals(capsys):
+    with pytest.raises(SystemExit):
+        ArgScript("testscript", ["-s", CONF])
+    res = capsys.readouterr()
+    assert "SIGINT" in res.out
+
+    with pytest.raises(SystemExit):
+        ArgScript("testscript", ["-r", CONF])
+    res = capsys.readouterr()
+    assert "SIGHUP" in res.out
+
+    with pytest.raises(SystemExit):
+        ArgScript("testscript", ["-k", CONF])
+    res = capsys.readouterr()
+    assert "SIGTERM" in res.out
+
+
+def test_optparse_confopt(capsys):
+    s = ArgScript("testscript", [CONF])
+    s.start()
+    res = capsys.readouterr()
+    assert "opt=test" in res.out
+
+
+def test_argparse_confopt(capsys):
+    s = ArgScript("testscript", [CONF])
+    s.start()
+    res = capsys.readouterr()
+    assert "opt=test" in res.out
 

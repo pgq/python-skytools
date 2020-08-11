@@ -1,6 +1,7 @@
 """Useful functions and classes for database scripts.
 """
 
+import argparse
 import errno
 import logging
 import logging.config
@@ -245,6 +246,9 @@ class BaseScript:
     # start time
     started = 0
 
+    # set to True to use argparse
+    ARGPARSE = False
+
     def __init__(self, service_name, args):
         """Script setup.
 
@@ -266,8 +270,7 @@ class BaseScript:
         self.log_level = logging.INFO
 
         # parse command line
-        parser = self.init_optparse()
-        self.options, self.args = parser.parse_args(args)
+        self.options, self.args = self.parse_args(args)
 
         # check args
         if self.options.version:
@@ -306,6 +309,16 @@ class BaseScript:
             self.send_signal(signal.SIGINT)
         elif self.options.cmd == "reload":
             self.send_signal(signal.SIGHUP)
+
+    def parse_args(self, args):
+        if self.ARGPARSE:
+            parser = self.init_argparse()
+            options = parser.parse_args(args)
+            args = getattr(options, "args", [])
+        else:
+            parser = self.init_optparse()
+            options, args = parser.parse_args(args)
+        return options, args
 
     def print_version(self):
         service = self.service_name
@@ -426,6 +439,52 @@ class BaseScript:
                      action="store_const", const="kill", dest="cmd",
                      help="kill program immediately (send SIGTERM)")
         p.add_option_group(g)
+
+        return p
+
+    def init_argparse(self, parser=None):
+        """Initialize a ArgumentParser() instance that will be used to
+        parse command line arguments.
+
+        Note that it can be overridden both directions - either BaseScript
+        will initialize an instance and pass it to user code or user can
+        initialize and then pass to BaseScript.init_optparse().
+
+        @param parser: optional ArgumentParser() instance,
+               where BaseScript should attach its own arguments.
+        @return: initialized ArgumentParser() instance.
+        """
+        if parser:
+            p = parser
+        else:
+            p = argparse.ArgumentParser()
+
+        # generic options
+        p.add_argument("-q", "--quiet", action="store_true",
+                       help="log only errors and warnings")
+        p.add_argument("-v", "--verbose", action="count",
+                       help="log verbosely")
+        p.add_argument("-d", "--daemon", action="store_true",
+                       help="go background")
+        p.add_argument("-V", "--version", action="store_true",
+                       help="print version info and exit")
+        p.add_argument("--ini", action="store_true",
+                       help="display sample ini file")
+        p.add_argument("--set", action="append",
+                       help="override config setting (--set 'PARAM=VAL')")
+        p.add_argument("args", nargs="*")
+
+        # control options
+        g = p.add_argument_group('control running process')
+        g.add_argument("-r", "--reload",
+                     action="store_const", const="reload", dest="cmd",
+                     help="reload config (send SIGHUP)")
+        g.add_argument("-s", "--stop",
+                     action="store_const", const="stop", dest="cmd",
+                     help="stop program safely (send SIGINT)")
+        g.add_argument("-k", "--kill",
+                     action="store_const", const="kill", dest="cmd",
+                     help="kill program immediately (send SIGTERM)")
 
         return p
 
