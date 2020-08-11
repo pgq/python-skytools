@@ -2,8 +2,8 @@
 NEWS
 ====
 
-Skytools 3.6a1.dev1
--------------------
+Skytools 3.6 (2020-08-11)
+-------------------------
 
 Feature removal:
 
@@ -21,7 +21,6 @@ Cleanups:
 * Remove Debian packaging.
 * Upgrade apipkg to 1.5.
 * Remove Py2 compat.
-
 
 Skytools 3.5 (2020-07-18)
 -------------------------
