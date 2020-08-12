@@ -353,17 +353,19 @@ static PyMethodDef methods[] = {
 	{ NULL }
 };
 
-static struct PyModuleDef modInfo = {
+static PyModuleDef_Slot slots[] = {{0, NULL}};
+
+static struct PyModuleDef module = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "_chashtext",
 	.m_doc = "String hash functions",
 	.m_size = 0,
-	.m_methods = methods
+	.m_methods = methods,
+	.m_slots = slots
 };
 
-PyMODINIT_FUNC
-PyInit__chashtext(void)
+PyMODINIT_FUNC PyInit__chashtext(void)
 {
-	return PyModule_Create(&modInfo);
+	return PyModuleDef_Init(&module);
 }
 

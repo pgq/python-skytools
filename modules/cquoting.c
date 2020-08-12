@@ -717,8 +717,7 @@ failed:
  * Module initialization
  */
 
-static PyMethodDef
-cquoting_methods[] = {
+static PyMethodDef methods[] = {
 	{ "quote_literal", quote_literal, METH_VARARGS, doc_quote_literal },
 	{ "quote_copy", quote_copy, METH_VARARGS, doc_quote_copy },
 	{ "quote_bytea_raw", quote_bytea_raw, METH_VARARGS, doc_quote_bytea_raw },
@@ -729,17 +728,19 @@ cquoting_methods[] = {
 	{ NULL }
 };
 
-static struct PyModuleDef modInfo = {
+static PyModuleDef_Slot slots[] = {{0, NULL}};
+
+static struct PyModuleDef module = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "_cquoting",
 	.m_doc = "fast quoting for skytools",
 	.m_size = 0,
-	.m_methods = cquoting_methods
+	.m_methods = methods,
+	.m_slots = slots
 };
 
-PyMODINIT_FUNC
-PyInit__cquoting(void)
+PyMODINIT_FUNC PyInit__cquoting(void)
 {
-	return PyModule_Create(&modInfo);
+	return PyModuleDef_Init(&module);
 }
 
