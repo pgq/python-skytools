@@ -37,7 +37,7 @@ def test_hashtext_old_impl():
     assert p == c, '%s <> %s' % (p, c)
 
 
-def test_hashtext_input_types():
+def test_hashtext_new_input_types():
     data = b'HypficUjFitraxlumCitcemkiOkIkthi'
     exp = hashtext_new(data)
     assert hashtext_new(data.decode("utf8")) == exp
@@ -48,4 +48,17 @@ def test_hashtext_input_types():
     assert hashtext_new_py(data.decode("utf8")) == exp
     #assert hashtext_new_py(memoryview(data)) == exp
     #assert hashtext_new_py(bytearray(data)) == exp
+
+
+def test_hashtext_old_input_types():
+    data = b'HypficUjFitraxlumCitcemkiOkIkthi'
+    exp = hashtext_old(data)
+    assert hashtext_old(data.decode("utf8")) == exp
+    #assert hashtext_old(memoryview(data)) == exp
+    #assert hashtext_old(bytearray(data)) == exp
+
+    assert hashtext_old_py(data) == exp
+    assert hashtext_old_py(data.decode("utf8")) == exp
+    #assert hashtext_old_py(memoryview(data)) == exp
+    #assert hashtext_old_py(bytearray(data)) == exp
 
