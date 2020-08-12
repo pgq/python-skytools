@@ -355,18 +355,15 @@ static PyMethodDef methods[] = {
 
 static struct PyModuleDef modInfo = {
 	PyModuleDef_HEAD_INIT,
-	"_chashtext",
-	NULL,
-	-1,
-	methods
+	.m_name = "_chashtext",
+	.m_doc = "String hash functions",
+	.m_size = 0,
+	.m_methods = methods
 };
 
 PyMODINIT_FUNC
 PyInit__chashtext(void)
 {
-	PyObject *module;
-	module = PyModule_Create(&modInfo);
-	PyModule_AddStringConstant(module, "__doc__", "String hash functions");
-	return module;
+	return PyModule_Create(&modInfo);
 }
 

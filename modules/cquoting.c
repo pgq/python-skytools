@@ -731,22 +731,15 @@ cquoting_methods[] = {
 
 static struct PyModuleDef modInfo = {
 	PyModuleDef_HEAD_INIT,
-	"_cquoting",
-	NULL,
-	-1,
-	cquoting_methods,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	.m_name = "_cquoting",
+	.m_doc = "fast quoting for skytools",
+	.m_size = 0,
+	.m_methods = cquoting_methods
 };
 
 PyMODINIT_FUNC
 PyInit__cquoting(void)
 {
-	PyObject *module;
-	module = PyModule_Create(&modInfo);
-	PyModule_AddStringConstant(module, "__doc__", "fast quoting for skytools");
-	return module;
+	return PyModule_Create(&modInfo);
 }
 
