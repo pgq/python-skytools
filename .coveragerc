@@ -2,6 +2,7 @@
 exclude_lines =
     pragma: no cover
     if __name__
+    except ImportError:
     raise NotImplementedError
 omit =
     .tox/*
