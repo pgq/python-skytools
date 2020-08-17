@@ -59,9 +59,16 @@ __all__ = (
     'I_REPEATABLE_READ', 'I_SERIALIZABLE',
 )
 
+#: Isolation level for db.set_isolation_level()
 I_AUTOCOMMIT = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
+
+#: Isolation level for db.set_isolation_level()
 I_READ_COMMITTED = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+
+#: Isolation level for db.set_isolation_level()
 I_REPEATABLE_READ = psycopg2.extensions.ISOLATION_LEVEL_REPEATABLE_READ
+
+#: Isolation level for db.set_isolation_level()
 I_SERIALIZABLE = psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE
 
 
