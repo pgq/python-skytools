@@ -130,7 +130,7 @@ jobs:
       - name: "Test"
         env:
           TOXENV: ${{matrix.test.TOXENV}}
-          TEST_DB: dbname=testdb
+          TEST_DB: dbname=testdb host=/tmp
         run: |
           python -m tox -r -- --color=yes
 

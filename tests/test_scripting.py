@@ -142,7 +142,7 @@ class DBScript(skytools.DBScript):
     looping = 0
 
     def work(self):
-        db = self.get_database("db")
+        db = self.get_database("db", connstr=TEST_DB)
         curs = db.cursor()
         curs.execute("select 1")
         curs.fetchall()
