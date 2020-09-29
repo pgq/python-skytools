@@ -888,17 +888,15 @@ class DBScript(BaseScript):
         """Log database and query details from exception."""
         curs = getattr(d, 'cursor', None)
         conn = getattr(curs, 'connection', None)
-        cname = getattr(conn, 'my_name', None)
-        if cname:
-            # Properly named connection
-            cname = d.cursor.connection.my_name
+        if conn:
+            # db connection
             sql = getattr(curs, 'query', None) or '?'
             if isinstance(sql, bytes):
                 sql = sql.decode('utf8')
             if len(sql) > 200:  # avoid logging londiste huge batched queries
                 sql = sql[:60] + " ..."
-            lm = "Job %s got error on connection '%s': %s.   Query: %s" % (
-                self.job_name, cname, emsg, sql)
+            lm = "Job %s got error on connection: %s.   Query: %s" % (
+                self.job_name, emsg, sql)
             if self._is_quiet_exception(d):
                 self.log.warning(lm)
             else:
@@ -1124,8 +1122,6 @@ class DBCachedConn:
         if not self.conn:
             self.isolation_level = isolation_level
             self.conn = skytools.connect_database(self.loc)
-            self.conn.my_name = self.name
-
             self.conn.set_isolation_level(isolation_level)
             self.conn_time = time.time()
             if self.setup_func:
