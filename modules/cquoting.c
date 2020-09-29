@@ -12,6 +12,14 @@
 #define strcasecmp stricmp
 #endif
 
+/* inheritance check is broken in pypy3 */
+#ifdef PYPY_VERSION_NUM
+#undef PyBytes_Check
+#define PyBytes_Check PyBytes_CheckExact
+#undef PyDict_Check
+#define PyDict_Check PyDict_CheckExact
+#endif
+
 #include "get_buffer.h"
 
 /*
