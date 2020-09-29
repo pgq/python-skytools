@@ -12,6 +12,8 @@ from skytools.scripting import run_single_process
 WIN32 = sys.platform == "win32"
 CONF = os.path.join(os.path.dirname(__file__), "config.ini")
 
+TEST_DB = os.environ.get("TEST_DB")
+
 
 def checklog(log, word):
     with open(log, 'r') as f:
@@ -133,4 +135,25 @@ def test_argparse_confopt(capsys):
     s.start()
     res = capsys.readouterr()
     assert "opt=test" in res.out
+
+
+class DBScript(skytools.DBScript):
+    ARGPARSE = True
+    looping = 0
+
+    def work(self):
+        db = self.get_database("db")
+        curs = db.cursor()
+        curs.execute("select 1")
+        curs.fetchall()
+        self.close_database("db")
+        print("OK")
+
+
+@pytest.mark.skipif(not TEST_DB, reason="need database config")
+def test_get_database(capsys):
+    s = DBScript("testscript", [CONF])
+    s.start()
+    res = capsys.readouterr()
+    assert "OK" in res.out
 

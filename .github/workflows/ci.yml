@@ -75,14 +75,14 @@ jobs:
         run: python -m tox -r -- --color=yes
 
   database:
-    if: false
-    name: "database test (disabled)"
-    #name: "PostgreSQL ${{matrix.test.PG}} + Python ${{matrix.test.PY}}"
-    runs-on: ubuntu-18.04
+    #if: false
+    #name: "database test (disabled)"
+    name: "PostgreSQL ${{matrix.test.PG}} + Python ${{matrix.test.PY}}"
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         test:
-          - {PY: "3.6", PG: "12", TOXENV: "py36"}
+          - {PY: "3.8", PG: "12", TOXENV: "py38"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
@@ -124,10 +124,13 @@ jobs:
           LANG=C initdb data
           sed -ri -e "s,^[# ]*(unix_socket_directories).*,\\1='/tmp'," data/postgresql.conf
           pg_ctl -D data -l log/pg.log start || { cat log/pg.log ; exit 1; }
+          sleep 1
+          createdb testdb
 
       - name: "Test"
         env:
-           TOXENV: ${{matrix.test.TOXENV}}
+          TOXENV: ${{matrix.test.TOXENV}}
+          TEST_DB: dbname=testdb
         run: |
           python -m tox -r -- --color=yes
 
