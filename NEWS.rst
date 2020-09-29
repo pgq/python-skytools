@@ -2,6 +2,18 @@
 NEWS
 ====
 
+Skytools 3.6.1 (2020-09-29)
+---------------------------
+
+Fixes:
+
+* scripting: Do not set .my_name on connection,
+  does not work on plain Psycopg connection.
+
+* cquoting: Work around pypy3 PyBytes_Check bug.
+
+* modules: Use multiphase init.
+
 Skytools 3.6 (2020-08-11)
 -------------------------
 
