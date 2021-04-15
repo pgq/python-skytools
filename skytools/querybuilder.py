@@ -233,13 +233,13 @@ class PLPyQueryBuilder(QueryBuilderCore):
         if self._sqls is not None:
             self._sqls.append({"sql": self.get_sql(PARAM_INLINE)})
 
+        sql = self.get_sql(PARAM_PLPY)
         if self._plan_cache is not None:
-            sql = self.get_sql(PARAM_PLPY)
             plan = self._plan_cache.get_plan(sql, types)
-            res = plpy.execute(plan, args)
         else:
-            sql = self.get_sql(PARAM_INLINE)
-            res = plpy.execute(sql)
+            plan = plpy.prepare(sql, types)
+
+        res = plpy.execute(plan, args)
         if res:
             res = [skytools.dbdict(r) for r in res]
         return res

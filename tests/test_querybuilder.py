@@ -61,7 +61,8 @@ def test_plpy_exec():
     plpy.log.clear()
     plpy_exec(None, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
     assert plpy.log == [
-        """DBG: plpy.execute("select '1', '2', '1'", ())"""
+        "DBG: plpy.prepare('select $1, $2, $3', ['text', 'int4', 'text'])",
+        "DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['1', '2', '1'])",
     ]
 
     plpy.log.clear()
