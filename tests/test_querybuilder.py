@@ -66,6 +66,17 @@ def test_querybuilder_core():
     assert q.get_sql(PARAM_PLPY) == exp
 
 
+def test_querybuilder_inline():
+    from decimal import Decimal
+    args = {
+        'list': [1, 2], 'tup': ('s', 'x'), 'dict': {'a': 1}, 'none': None,
+        'bin': b'bin', 'str': 's', 'dec': Decimal('1.1'),
+    }
+    q = QueryBuilder("values ({list}, {dict}, {tup}, {none}, {str}, {bin}, {dec})", args)
+    exp = r"""values ('{1,2}', '{"a": 1}', '{s,x}', null, 's', E'\\x62696e', '1.1')"""
+    assert q.get_sql(PARAM_INLINE) == exp
+
+
 def test_plpy_exec():
     GD = {}
     plpy.log.clear()
