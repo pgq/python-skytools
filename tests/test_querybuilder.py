@@ -40,6 +40,18 @@ def test_querybuilder_core():
     assert q.get_sql(PARAM_PLPY) == exp
 
 
+def test_querybuilder_parse_errors():
+    args = {'id': 1}
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({{id)", args)
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({id)", args)
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({id::})", args)
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({id||})", args)
+
+
 def test_querybuilder_inline():
     from decimal import Decimal
     args = {

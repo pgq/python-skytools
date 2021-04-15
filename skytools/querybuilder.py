@@ -30,10 +30,10 @@ PARAM_DBAPI = 1  # %()s
 PARAM_PLPY = 2   # $n
 
 _RC_PARAM = re.compile(r"""
-    \{  ( [^|{}:]+ )
+    \{  ( [^|{}:]* )
         (?:  : ( [^|{}:]+ ) )?
         (?: \| ( [^|{}:]+ ) )?
-    \}
+    ( \} )?
 """, re.X)
 
 
@@ -151,7 +151,9 @@ class QueryBuilderCore:
             pos = m.end()
 
             # get arg name and type
-            kparam, ktype, alt_frag = m.groups()
+            kparam, ktype, alt_frag, tag = m.groups()
+            if not kparam or not tag:
+                raise ValueError("invalid tag syntax: <%s>" % m.group(0))
             if not ktype:
                 ktype = sql_type
 
