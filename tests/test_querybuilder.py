@@ -1,36 +1,8 @@
 
 from skytools.querybuilder import (
-    PARAM_DBAPI, PARAM_INLINE, PARAM_PLPY, DList,
+    PARAM_DBAPI, PARAM_INLINE, PARAM_PLPY,
     PlanCache, QueryBuilder, plpy, plpy_exec,
 )
-
-
-def test_dlist():
-    root = DList()
-    assert root.empty() == True
-
-    elem1 = DList()
-    elem2 = DList()
-    elem3 = DList()
-
-    root.append(elem1)
-    root.append(elem2)
-    root.append(elem3)
-
-    assert root.empty() == False
-    assert elem1.empty() == False
-
-    root.remove(elem2)
-    root.remove(elem3)
-    root.remove(elem1)
-
-    assert root.empty() == True
-    assert elem1.next is None
-    assert elem2.next is None
-    assert elem3.next is None
-    assert elem1.prev is None
-    assert elem2.prev is None
-    assert elem3.prev is None
 
 
 def test_cached_plan():

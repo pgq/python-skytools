@@ -11,6 +11,7 @@ See L{plpy_exec} for examples.
 
 import json
 import skytools
+from functools import lru_cache
 
 try:
     import plpy
@@ -65,81 +66,23 @@ class QArg:
             raise Exception("bad QArgConf.param_type")
 
 
-# need an structure with fast remove-from-middle
-# and append operations.
-class DList:
-    """Simple double-linked list."""
-    __slots__ = ('next', 'prev')
-    def __init__(self):
-        self.next = self
-        self.prev = self
-
-    def append(self, obj):
-        obj.next = self
-        obj.prev = self.prev
-        self.prev.next = obj
-        self.prev = obj
-
-    def remove(self, obj):
-        obj.next.prev = obj.prev
-        obj.prev.next = obj.next
-        obj.next = obj.prev = None
-
-    def empty(self):
-        return self.next is self
-
-    def pop(self):
-        """Remove and return first element."""
-        obj = None
-        if not self.empty():
-            obj = self.next
-            self.remove(obj)
-        return obj
-
-
-class CachedPlan(DList):
-    """Wrapper around prepared plan."""
-    __slots__ = ('key', 'plan')
-    def __init__(self, key, plan):
-        super().__init__()
-        self.key = key  # (sql, (types))
-        self.plan = plan
-
-
 class PlanCache:
     """Cache for limited amount of plans."""
 
     def __init__(self, maxplans=100):
         self.maxplans = maxplans
-        self.plan_map = {}
-        self.plan_list = DList()
+
+        @lru_cache(maxplans)
+        def _cached_prepare(key):
+            sql, types = key
+            return plpy.prepare(sql, types)
+
+        self._cached_prepare = _cached_prepare
 
     def get_plan(self, sql, types):
         """Prepare the plan and cache it."""
-
-        t = (sql, tuple(types))
-        if t in self.plan_map:
-            pc = self.plan_map[t]
-            # put to the end
-            self.plan_list.remove(pc)
-            self.plan_list.append(pc)
-            return pc.plan
-
-        # prepare new plan
-        plan = plpy.prepare(sql, types)
-
-        # add to cache
-        pc = CachedPlan(t, plan)
-        self.plan_list.append(pc)
-        self.plan_map[t] = pc
-
-        # remove plans if too much
-        while len(self.plan_map) > self.maxplans:
-            # this is ugly workaround for pylint
-            drop = self.plan_list.pop()
-            del self.plan_map[getattr(drop, 'key')]
-
-        return plan
+        key = (sql, tuple(types))
+        return self._cached_prepare(key)
 
 
 class QueryBuilderCore:
