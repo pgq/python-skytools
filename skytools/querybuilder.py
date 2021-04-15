@@ -10,8 +10,10 @@ See L{plpy_exec} for examples.
 """
 
 import json
-import skytools
+import re
 from functools import lru_cache
+
+import skytools
 
 try:
     import plpy
@@ -26,6 +28,12 @@ __all__ = (
 PARAM_INLINE = 0  # quote_literal()
 PARAM_DBAPI = 1  # %()s
 PARAM_PLPY = 2   # $n
+
+_RC_PARAM = re.compile(r"""
+    \{  ( [^|{}:]+ )
+        (?:  : ( [^|{}:]+ ) )?
+    \}
+""", re.X)
 
 
 def _inline_to_text(val):
@@ -131,31 +139,19 @@ class QueryBuilderCore:
             parts.append(pfx)
         pos = 0
         while True:
-            # find start of next argument
-            a1 = expr.find('{', pos)
-            if a1 < 0:
+            # find next argument
+            m = _RC_PARAM.search(expr, pos)
+            if not m:
                 parts.append(expr[pos:])
                 break
 
-            # find end end of argument name
-            a2 = expr.find('}', a1)
-            if a2 < 0:
-                raise Exception("missing argument terminator: " + expr)
-
             # add plain sql
-            if a1 > pos:
-                parts.append(expr[pos:a1])
-            pos = a2 + 1
+            parts.append(expr[pos:m.start()])
+            pos = m.end()
 
-            # get arg name, check if exists
-            k = expr[a1 + 1: a2]
-            # split name from type
-            tpos = k.rfind(':')
-            if tpos > 0:
-                kparam = k[:tpos]
-                ktype = k[tpos + 1:]
-            else:
-                kparam = k
+            # get arg name and type
+            kparam, ktype = m.groups()
+            if not ktype:
                 ktype = sql_type
 
             # params==None means params are checked later
