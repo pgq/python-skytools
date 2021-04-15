@@ -22,16 +22,16 @@ jobs:
         with: {name: "dist", path: "dist"}
 
   linux_wheels:
-    name: "Wheel: manylinux1"
+    name: "Wheel: manylinux2014"
     needs: [sdist]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with: {name: "dist", path: "sdist"}
-      - uses: "docker://quay.io/pypa/manylinux1_x86_64:latest"
+      - uses: "docker://quay.io/pypa/manylinux2014_x86_64:latest"
         with: {entrypoint: "./.github/workflows/manylinux.sh"}
-      - uses: "docker://quay.io/pypa/manylinux1_i686:latest"
+      - uses: "docker://quay.io/pypa/manylinux2014_i686:latest"
         with: {entrypoint: "./.github/workflows/manylinux.sh"}
       - uses: actions/upload-artifact@v2
         with: {name: "dist", path: "dist"}
