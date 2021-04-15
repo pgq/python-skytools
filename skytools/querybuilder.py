@@ -9,6 +9,7 @@ If C{type} is missing, C{text} is assumed.
 See L{plpy_exec} for examples.
 """
 
+import json
 import skytools
 
 try:
@@ -26,6 +27,21 @@ PARAM_DBAPI = 1  # %()s
 PARAM_PLPY = 2   # $n
 
 
+def _inline_to_text(val):
+    """Approx emulate PL/Python and Psycopg2 internal conversions
+    for common types.
+    """
+    if val is None or isinstance(val, str):
+        return val
+    if isinstance(val, dict):
+        return json.dumps(val)
+    if isinstance(val, (tuple,list)):
+        return skytools.make_pgarray(val)
+    if isinstance(val, bytes):
+        return "\\x" + val.hex()
+    return str(val)
+
+
 class QArgConf:
     """Per-query arg-type config object."""
     param_type = None
@@ -40,7 +56,7 @@ class QArg:
         self.conf = conf
     def __str__(self):
         if self.conf.param_type == PARAM_INLINE:
-            return skytools.quote_literal(self.value)
+            return skytools.quote_literal(_inline_to_text(self.value))
         elif self.conf.param_type == PARAM_DBAPI:
             return "%s"
         elif self.conf.param_type == PARAM_PLPY:
