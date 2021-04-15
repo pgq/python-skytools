@@ -58,7 +58,7 @@ def render_table(rows, fields):
     lines.append(fmt % tuple(fields))
     lines.append(fmt % tuple(['-' * 15] * len(fields)))
     for row in rows:
-        lines.append(fmt % tuple([str(row.get(k)) for k in fields]))
+        lines.append(fmt % tuple(str(row.get(k)) for k in fields))
     return lines
 
 

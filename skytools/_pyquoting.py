@@ -65,7 +65,7 @@ def quote_bytea_raw(s):
         return None
     if not isinstance(s, bytes):
         raise TypeError("Expect bytes")
-    if 1 and _bytea_map is None:
+    if _bytea_map is None:
         _bytea_map = {}
         for i in range(256):
             c = i

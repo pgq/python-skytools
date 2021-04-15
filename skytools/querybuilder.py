@@ -316,6 +316,7 @@ class PLPyQuery:
             missing = list(need.difference(got))
             plpy.error("Missing arguments: [%s]  QUERY: %s" % (
                 ','.join(missing), repr(self.sql)))
+            return None  # unreachable
 
     def __repr__(self):
         return 'PLPyQuery<%s>' % self.sql

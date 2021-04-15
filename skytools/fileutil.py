@@ -75,7 +75,7 @@ def signal_pidfile(pidfile, sig):
         # but more common case is old empty file.
         if not ln:
             return False
-        raise ValueError('Corrupt pidfile: %s' % pidfile)
+        raise ValueError('Corrupt pidfile: %s' % pidfile) from None
     return False
 
 

@@ -26,7 +26,7 @@ class dbdict(dict):
         try:
             return self[k]
         except KeyError:
-            raise AttributeError(k)
+            raise AttributeError(k) from None
     def __setattr__(self, k, v):
         "Set attribute."
         self[k] = v

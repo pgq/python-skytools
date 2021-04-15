@@ -105,7 +105,7 @@ class AdminScript(skytools.DBScript):
         if desc:
             print(desc)
         print(fmt % tuple(fields))
-        print(fmt % tuple(['-' * (w - 2) for w in widths]))
+        print(fmt % tuple('-' * (w - 2) for w in widths))
         #print(fmt % tuple(['-'*15] * len(fields)))
         for row in rows:
             vals = []
