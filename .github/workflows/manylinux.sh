@@ -3,10 +3,11 @@
 # will be run inside manylinux docker
 
 #
-# https://github.com/pypa/manylinux
+# https://github.com/pypa/manylinux         - prebuilt images
 # https://www.python.org/dev/peps/pep-0513/ - manylinux1
 # https://www.python.org/dev/peps/pep-0571/ - manylinux2010
 # https://www.python.org/dev/peps/pep-0599/ - manylinux2014
+# https://www.python.org/dev/peps/pep-0600/ - manylinux_x_y
 #
 
 set -e
