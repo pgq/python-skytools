@@ -32,6 +32,7 @@ PARAM_PLPY = 2   # $n
 _RC_PARAM = re.compile(r"""
     \{  ( [^|{}:]+ )
         (?:  : ( [^|{}:]+ ) )?
+        (?: \| ( [^|{}:]+ ) )?
     \}
 """, re.X)
 
@@ -150,13 +151,19 @@ class QueryBuilderCore:
             pos = m.end()
 
             # get arg name and type
-            kparam, ktype = m.groups()
+            kparam, ktype, alt_frag = m.groups()
             if not ktype:
                 ktype = sql_type
 
             # params==None means params are checked later
-            if params is not None and kparam not in params:
-                if required:
+            if params is None:
+                if alt_frag is not None:
+                    raise ValueError("alt_frag not supported with params=None")
+            elif kparam not in params:
+                if alt_frag is not None:
+                    parts.append(alt_frag)
+                    continue
+                elif required:
                     raise Exception("required parameter missing: " + kparam)
                 # optional fragment, param missing, skip it
                 return

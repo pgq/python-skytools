@@ -1,4 +1,6 @@
 
+import pytest
+
 from skytools.querybuilder import (
     PARAM_DBAPI, PARAM_INLINE, PARAM_PLPY,
     PlanCache, QueryBuilder, plpy, plpy_exec,
@@ -47,6 +49,16 @@ def test_querybuilder_inline():
     q = QueryBuilder("values ({list}, {dict}, {tup}, {none}, {str}, {bin}, {dec})", args)
     exp = r"""values ('{1,2}', '{"a": 1}', '{s,x}', null, 's', E'\\x62696e', '1.1')"""
     assert q.get_sql(PARAM_INLINE) == exp
+
+
+def test_querybuilder_altsql():
+    args = {'id': 1}
+    q = QueryBuilder("values ({id|XX}, {missing|DEFAULT})", args)
+    exp = "values ('1', DEFAULT)"
+    assert q.get_sql(PARAM_INLINE) == exp
+
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({missing|DEFAULT})", None)
 
 
 def test_plpy_exec():
