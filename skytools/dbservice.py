@@ -475,7 +475,7 @@ class ServiceContext(DBService):
     def __init__(self, context, global_dict=None):
         """ This object must be initiated in the beginning of each db service
         """
-        super(ServiceContext, self).__init__(context, global_dict)
+        super().__init__(context, global_dict)
 
         rec = skytools.db_urldecode(context)
         if "username" not in rec:

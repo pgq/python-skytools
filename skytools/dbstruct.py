@@ -645,7 +645,7 @@ class TableStruct(BaseStruct):
     def __init__(self, curs, table_name):
         """Initializes class by loading info about table_name from database."""
 
-        super(TableStruct, self).__init__(curs, table_name)
+        super().__init__(curs, table_name)
 
         self.table_name = table_name
 
@@ -707,7 +707,7 @@ class SeqStruct(BaseStruct):
     def __init__(self, curs, seq_name):
         """Initializes class by loading info about table_name from database."""
 
-        super(SeqStruct, self).__init__(curs, seq_name)
+        super().__init__(curs, seq_name)
 
         # fill args
         args = {

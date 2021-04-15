@@ -85,7 +85,7 @@ class CachedPlan(DList):
     """Wrapper around prepared plan."""
     __slots__ = ('key', 'plan')
     def __init__(self, key, plan):
-        super(CachedPlan, self).__init__()
+        super().__init__()
         self.key = key  # (sql, (types))
         self.plan = plan
 
@@ -253,7 +253,7 @@ class PLPyQueryBuilder(QueryBuilderCore):
                             to query.  Usually either C{GD} or C{SD} should be given here.
         @param sqls:        list object where to append executed sqls (used for debugging)
         """
-        super(PLPyQueryBuilder, self).__init__(sqlexpr, params)
+        super().__init__(sqlexpr, params)
         self._sqls = sqls
 
         if plan_cache is not None:

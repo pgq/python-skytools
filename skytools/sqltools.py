@@ -341,7 +341,7 @@ class CopyPipe(io.TextIOBase):
     """
 
     def __init__(self, dstcurs, tablename=None, limit=512 * 1024, sql_from=None):
-        super(CopyPipe, self).__init__()
+        super().__init__()
         self.tablename = tablename
         self.sql_from = sql_from
         self.dstcurs = dstcurs
@@ -490,7 +490,7 @@ class DBFunction(DBObject):
     """Handles db function."""
     def __init__(self, name, nargs, sql=None, sql_file=None):
         """Function object - number of args is significant."""
-        super(DBFunction, self).__init__(name, sql, sql_file)
+        super().__init__(name, sql, sql_file)
         self.nargs = nargs
     def exists(self, curs):
         """Does function exists."""
@@ -501,7 +501,7 @@ class DBLanguage(DBObject):
     """Handles db language."""
     def __init__(self, name):
         """PL object - creation happens with CREATE LANGUAGE."""
-        super(DBLanguage, self).__init__(name, sql="create language %s" % name)
+        super().__init__(name, sql="create language %s" % name)
     def exists(self, curs):
         """Does PL exists."""
         return exists_language(curs, self.name)

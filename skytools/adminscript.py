@@ -23,7 +23,7 @@ class AdminScript(skytools.DBScript):
     commands_without_pidfile = {}
     def __init__(self, service_name, args):
         """AdminScript init."""
-        super(AdminScript, self).__init__(service_name, args)
+        super().__init__(service_name, args)
 
         if len(self.args) < 2:
             self.log.error("need command")

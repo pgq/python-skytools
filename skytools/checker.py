@@ -509,7 +509,7 @@ class Checker(Syncer):
 
     def __init__(self, args):
         """Checker init."""
-        super(Checker, self).__init__('data_checker', args)
+        super().__init__('data_checker', args)
         self.set_single_loop(1)
         self.log.info('Checker starting %s', str(args))
 
