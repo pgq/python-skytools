@@ -44,13 +44,12 @@ jobs:
           - {os: "ubuntu-16.04", osname: "Ubuntu 16.04", PY: "3.6", TOXENV: "py36", arch: "x64"}
           - {os: "ubuntu-18.04", osname: "Ubuntu 18.04", PY: "3.7", TOXENV: "py37", arch: "x64"}
           - {os: "ubuntu-20.04", osname: "Ubuntu 20.04", PY: "3.8", TOXENV: "py38", arch: "x64"}
-          - {os: "ubuntu-20.04", osname: "Ubuntu 20.04", PY: "3.9.0-rc.2", TOXENV: "py39", arch: "x64"}
-          - {os: "macos-10.15", osname: "MacOS 10.15", PY: "3.6", TOXENV: "py36", arch: "x64"}
+          - {os: "ubuntu-20.04", osname: "Ubuntu 20.04", PY: "3.9", TOXENV: "py39", arch: "x64"}
           - {os: "macos-10.15", osname: "MacOS 10.15", PY: "3.8", TOXENV: "py38", arch: "x64"}
           - {os: "windows-2016", osname: "Windows 2016", PY: "3.6", TOXENV: "py36", arch: "x86"}
           - {os: "windows-2016", osname: "Windows 2016", PY: "3.7", TOXENV: "py37", arch: "x64"}
           - {os: "windows-2019", osname: "Windows 2019", PY: "3.8", TOXENV: "py38", arch: "x86"}
-          - {os: "windows-2019", osname: "Windows 2019", PY: "3.8", TOXENV: "py38", arch: "x64"}
+          - {os: "windows-2019", osname: "Windows 2019", PY: "3.9", TOXENV: "py39", arch: "x64"}
           - {os: "ubuntu-20.04", osname: "Ubuntu 20.04", PY: "pypy3", TOXENV: "pypy3", arch: "x64"}
     steps:
       - name: "Checkout"
