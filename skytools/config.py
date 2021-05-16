@@ -311,7 +311,7 @@ class ExtendedConfigParser(ConfigParser):
 
     Syntax: ${var} and ${section:var}
     """
-    _DEFAULT_INTERPOLATION = ExtendedInterpolation()
+    _DEFAULT_INTERPOLATION: Interpolation = ExtendedInterpolation()
 
 
 class ExtendedCompatConfigParser(ExtendedConfigParser):
@@ -320,5 +320,5 @@ class ExtendedCompatConfigParser(ExtendedConfigParser):
     New ${} syntax allows ${key} to refer key in same section,
     and ${sect:key} to refer key in other sections.
     """
-    _DEFAULT_INTERPOLATION = ExtendedInterpolationCompat()
+    _DEFAULT_INTERPOLATION: Interpolation = ExtendedInterpolationCompat()
 

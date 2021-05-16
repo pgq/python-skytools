@@ -15,7 +15,7 @@ __all__ = ['getLogger']
 
 # add TRACE level
 TRACE = 5
-logging.TRACE = TRACE
+logging.TRACE = TRACE   # type: ignore
 logging.addLevelName(TRACE, 'TRACE')
 
 # extra info to be added to each log record
@@ -341,7 +341,7 @@ class SysLogHostnameHandler(SysLogHandler):
 
 # add missing aliases (that are in Logger class)
 if not hasattr(LoggerAdapter, 'fatal'):
-    LoggerAdapter.fatal = LoggerAdapter.critical
+    LoggerAdapter.fatal = LoggerAdapter.critical    # type: ignore
 
 
 class SkyLogger(LoggerAdapter):

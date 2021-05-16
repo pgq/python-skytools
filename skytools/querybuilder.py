@@ -10,6 +10,8 @@ See L{plpy_exec} for examples.
 """
 
 import json
+from typing import List, Any, Dict
+
 import skytools
 
 try:
@@ -412,7 +414,7 @@ def run_exists(cur, sql, params=None, **kwargs):
 
 # fake plpy for testing
 class fake_plpy:
-    log = []
+    log: List[str] = []
     def prepare(self, sql, types):
         self.log.append("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
         return ('PLAN', sql, types)
@@ -427,5 +429,5 @@ class fake_plpy:
 # make plpy available
 if not plpy:
     plpy = fake_plpy()
-    GD = {}
+    GD: Dict[str, Any] = {}
 

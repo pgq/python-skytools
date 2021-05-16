@@ -8,6 +8,8 @@
 import inspect
 import sys
 
+from typing import Sequence
+
 import skytools
 
 __all__ = ['AdminScript']
@@ -20,7 +22,7 @@ class AdminScript(skytools.DBScript):
     name.  If class method 'cmd_' + arg exists, it is called,
     otherwise error is given.
     """
-    commands_without_pidfile = {}
+    commands_without_pidfile: Sequence[str] = ()
     def __init__(self, service_name, args):
         """AdminScript init."""
         super().__init__(service_name, args)

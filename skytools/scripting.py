@@ -13,6 +13,8 @@ import signal
 import sys
 import time
 
+from typing import Dict
+
 import skytools
 import skytools.skylog
 
@@ -222,7 +224,7 @@ class BaseScript:
     service_name = None
     job_name = None
     cf = None
-    cf_defaults = {}
+    cf_defaults: Dict[str,str] = {}
     pidfile = None
 
     # >0 - sleep time if work() requests sleep

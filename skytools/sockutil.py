@@ -8,7 +8,7 @@ import sys
 try:
     import fcntl
 except ImportError:
-    fcntl = None
+    fcntl = None    # type: ignore
 
 __all__ = (
     'set_tcp_keepalive', 'set_nonblocking', 'set_cloexec',

@@ -94,7 +94,7 @@ class ApiModule(ModuleType):
 
     def __docset(self, value):
         self.__doc = value
-    __doc__ = property(__docget, __docset)
+    __doc__ = property(__docget, __docset)  # type: ignore
 
     def __init__(self, name, importspec, implprefix=None, attr=None):
         super().__init__(name)

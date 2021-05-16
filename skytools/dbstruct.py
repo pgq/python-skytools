@@ -3,6 +3,8 @@
 
 import re
 
+from typing import List
+
 import skytools
 from skytools import quote_fqident, quote_ident
 
@@ -576,7 +578,7 @@ class BaseStruct:
     Allow to issue CREATE/DROP statements about any
     group of elements.
     """
-    object_list = []
+    object_list: List[TElem] = []
     def __init__(self, curs, name):
         """Initializes class by loading info about table_name from database."""
 
