@@ -6,9 +6,7 @@ talking with other software that uses stricter parsers.
 
 import codecs
 import re
-
-from typing import Optional, Tuple, Pattern, Match
-
+from typing import Match, Optional, Pattern, Tuple
 
 __all__ = ('safe_utf8_decode', 'sanitize_unicode')
 

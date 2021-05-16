@@ -7,7 +7,6 @@ hashtext_new() - used since PostgreSQL 8.4
 
 import struct
 import sys
-
 from typing import Tuple, Union
 
 try:

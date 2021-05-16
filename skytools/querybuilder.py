@@ -325,9 +325,9 @@ def plpy_exec(gd: Optional[Dict[str, Any]],
 # some helper functions for convenient sql execution
 
 def run_query(cur: Cursor, sql: str,
-        params: Optional[Mapping[str, Any]] = None,
-        **kwargs: Any
-        ) -> List[skytools.dbdict]:
+              params: Optional[Mapping[str, Any]] = None,
+              **kwargs: Any
+              ) -> List[skytools.dbdict]:
     """ Helper function if everything you need is just paramertisized execute
         Sets rows_found that is coneninet to use when you don't need result just
         want to know how many rows were affected
@@ -343,7 +343,7 @@ def run_query(cur: Cursor, sql: str,
 
 
 def run_query_row(cur: Cursor, sql: str, params: Optional[Mapping[str, Any]] = None, **kwargs: Any
-        ) -> Optional[skytools.dbdict]:
+                  ) -> Optional[skytools.dbdict]:
     """ Helper function if everything you need is just paramertisized execute to
         fetch one row only. If not found none is returned
     """

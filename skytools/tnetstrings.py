@@ -2,7 +2,6 @@
 """
 
 import codecs
-
 from typing import Any, List
 
 __all__ = ['loads', 'dumps']

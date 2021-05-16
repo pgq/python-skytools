@@ -3,8 +3,7 @@
 
 import json
 import re
-
-from typing import Sequence, Mapping, Any, Union, Optional, Dict, Match
+from typing import Any, Dict, Mapping, Match, Optional, Sequence, Union
 
 try:
     from skytools._cquoting import (
@@ -46,7 +45,7 @@ def quote_bytea_copy(s: bytes) -> str:
     return quote_copy(quote_bytea_raw(s))
 
 
-def quote_statement(sql: str, dict_or_list: Union[Mapping[str,Any], Sequence[Any]]) -> str:
+def quote_statement(sql: str, dict_or_list: Union[Mapping[str, Any], Sequence[Any]]) -> str:
     """Quote whole statement.
 
     Data values are taken from dict or list or tuple.
@@ -163,7 +162,7 @@ def unquote_fqident(val: str) -> str:
     return '.'.join([unquote_ident(i) for i in tmp])
 
 
-def json_encode(val:Any=None, **kwargs: Any) -> str:
+def json_encode(val: Any = None, **kwargs: Any) -> str:
     """Creates JSON string from Python object.
     """
     return json.dumps(val or kwargs)
