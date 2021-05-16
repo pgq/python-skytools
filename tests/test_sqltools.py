@@ -25,9 +25,9 @@ def test_dbdict():
 
 
 def test_fq_name_parts():
-    assert fq_name_parts('tbl') == ['public', 'tbl']
-    assert fq_name_parts('foo.tbl') == ['foo', 'tbl']
-    assert fq_name_parts('foo.tbl.baz') == ['foo', 'tbl.baz']
+    assert fq_name_parts('tbl') == ('public', 'tbl')
+    assert fq_name_parts('foo.tbl') == ('foo', 'tbl')
+    assert fq_name_parts('foo.tbl.baz') == ('foo', 'tbl.baz')
 
 
 def test_fq_name():
