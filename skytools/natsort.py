@@ -17,17 +17,18 @@ Extra rules for version numbers:
 
 """
 
-import re as _re
-
-_rc = _re.compile(r'\d+|\D+', _re.A)
+import re
+from typing import List, Sequence
 
 __all__ = (
     'natsort_key', 'natsort', 'natsorted',
     'natsort_key_icase', 'natsort_icase', 'natsorted_icase'
 )
 
+_rc = re.compile(r'\d+|\D+', re.A)
 
-def natsort_key(s):
+
+def natsort_key(s: str) -> str:
     """Returns string that sorts according to natsort rules.
     """
     # generates four types of fragments:
@@ -37,7 +38,7 @@ def natsort_key(s):
     # 4) strings > "9", fragment starts with "|"
     if "~" in s:
         s = s.replace("~", "\0")
-    key = []
+    key: List[str] = []
     key_append = key.append
     for frag in _rc.findall(s):
         if frag < "0":
@@ -64,12 +65,12 @@ def natsort_key(s):
     return "".join(key)
 
 
-def natsort(lst):
+def natsort(lst: List[str]) -> None:
     """Natural in-place sort, case-sensitive."""
     lst.sort(key=natsort_key)
 
 
-def natsorted(lst):
+def natsorted(lst: Sequence[str]) -> List[str]:
     """Return copy of list, sorted in natural order, case-sensitive.
     """
     return sorted(lst, key=natsort_key)
@@ -77,17 +78,17 @@ def natsorted(lst):
 
 # case-insensitive api
 
-def natsort_key_icase(s):
+def natsort_key_icase(s: str) -> str:
     """Split string to numeric and non-numeric fragments."""
     return natsort_key(s.lower())
 
 
-def natsort_icase(lst):
+def natsort_icase(lst: List[str]) -> None:
     """Natural in-place sort, case-sensitive."""
     lst.sort(key=natsort_key_icase)
 
 
-def natsorted_icase(lst):
+def natsorted_icase(lst: Sequence[str]) -> List[str]:
     """Return copy of list, sorted in natural order, case-sensitive.
     """
     return sorted(lst, key=natsort_key_icase)
