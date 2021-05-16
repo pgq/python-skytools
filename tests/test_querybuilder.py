@@ -1,36 +1,10 @@
 
+import pytest
+
 from skytools.querybuilder import (
-    PARAM_DBAPI, PARAM_INLINE, PARAM_PLPY, DList,
+    PARAM_DBAPI, PARAM_INLINE, PARAM_PLPY,
     PlanCache, QueryBuilder, plpy, plpy_exec,
 )
-
-
-def test_dlist():
-    root = DList()
-    assert root.empty() == True
-
-    elem1 = DList()
-    elem2 = DList()
-    elem3 = DList()
-
-    root.append(elem1)
-    root.append(elem2)
-    root.append(elem3)
-
-    assert root.empty() == False
-    assert elem1.empty() == False
-
-    root.remove(elem2)
-    root.remove(elem3)
-    root.remove(elem1)
-
-    assert root.empty() == True
-    assert elem1.next is None
-    assert elem2.next is None
-    assert elem3.next is None
-    assert elem1.prev is None
-    assert elem2.prev is None
-    assert elem3.prev is None
 
 
 def test_cached_plan():
@@ -66,6 +40,18 @@ def test_querybuilder_core():
     assert q.get_sql(PARAM_PLPY) == exp
 
 
+def test_querybuilder_parse_errors():
+    args = {'id': 1}
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({{id)", args)
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({id)", args)
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({id::})", args)
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({id||})", args)
+
+
 def test_querybuilder_inline():
     from decimal import Decimal
     args = {
@@ -75,6 +61,16 @@ def test_querybuilder_inline():
     q = QueryBuilder("values ({list}, {dict}, {tup}, {none}, {str}, {bin}, {dec})", args)
     exp = r"""values ('{1,2}', '{"a": 1}', '{s,x}', null, 's', E'\\x62696e', '1.1')"""
     assert q.get_sql(PARAM_INLINE) == exp
+
+
+def test_querybuilder_altsql():
+    args = {'id': 1}
+    q = QueryBuilder("values ({id|XX}, {missing|DEFAULT})", args)
+    exp = "values ('1', DEFAULT)"
+    assert q.get_sql(PARAM_INLINE) == exp
+
+    with pytest.raises(ValueError):
+        QueryBuilder("values ({missing|DEFAULT})", None)
 
 
 def test_plpy_exec():
@@ -89,7 +85,8 @@ def test_plpy_exec():
     plpy.log.clear()
     plpy_exec(None, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
     assert plpy.log == [
-        """DBG: plpy.execute("select '1', '2', '1'", ())"""
+        "DBG: plpy.prepare('select $1, $2, $3', ['text', 'int4', 'text'])",
+        "DBG: plpy.execute(('PLAN', 'select $1, $2, $3', ['text', 'int4', 'text']), ['1', '2', '1'])",
     ]
 
     plpy.log.clear()

@@ -10,7 +10,9 @@ See L{plpy_exec} for examples.
 """
 
 import json
+import re
 from typing import List, Any, Dict
+from functools import lru_cache
 
 import skytools
 
@@ -27,6 +29,13 @@ __all__ = (
 PARAM_INLINE = 0  # quote_literal()
 PARAM_DBAPI = 1  # %()s
 PARAM_PLPY = 2   # $n
+
+_RC_PARAM = re.compile(r"""
+    \{  ( [^|{}:]* )
+        (?:  : ( [^|{}:]+ ) )?
+        (?: \| ( [^|{}:]+ ) )?
+    ( \} )?
+""", re.X)
 
 
 def _inline_to_text(val):
@@ -67,81 +76,23 @@ class QArg:
             raise Exception("bad QArgConf.param_type")
 
 
-# need an structure with fast remove-from-middle
-# and append operations.
-class DList:
-    """Simple double-linked list."""
-    __slots__ = ('next', 'prev')
-    def __init__(self):
-        self.next = self
-        self.prev = self
-
-    def append(self, obj):
-        obj.next = self
-        obj.prev = self.prev
-        self.prev.next = obj
-        self.prev = obj
-
-    def remove(self, obj):
-        obj.next.prev = obj.prev
-        obj.prev.next = obj.next
-        obj.next = obj.prev = None
-
-    def empty(self):
-        return self.next is self
-
-    def pop(self):
-        """Remove and return first element."""
-        obj = None
-        if not self.empty():
-            obj = self.next
-            self.remove(obj)
-        return obj
-
-
-class CachedPlan(DList):
-    """Wrapper around prepared plan."""
-    __slots__ = ('key', 'plan')
-    def __init__(self, key, plan):
-        super().__init__()
-        self.key = key  # (sql, (types))
-        self.plan = plan
-
-
 class PlanCache:
     """Cache for limited amount of plans."""
 
     def __init__(self, maxplans=100):
         self.maxplans = maxplans
-        self.plan_map = {}
-        self.plan_list = DList()
+
+        @lru_cache(maxplans)
+        def _cached_prepare(key):
+            sql, types = key
+            return plpy.prepare(sql, types)
+
+        self._cached_prepare = _cached_prepare
 
     def get_plan(self, sql, types):
         """Prepare the plan and cache it."""
-
-        t = (sql, tuple(types))
-        if t in self.plan_map:
-            pc = self.plan_map[t]
-            # put to the end
-            self.plan_list.remove(pc)
-            self.plan_list.append(pc)
-            return pc.plan
-
-        # prepare new plan
-        plan = plpy.prepare(sql, types)
-
-        # add to cache
-        pc = CachedPlan(t, plan)
-        self.plan_list.append(pc)
-        self.plan_map[t] = pc
-
-        # remove plans if too much
-        while len(self.plan_map) > self.maxplans:
-            # this is ugly workaround for pylint
-            drop = self.plan_list.pop()
-            del self.plan_map[getattr(drop, 'key')]
-
-        return plan
+        key = (sql, tuple(types))
+        return self._cached_prepare(key)
 
 
 class QueryBuilderCore:
@@ -190,36 +141,32 @@ class QueryBuilderCore:
             parts.append(pfx)
         pos = 0
         while True:
-            # find start of next argument
-            a1 = expr.find('{', pos)
-            if a1 < 0:
+            # find next argument
+            m = _RC_PARAM.search(expr, pos)
+            if not m:
                 parts.append(expr[pos:])
                 break
 
-            # find end end of argument name
-            a2 = expr.find('}', a1)
-            if a2 < 0:
-                raise Exception("missing argument terminator: " + expr)
-
             # add plain sql
-            if a1 > pos:
-                parts.append(expr[pos:a1])
-            pos = a2 + 1
+            parts.append(expr[pos:m.start()])
+            pos = m.end()
 
-            # get arg name, check if exists
-            k = expr[a1 + 1: a2]
-            # split name from type
-            tpos = k.rfind(':')
-            if tpos > 0:
-                kparam = k[:tpos]
-                ktype = k[tpos + 1:]
-            else:
-                kparam = k
+            # get arg name and type
+            kparam, ktype, alt_frag, tag = m.groups()
+            if not kparam or not tag:
+                raise ValueError("invalid tag syntax: <%s>" % m.group(0))
+            if not ktype:
                 ktype = sql_type
 
             # params==None means params are checked later
-            if params is not None and kparam not in params:
-                if required:
+            if params is None:
+                if alt_frag is not None:
+                    raise ValueError("alt_frag not supported with params=None")
+            elif kparam not in params:
+                if alt_frag is not None:
+                    parts.append(alt_frag)
+                    continue
+                elif required:
                     raise Exception("required parameter missing: " + kparam)
                 # optional fragment, param missing, skip it
                 return
@@ -296,13 +243,13 @@ class PLPyQueryBuilder(QueryBuilderCore):
         if self._sqls is not None:
             self._sqls.append({"sql": self.get_sql(PARAM_INLINE)})
 
+        sql = self.get_sql(PARAM_PLPY)
         if self._plan_cache is not None:
-            sql = self.get_sql(PARAM_PLPY)
             plan = self._plan_cache.get_plan(sql, types)
-            res = plpy.execute(plan, args)
         else:
-            sql = self.get_sql(PARAM_INLINE)
-            res = plpy.execute(sql)
+            plan = plpy.prepare(sql, types)
+
+        res = plpy.execute(plan, args)
         if res:
             res = [skytools.dbdict(r) for r in res]
         return res
