@@ -12,9 +12,11 @@ See L{plpy_exec} for examples.
 import json
 import re
 from functools import lru_cache
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 import skytools
+
+from .sqltools import Cursor
 
 try:
     import plpy
@@ -38,7 +40,7 @@ _RC_PARAM = re.compile(r"""
 """, re.X)
 
 
-def _inline_to_text(val):
+def _inline_to_text(val: Any) -> Optional[str]:
     """Approx emulate PL/Python and Psycopg2 internal conversions
     for common types.
     """
@@ -55,17 +57,17 @@ def _inline_to_text(val):
 
 class QArgConf:
     """Per-query arg-type config object."""
-    param_type = None
+    param_type = PARAM_INLINE
 
 
 class QArg:
     """Place-holder for a query parameter."""
-    def __init__(self, name, value, pos, conf):
+    def __init__(self, name: str, value: Any, pos: int, conf: QArgConf):
         self.name = name
         self.value = value
         self.pos = pos
         self.conf = conf
-    def __str__(self):
+    def __str__(self) -> str:
         if self.conf.param_type == PARAM_INLINE:
             return skytools.quote_literal(_inline_to_text(self.value))
         elif self.conf.param_type == PARAM_DBAPI:
@@ -79,7 +81,7 @@ class QArg:
 class PlanCache:
     """Cache for limited amount of plans."""
 
-    def __init__(self, maxplans=100):
+    def __init__(self, maxplans: int = 100):
         self.maxplans = maxplans
 
         @lru_cache(maxplans)
@@ -89,7 +91,7 @@ class PlanCache:
 
         self._cached_prepare = _cached_prepare
 
-    def get_plan(self, sql, types):
+    def get_plan(self, sql: str, types: Sequence[str]):
         """Prepare the plan and cache it."""
         key = (sql, tuple(types))
         return self._cached_prepare(key)
@@ -99,7 +101,14 @@ class QueryBuilderCore:
     """Helper for query building.
     """
 
-    def __init__(self, sqlexpr, params):
+    _params: Optional[Mapping[str, Any]]
+    _arg_type_list: List[str]
+    _arg_value_list: List[Any]
+    _sql_parts: List[Union[str, QArg]]
+    _arg_conf: QArgConf
+    _nargs: int
+
+    def __init__(self, sqlexpr: str, params: Optional[Mapping[str, Any]]):
         """Init the object.
 
         @param sqlexpr:     Partial sql fragment.
@@ -115,12 +124,12 @@ class QueryBuilderCore:
         if sqlexpr:
             self.add(sqlexpr, required=True)
 
-    def add(self, expr, sql_type="text", required=False):
+    def add(self, expr: str, sql_type: str = "text", required: bool = False):
         """Add SQL fragment to query.
         """
         self._add_expr('', expr, self._params, sql_type, required)
 
-    def get_sql(self, param_type=PARAM_INLINE):
+    def get_sql(self, param_type: int = PARAM_INLINE):
         """Return generated SQL (thus far) as string.
 
         Possible values for param_type:
@@ -132,10 +141,10 @@ class QueryBuilderCore:
         tmp = [str(part) for part in self._sql_parts]
         return "".join(tmp)
 
-    def _add_expr(self, pfx, expr, params, sql_type, required):
-        parts = []
-        types = []
-        values = []
+    def _add_expr(self, pfx: str, expr: str, params: Optional[Mapping[str, Any]], sql_type: str, required: bool):
+        parts: List[Union[str, QArg]] = []
+        types: List[str] = []
+        values: List[Any] = []
         nargs = self._nargs
         if pfx:
             parts.append(pfx)
@@ -192,23 +201,24 @@ class QueryBuilderCore:
 
 
 class QueryBuilder(QueryBuilderCore):
-    def execute(self, curs):
+    def execute(self, curs: Cursor) -> None:
         """Client-side query execution on DB-API 2.0 cursor.
 
         Calls C{curs.execute()} with proper arguments.
 
-        Returns result of curs.execute(), although that does not
-        return anything interesting.  Later curs.fetch* methods
+        Does not return anything, curs.fetch* methods
         must be called to get result.
         """
         q = self.get_sql(PARAM_DBAPI)
         args = self._params
-        return curs.execute(q, args)
+        curs.execute(q, args)
 
 
 class PLPyQueryBuilder(QueryBuilderCore):
 
-    def __init__(self, sqlexpr, params, plan_cache=None, sqls=None):
+    def __init__(self, sqlexpr: str, params: Optional[Mapping[str, Any]],
+                 plan_cache: Dict[str, Any] = None,
+                 sqls: Optional[List[Dict[str, str]]] = None):
         """Init the object.
 
         @param sqlexpr:     Partial sql fragment.
@@ -228,7 +238,7 @@ class PLPyQueryBuilder(QueryBuilderCore):
         else:
             self._plan_cache = None
 
-    def execute(self):
+    def execute(self) -> List[skytools.dbdict]:
         """Server-side query execution via plpy.
 
         Query can be run either cached or uncached, depending
@@ -260,7 +270,7 @@ class PLPyQuery:
 
     See L{plpy_exec} for simple usage.
     """
-    def __init__(self, sql):
+    def __init__(self, sql: str):
         qb = QueryBuilder(sql, None)
         p_sql = qb.get_sql(PARAM_PLPY)
         p_types = qb._arg_type_list
@@ -268,7 +278,7 @@ class PLPyQuery:
         self.arg_map = qb._arg_value_list
         self.sql = sql
 
-    def execute(self, arg_dict, all_keys_required=True):
+    def execute(self, arg_dict: Mapping[str, Any], all_keys_required=True) -> List[Mapping[str, Any]]:
         try:
             if all_keys_required:
                 arg_list = [arg_dict[k] for k in self.arg_map]
@@ -281,13 +291,16 @@ class PLPyQuery:
             missing = list(need.difference(got))
             plpy.error("Missing arguments: [%s]  QUERY: %s" % (
                 ','.join(missing), repr(self.sql)))
-            return None  # unreachable
+            raise ValueError("unreachable") from None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'PLPyQuery<%s>' % self.sql
 
 
-def plpy_exec(gd, sql, args, all_keys_required=True):
+def plpy_exec(gd: Optional[Dict[str, Any]],
+              sql: str,
+              args: Optional[Mapping[str, Any]],
+              all_keys_required=True):
     """Cached plan execution for PL/Python.
 
     @param gd:  dict to store cached plans under.  If None, caching is disabled.
@@ -311,7 +324,10 @@ def plpy_exec(gd, sql, args, all_keys_required=True):
 
 # some helper functions for convenient sql execution
 
-def run_query(cur, sql, params=None, **kwargs):
+def run_query(cur: Cursor, sql: str,
+        params: Optional[Mapping[str, Any]] = None,
+        **kwargs: Any
+        ) -> List[skytools.dbdict]:
     """ Helper function if everything you need is just paramertisized execute
         Sets rows_found that is coneninet to use when you don't need result just
         want to know how many rows were affected
@@ -322,11 +338,12 @@ def run_query(cur, sql, params=None, **kwargs):
     rows = cur.fetchall()
     # convert result rows to dbdict
     if rows:
-        rows = [skytools.dbdict(r) for r in rows]
-    return rows
+        return [skytools.dbdict(r) for r in rows]
+    return []
 
 
-def run_query_row(cur, sql, params=None, **kwargs):
+def run_query_row(cur: Cursor, sql: str, params: Optional[Mapping[str, Any]] = None, **kwargs: Any
+        ) -> Optional[skytools.dbdict]:
     """ Helper function if everything you need is just paramertisized execute to
         fetch one row only. If not found none is returned
     """
@@ -337,7 +354,7 @@ def run_query_row(cur, sql, params=None, **kwargs):
     return rows[0]
 
 
-def run_lookup(cur, sql, params=None, **kwargs):
+def run_lookup(cur: Cursor, sql: str, params: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> Any:
     """ Helper function to fetch one value Takes away all the hassle of preparing statements
         and processing returned result giving out just one value.
     """
@@ -350,7 +367,7 @@ def run_lookup(cur, sql, params=None, **kwargs):
     return row[0]
 
 
-def run_exists(cur, sql, params=None, **kwargs):
+def run_exists(cur: Cursor, sql: str, params: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> bool:
     """ Helper function to fetch one value Takes away all the hassle of preparing statements
         and processing returned result giving out just one value.
     """
@@ -371,6 +388,7 @@ class fake_plpy:
 
     def error(self, msg):
         self.log.append("DBG: plpy.error(%s)" % repr(msg))
+        raise Exception("plpy.error")
 
 
 # make plpy available

@@ -96,7 +96,8 @@ def test_plpy_exec():
     ]
 
     plpy.log.clear()
-    plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3'})
+    with pytest.raises(Exception):
+        plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '3'})
     assert plpy.log == [
         """DBG: plpy.error("Missing arguments: [arg2]  QUERY: 'select {arg1}, {arg2:int4}, {arg1}'")"""
     ]
