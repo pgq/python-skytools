@@ -11,8 +11,8 @@ See L{plpy_exec} for examples.
 
 import json
 import re
-from typing import List, Any, Dict
 from functools import lru_cache
+from typing import Any, Dict, List
 
 import skytools
 
@@ -46,7 +46,7 @@ def _inline_to_text(val):
         return val
     if isinstance(val, dict):
         return json.dumps(val)
-    if isinstance(val, (tuple,list)):
+    if isinstance(val, (tuple, list)):
         return skytools.make_pgarray(val)
     if isinstance(val, bytes):
         return "\\x" + val.hex()

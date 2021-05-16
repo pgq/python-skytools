@@ -7,7 +7,6 @@
 
 import inspect
 import sys
-
 from typing import Sequence
 
 import skytools
