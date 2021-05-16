@@ -15,19 +15,11 @@ import time
 
 from typing import Dict, Optional, Sequence, Tuple, Any, Mapping, List
 
-try:
-    from typing import Protocol
-    class Runnable(Protocol):
-        def run(self) -> None: ...
-except ImportError:
-    class Runnable:   # type: ignore
-        def run(self) -> None: ...
-
 
 import skytools
 import skytools.skylog
 
-from .sqltools import Connection
+from .basetypes import Runnable, Connection
 
 try:
     import skytools.installer_config

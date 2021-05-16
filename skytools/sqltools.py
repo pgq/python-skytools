@@ -4,9 +4,10 @@
 import io
 import logging
 import os
-from typing import IO, Any, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, List, Mapping, Optional, Sequence, Tuple, Union
 
 import skytools
+from .basetypes import Cursor, Connection
 
 __all__ = (
     "fq_name_parts", "fq_name", "get_table_oid", "get_table_pkeys",
@@ -17,32 +18,6 @@ __all__ = (
     "DBLanguage", "db_install", "installer_find_file", "installer_apply_file",
     "dbdict", "mk_insert_sql", "mk_update_sql", "mk_delete_sql",
 )
-
-RowType = Sequence[Any]
-
-
-try:
-    from typing import Protocol
-
-    class Cursor(Protocol):
-        def execute(self, sql: str, params: Optional[Union[Sequence[Any], Mapping[str, Any]]] = None) -> None:
-            ...
-        def fetchall(self) -> List[RowType]:
-            ...
-        def fetchone(self) -> RowType:
-            ...
-        def copy_from(self, buf: IO[str], hdr: str) -> None:
-            ...
-        def copy_expert(self, sql: str, f: Union[IO[str], "CopyPipe"]) -> None:
-            ...
-
-    class Connection(Protocol):
-        def cursor(self) -> Cursor:
-            ...
-
-except ImportError:
-    Cursor = Any        # type: ignore
-    Connection = Any    # type: ignore
 
 
 class dbdict(dict):

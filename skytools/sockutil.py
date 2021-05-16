@@ -5,28 +5,20 @@ import os
 import socket
 import sys
 
+from typing import Optional, Union
+
 try:
     import fcntl
 except ImportError:
     fcntl = None    # type: ignore
 
-from typing import Optional, Union
-
-try:
-    from typing import Protocol
-    class HasFileno(Protocol):
-        def fileno(self) -> int: ...
-except ImportError:
-    class HasFileno:    # type: ignore
-        def fileno(self) -> int: ...
-
-FileDescriptor = int
-FileDescriptorLike = Union[int, HasFileno]
-SocketLike = Union[socket.socket, FileDescriptorLike]
+from .basetypes import FileDescriptorLike
 
 __all__ = (
     'set_tcp_keepalive', 'set_nonblocking', 'set_cloexec',
 )
+
+SocketLike = Union[socket.socket, FileDescriptorLike]
 
 
 def set_tcp_keepalive(fd: SocketLike, keepalive: bool = True, tcp_keepidle: int = 4 *
