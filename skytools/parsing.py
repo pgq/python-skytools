@@ -2,6 +2,7 @@
 """
 
 import re
+from typing import Iterator, List, Optional, Sequence, Tuple
 
 import skytools
 
@@ -15,7 +16,7 @@ __all__ = (
 _rc_listelem = re.compile(r'( [^,"}]+ | ["] ( [^"\\]+ | [\\]. )* ["] )', re.X)
 
 
-def parse_pgarray(array):
+def parse_pgarray(array: Optional[str]) -> Optional[List[Optional[str]]]:
     r"""Parse Postgres array and return list of items inside it.
     """
     if array is None:
@@ -287,7 +288,7 @@ _copy_from_stdin_re = r"copy.*from\s+stdin"
 _copy_from_stdin_rc = None
 
 
-def parse_statements(sql, standard_quoting=False):
+def parse_statements(sql: str, standard_quoting: bool = False) -> Iterator[str]:
     """Parse multi-statement string into separate statements.
 
     Returns list of statements.
@@ -296,7 +297,7 @@ def parse_statements(sql, standard_quoting=False):
     global _copy_from_stdin_rc
     if not _copy_from_stdin_rc:
         _copy_from_stdin_rc = re.compile(_copy_from_stdin_re, re.X | re.I)
-    tokens = []
+    tokens: List[str] = []
     pcount = 0  # '(' level
     for typ, t in sql_tokenizer(sql, standard_quoting=standard_quoting):
         # skip whitespace and comments before statement
@@ -331,7 +332,7 @@ _acl_re = r'''
 _acl_rc = None
 
 
-def parse_acl(acl):
+def parse_acl(acl: str) -> Optional[Tuple[str, str, str]]:
     """Parse ACL entry.
     """
     global _acl_rc
@@ -356,7 +357,7 @@ def parse_acl(acl):
     return (target, perm, owner)
 
 
-def dedent(doc):
+def dedent(doc: str) -> str:
     r"""Relaxed dedent.
 
     - takes whitespace to be removed from first indented line.
@@ -366,8 +367,8 @@ def dedent(doc):
     - ignores indent of empty lines
     - if line does not match common indent, is stays unchanged
     """
-    pfx = None
-    res = []
+    pfx: Optional[str] = None
+    res: List[str] = []
     for ln in doc.splitlines():
         ln = ln.rstrip()
         if not pfx and len(res) < 2:
@@ -383,7 +384,7 @@ def dedent(doc):
     return '\n'.join(res)
 
 
-def hsize_to_bytes(input_str):
+def hsize_to_bytes(input_str: str) -> int:
     """ Convert sizes from human format to bytes (string to integer)
     """
 
@@ -407,7 +408,7 @@ _cstr_unesc_rc = None
 _cstr_badval_rc = None
 
 
-def parse_connect_string(cstr):
+def parse_connect_string(cstr: str) -> List[Tuple[str, str]]:
     r"""Parse Postgres connect string.
     """
     global _cstr_rc, _cstr_unesc_rc
@@ -429,7 +430,7 @@ def parse_connect_string(cstr):
     return res
 
 
-def merge_connect_string(cstr_arg_list):
+def merge_connect_string(cstr_arg_list: Sequence[Tuple[str, str]]) -> str:
     """Put fragments back together.
     """
     global _cstr_badval_rc
