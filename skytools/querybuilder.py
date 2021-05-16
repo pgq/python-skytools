@@ -300,7 +300,7 @@ class PLPyQuery:
 def plpy_exec(gd: Optional[Dict[str, Any]],
               sql: str,
               args: Optional[Mapping[str, Any]],
-              all_keys_required=True):
+              all_keys_required=True) -> Sequence[Mapping[str, Any]]:
     """Cached plan execution for PL/Python.
 
     @param gd:  dict to store cached plans under.  If None, caching is disabled.
