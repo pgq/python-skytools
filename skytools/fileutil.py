@@ -4,11 +4,12 @@
 import errno
 import os
 import sys
+from typing import Optional, Union
 
 __all__ = ['write_atomic', 'signal_pidfile']
 
 
-def write_atomic_unix(fn, data, bakext=None, mode='b'):
+def write_atomic_unix(fn: str, data: Union[bytes, str], bakext: Optional[str] = None, mode: str = 'b'):
     """Write file with rename."""
 
     if mode not in ['', 'b', 't']:
@@ -48,7 +49,7 @@ def write_atomic_unix(fn, data, bakext=None, mode='b'):
     os.rename(fn2, fn)
 
 
-def signal_pidfile(pidfile, sig):
+def signal_pidfile(pidfile: str, sig: int) -> bool:
     """Send a signal to process whose ID is located in pidfile.
 
     Read only first line of pidfile to support multiline
@@ -79,7 +80,7 @@ def signal_pidfile(pidfile, sig):
     return False
 
 
-def win32_detect_pid(pid):
+def win32_detect_pid(pid: int) -> bool:
     """Process detection for win32."""
 
     # avoid pywin32 dependecy, use ctypes instead
@@ -92,7 +93,7 @@ def win32_detect_pid(pid):
     ERROR_ACCESS_DENIED = 5
 
     # Load kernel32.dll
-    k = ctypes.windll.kernel32
+    k = ctypes.windll.kernel32  # type: ignore
     OpenProcess = k.OpenProcess
     OpenProcess.restype = ctypes.c_void_p
 
@@ -111,7 +112,7 @@ def win32_detect_pid(pid):
     return code.value == STILL_ACTIVE
 
 
-def win32_write_atomic(fn, data, bakext=None, mode='b'):
+def win32_write_atomic(fn: str, data: Union[bytes, str], bakext: Optional[str] = None, mode: str = 'b'):
     """Write file with rename for win32."""
 
     if mode not in ['', 'b', 't']:
