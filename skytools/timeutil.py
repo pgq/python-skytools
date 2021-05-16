@@ -13,6 +13,8 @@ import re
 import time
 from datetime import datetime, timedelta, tzinfo
 
+from typing import Optional
+
 __all__ = (
     'parse_iso_timestamp', 'FixedOffsetTimezone', 'datetime_to_timestamp',
 )
@@ -22,7 +24,10 @@ class FixedOffsetTimezone(tzinfo):
     """Fixed offset in minutes east from UTC."""
     __slots__ = ('__offset', '__name')
 
-    def __init__(self, offset):
+    __offset: timedelta
+    __name: str
+
+    def __init__(self, offset: int):
         super().__init__()
 
         self.__offset = timedelta(minutes=offset)
@@ -36,13 +41,13 @@ class FixedOffsetTimezone(tzinfo):
         else:
             self.__name = "%+03d" % h
 
-    def utcoffset(self, dt):
+    def utcoffset(self, dt: Optional[datetime]) -> Optional[timedelta]:
         return self.__offset
 
-    def tzname(self, dt):
+    def tzname(self, dt: Optional[datetime]) -> Optional[str]:
         return self.__name
 
-    def dst(self, dt):
+    def dst(self, dt: Optional[datetime]) -> Optional[timedelta]:
         return ZERO
 
 
@@ -68,10 +73,10 @@ _iso_regex = r"""
       | (?P<tzname> Z ) )?
     \s* $
     """
-_iso_rc = None
+_iso_rc: Optional[re.Pattern] = None
 
 
-def parse_iso_timestamp(s, default_tz=None):
+def parse_iso_timestamp(s: str, default_tz:Optional[tzinfo]=None):
     """Parse ISO timestamp to datetime object.
 
     YYYY-MM-DD[ T]HH:MM[:SS[.ss]][-+HH[:MM]]
@@ -122,7 +127,7 @@ TZ_EPOCH = datetime.fromtimestamp(0, UTC)
 UTC_NOTZ_EPOCH = datetime.utcfromtimestamp(0)
 
 
-def datetime_to_timestamp(dt, local_time=True):
+def datetime_to_timestamp(dt: datetime, local_time=True) -> float:
     """Get posix timestamp from datetime() object.
 
     if dt is without timezone, then local_time specifies
