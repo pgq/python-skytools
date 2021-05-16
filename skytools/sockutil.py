@@ -10,12 +10,27 @@ try:
 except ImportError:
     fcntl = None    # type: ignore
 
+from typing import Optional, Union
+
+try:
+    from typing import Protocol
+    class HasFileno(Protocol):
+        def fileno(self) -> int: ...
+except ImportError:
+    class HasFileno:    # type: ignore
+        def fileno(self) -> int: ...
+
+FileDescriptor = int
+FileDescriptorLike = Union[int, HasFileno]
+SocketLike = Union[socket.socket, FileDescriptorLike]
+
 __all__ = (
     'set_tcp_keepalive', 'set_nonblocking', 'set_cloexec',
 )
 
 
-def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4 * 60, tcp_keepcnt=4, tcp_keepintvl=15):
+def set_tcp_keepalive(fd: SocketLike, keepalive: bool = True, tcp_keepidle: int = 4 *
+                      60, tcp_keepcnt: int = 4, tcp_keepintvl: int = 15) -> None:
     """Turn on TCP keepalive.  The fd can be either numeric or socket
     object with 'fileno' method.
 
@@ -35,7 +50,7 @@ def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4 * 60, tcp_keepcnt=4, tc
     if isinstance(fd, socket.SocketType):
         s = fd
     else:
-        if hasattr(fd, 'fileno'):
+        if not isinstance(fd, int):
             fd = fd.fileno()
         s = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
 
@@ -71,10 +86,10 @@ def set_tcp_keepalive(fd, keepalive=True, tcp_keepidle=4 * 60, tcp_keepcnt=4, tc
     elif TCP_KEEPALIVE is not None:
         s.setsockopt(socket.IPPROTO_TCP, TCP_KEEPALIVE, tcp_keepidle)
     elif SIO_KEEPALIVE_VALS is not None and fcntl:
-        fcntl.ioctl(s.fileno(), SIO_KEEPALIVE_VALS, (1, tcp_keepidle * 1000, tcp_keepintvl * 1000))
+        fcntl.ioctl(s.fileno(), SIO_KEEPALIVE_VALS, (1, tcp_keepidle * 1000, tcp_keepintvl * 1000))  # type: ignore
 
 
-def set_nonblocking(fd, onoff=True):
+def set_nonblocking(fd: SocketLike, onoff: Optional[bool] = True):
     """Toggle the O_NONBLOCK flag.
 
     If onoff==None then return current setting.
@@ -97,7 +112,7 @@ def set_nonblocking(fd, onoff=True):
     return onoff
 
 
-def set_cloexec(fd, onoff=True):
+def set_cloexec(fd: SocketLike, onoff: Optional[bool] = True) -> bool:
     """Toggle the FD_CLOEXEC flag.
 
     If onoff==None then return current setting.
