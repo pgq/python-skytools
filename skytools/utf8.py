@@ -7,15 +7,17 @@ talking with other software that uses stricter parsers.
 import codecs
 import re
 
+from typing import Optional, Tuple
+
 __all__ = ('safe_utf8_decode', 'sanitize_unicode')
 
 # by default, use same symbol as 'replace'
 REPLACEMENT_SYMBOL = chr(0xFFFD)   # 65533
 
-_urc = None
+_urc: Optional[re.Pattern] = None
 
 
-def _fix_utf8(m):
+def _fix_utf8(m: re.Match) -> str:
     """Merge UTF16 surrogates, replace others"""
     u = m.group()
     if len(u) == 2:
@@ -29,7 +31,7 @@ def _fix_utf8(m):
         return REPLACEMENT_SYMBOL
 
 
-def sanitize_unicode(u):
+def sanitize_unicode(u: str) -> str:
     """Fix invalid symbols in unicode string."""
     global _urc
 
@@ -68,7 +70,7 @@ def safe_replace(exc):
 codecs.register_error("safe_replace", safe_replace)
 
 
-def safe_utf8_decode(s):
+def safe_utf8_decode(s: bytes) -> Tuple[bool, str]:
     """Decode UTF-8 safely.
 
     Acts like str.decode('utf8', 'replace') but also fixes
