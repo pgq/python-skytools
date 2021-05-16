@@ -4,6 +4,8 @@
 import json
 import re
 
+from typing import Sequence, Mapping, Any, Union, Optional, Dict
+
 try:
     from skytools._cquoting import (
         db_urldecode, db_urlencode, quote_bytea_raw,
@@ -32,26 +34,26 @@ __all__ = (
 # SQL quoting
 #
 
-def quote_bytea_literal(s):
+def quote_bytea_literal(s: bytes) -> str:
     """Quote bytea for regular SQL."""
 
     return quote_literal(quote_bytea_raw(s))
 
 
-def quote_bytea_copy(s):
+def quote_bytea_copy(s: bytes) -> str:
     """Quote bytea for COPY."""
 
     return quote_copy(quote_bytea_raw(s))
 
 
-def quote_statement(sql, dict_or_list):
+def quote_statement(sql: str, dict_or_list: Union[Mapping[str,Any], Sequence[Any]]) -> str:
     """Quote whole statement.
 
     Data values are taken from dict or list or tuple.
     """
     if hasattr(dict_or_list, 'items'):
-        qdict = {}
-        for k, v in dict_or_list.items():
+        qdict: Dict[str, str] = {}
+        for k, v in dict_or_list.items():  # type: ignore
             qdict[k] = quote_literal(v)
         return sql % qdict
     else:
@@ -83,7 +85,7 @@ _ident_kwmap = {
 _ident_bad = re.compile(r"[^a-z0-9_]|^[0-9]")
 
 
-def quote_ident(s):
+def quote_ident(s: str) -> str:
     """Quote SQL identifier.
 
     If is checked against weird symbols and keywords.
@@ -96,7 +98,7 @@ def quote_ident(s):
     return s
 
 
-def quote_fqident(s):
+def quote_fqident(s: str) -> str:
     """Quote fully qualified SQL identifier.
 
     The '.' is taken as namespace separator and
@@ -120,7 +122,7 @@ _jsmap = {
 }
 
 
-def _json_quote_char(m):
+def _json_quote_char(m: re.Match):
     """Quote single char."""
     c = m.group(0)
     try:
@@ -129,14 +131,14 @@ def _json_quote_char(m):
         return r"\u%04x" % ord(c)
 
 
-def quote_json(s):
+def quote_json(s: Optional[str]) -> str:
     """JSON style quoting."""
     if s is None:
         return "null"
     return '"%s"' % _jsre.sub(_json_quote_char, s)
 
 
-def unescape_copy(val):
+def unescape_copy(val: str) -> Optional[str]:
     r"""Removes C-style escapes, also converts "\N" to None.
     """
     if val == r"\N":
@@ -144,7 +146,7 @@ def unescape_copy(val):
     return unescape(val)
 
 
-def unquote_ident(val):
+def unquote_ident(val: str) -> str:
     """Unquotes possibly quoted SQL identifier.
     """
     if len(val) > 1 and val[0] == '"' and val[-1] == '"':
@@ -154,20 +156,20 @@ def unquote_ident(val):
     return val.lower()
 
 
-def unquote_fqident(val):
+def unquote_fqident(val: str) -> str:
     """Unquotes fully-qualified possibly quoted SQL identifier.
     """
     tmp = val.split('.', 1)
     return '.'.join([unquote_ident(i) for i in tmp])
 
 
-def json_encode(val=None, **kwargs):
+def json_encode(val:Any=None, **kwargs: Any) -> str:
     """Creates JSON string from Python object.
     """
     return json.dumps(val or kwargs)
 
 
-def json_decode(s):
+def json_decode(s: str) -> Any:
     """Parses JSON string into Python object.
     """
     return json.loads(s)
@@ -179,10 +181,10 @@ def json_decode(s):
 
 # any chars not in "good" set?  main bad ones: [ ,{}\"]
 _pgarray_bad_rx = r"[^0-9a-z_.%&=()<>*/+-]"
-_pgarray_bad_rc = None
+_pgarray_bad_rc = re.compile(_pgarray_bad_rx)
 
 
-def _quote_pgarray_elem(s):
+def _quote_pgarray_elem(s: Any) -> str:
     if s is None:
         return 'NULL'
     s = str(s)
@@ -194,15 +196,10 @@ def _quote_pgarray_elem(s):
     return s
 
 
-def make_pgarray(lst):
+def make_pgarray(lst: Sequence[Any]) -> str:
     r"""Formats Python list as Postgres array.
     Reverse of parse_pgarray().
     """
-
-    global _pgarray_bad_rc
-    if _pgarray_bad_rc is None:
-        _pgarray_bad_rc = re.compile(_pgarray_bad_rx)
-
     items = [_quote_pgarray_elem(v) for v in lst]
     return '{' + ','.join(items) + '}'
 
