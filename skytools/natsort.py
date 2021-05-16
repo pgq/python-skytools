@@ -7,6 +7,7 @@ Rules:
 * String consists of numeric and non-numeric parts.
 * Parts are compared pairwise, if both are numeric then numerically,
   otherwise textually.  (Only first fragment can have different type)
+* If strings are different, they should compare differnet in natsort.
 
 Extra rules for version numbers:
 
@@ -27,24 +28,40 @@ __all__ = (
 
 
 def natsort_key(s):
-    """Returns tuple that sorts according to natsort rules.
+    """Returns string that sorts according to natsort rules.
     """
-    # key consists of triplets (type:int, magnitude:int, value:str)
+    # generates four types of fragments:
+    # 1) strings < "0", stay as-is
+    # 2) numbers starting with 0, fragment starts with "A".."Z"
+    # 3) numbers starting with 1..9, fragment starts with "a".."z"
+    # 4) strings > "9", fragment starts with "|"
+    if "~" in s:
+        s = s.replace("~", "\0")
     key = []
-    if '~' in s:
-        s = s.replace('~', '\0')
+    key_append = key.append
     for frag in _rc.findall(s):
-        if frag < '0':
-            key.extend((1, 0, frag + '\1'))
-        elif frag < '1':
-            key.extend((2, len(frag.lstrip('0')) - len(frag), frag))
-        elif frag < ':':
-            key.extend((2, len(frag), frag))
+        if frag < "0":
+            key_append(frag)
+            key_append("\1")
+        elif frag < "1":
+            nzeros = len(frag) - len(frag.lstrip('0'))
+            mag = str(nzeros)
+            mag = str(10**len(mag) - nzeros)
+            key_append(chr(0x5B - len(mag)))    # Z, Y, X, ...
+            key_append(mag)
+            key_append(frag)
+        elif frag < ":":
+            mag = str(len(frag))
+            key_append(chr(0x60 + len(mag)))    # a, b, c, ...
+            key_append(mag)
+            key_append(frag)
         else:
-            key.extend((3, 0, frag + '\1'))
-    if not key or key[-3] == 2:
-        key.extend((1, 0, '\1'))
-    return tuple(key)
+            key_append("|")
+            key_append(frag)
+            key_append("\1")
+    if not (key and key[-1] == "\1"):
+        key_append("\1")
+    return "".join(key)
 
 
 def natsort(lst):
