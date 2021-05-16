@@ -4,9 +4,7 @@
 import io
 import logging
 import os
-from typing import (
-    IO, Any, List, Mapping, Optional, Protocol, Sequence, Tuple, Union,
-)
+from typing import IO, Any, List, Mapping, Optional, Sequence, Tuple, Union
 
 import skytools
 
@@ -23,22 +21,28 @@ __all__ = (
 RowType = Sequence[Any]
 
 
-class Cursor(Protocol):
-    def execute(self, sql: str, params: Optional[Union[Sequence[Any], Mapping[str,Any]]] = None) -> None:
-        ...
-    def fetchall(self) -> List[RowType]:
-        ...
-    def fetchone(self) -> RowType:
-        ...
-    def copy_from(self, buf: IO[str], hdr: str) -> None:
-        ...
-    def copy_expert(self, sql: str, f: Union[IO[str], "CopyPipe"]) -> None:
-        ...
+try:
+    from typing import Protocol
 
+    class Cursor(Protocol):
+        def execute(self, sql: str, params: Optional[Union[Sequence[Any], Mapping[str, Any]]] = None) -> None:
+            ...
+        def fetchall(self) -> List[RowType]:
+            ...
+        def fetchone(self) -> RowType:
+            ...
+        def copy_from(self, buf: IO[str], hdr: str) -> None:
+            ...
+        def copy_expert(self, sql: str, f: Union[IO[str], "CopyPipe"]) -> None:
+            ...
 
-class Connection(Protocol):
-    def cursor(self) -> Cursor:
-        ...
+    class Connection(Protocol):
+        def cursor(self) -> Cursor:
+            ...
+
+except ImportError:
+    Cursor = Any
+    Connection = Any
 
 
 class dbdict(dict):
