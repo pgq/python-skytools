@@ -13,7 +13,8 @@ import re
 import time
 from datetime import datetime, timedelta, tzinfo
 
-from typing import Optional
+from typing import Optional, Pattern
+
 
 __all__ = (
     'parse_iso_timestamp', 'FixedOffsetTimezone', 'datetime_to_timestamp',
@@ -73,7 +74,7 @@ _iso_regex = r"""
       | (?P<tzname> Z ) )?
     \s* $
     """
-_iso_rc: Optional[re.Pattern] = None
+_iso_rc: Optional[Pattern[str]] = None
 
 
 def parse_iso_timestamp(s: str, default_tz:Optional[tzinfo]=None):

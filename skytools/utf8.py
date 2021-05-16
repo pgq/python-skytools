@@ -7,17 +7,18 @@ talking with other software that uses stricter parsers.
 import codecs
 import re
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Pattern, Match
+
 
 __all__ = ('safe_utf8_decode', 'sanitize_unicode')
 
 # by default, use same symbol as 'replace'
 REPLACEMENT_SYMBOL = chr(0xFFFD)   # 65533
 
-_urc: Optional[re.Pattern] = None
+_urc: Optional[Pattern[str]] = None
 
 
-def _fix_utf8(m: re.Match) -> str:
+def _fix_utf8(m: Match[str]) -> str:
     """Merge UTF16 surrogates, replace others"""
     u = m.group()
     if len(u) == 2:

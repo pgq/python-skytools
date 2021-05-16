@@ -4,7 +4,7 @@
 import json
 import re
 
-from typing import Sequence, Mapping, Any, Union, Optional, Dict
+from typing import Sequence, Mapping, Any, Union, Optional, Dict, Match
 
 try:
     from skytools._cquoting import (
@@ -122,7 +122,7 @@ _jsmap = {
 }
 
 
-def _json_quote_char(m: re.Match):
+def _json_quote_char(m: Match[str]):
     """Quote single char."""
     c = m.group(0)
     try:
