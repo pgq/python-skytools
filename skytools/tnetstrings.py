@@ -3,6 +3,8 @@
 
 import codecs
 
+from typing import Any, List
+
 __all__ = ['loads', 'dumps']
 
 _memstr_types = (str, bytes, memoryview)
@@ -107,15 +109,15 @@ def _loads(buf):
 # Public API
 #
 
-def dumps(val):
+def dumps(val: Any) -> bytes:
     """Dump object tree as TNetString value.
     """
-    dst = []
+    dst: List[bytes] = []
     _dumps(dst, val)
     return b''.join(dst)
 
 
-def loads(binval):
+def loads(binval: bytes) -> Any:
     """Parse TNetstring from byte string.
     """
     if not isinstance(binval, (bytes, memoryview)):
