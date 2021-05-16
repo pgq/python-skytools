@@ -8,12 +8,14 @@ hashtext_new() - used since PostgreSQL 8.4
 import struct
 import sys
 
+from typing import Tuple, Union
+
 try:
     from skytools._chashtext import hashtext_new, hashtext_old
 except ImportError:
-    def hashtext_old(v):
+    def hashtext_old(v: str) -> int:
         return hashtext_old_py(v)
-    def hashtext_new(v):
+    def hashtext_new(v: str) -> int:
         return hashtext_new_py(v)
 
 
@@ -23,7 +25,7 @@ __all__ = ("hashtext_old", "hashtext_new")
 PADDING = b'\0' * 12
 
 
-def uint32(x):
+def uint32(x: int) -> int:
     """python does not have 32 bit integer so we need this hack to produce uint32 after bit operations"""
     return x & 0xffffffff
 
@@ -35,7 +37,7 @@ def uint32(x):
 FMT_OLD = struct.Struct("<LLL")
 
 
-def mix_old(a, b, c):
+def mix_old(a: int, b: int, c: int) -> Tuple[int, int, int]:
     c = uint32(c)
 
     a = uint32((a - b - c) ^ (c >> 13))
@@ -51,7 +53,7 @@ def mix_old(a, b, c):
     return a, b, c
 
 
-def hashtext_old_py(k):
+def hashtext_old_py(k: Union[bytes, str]) -> int:
     """Old Postgres hashtext()"""
 
     if isinstance(k, str):
@@ -94,11 +96,11 @@ def hashtext_old_py(k):
 FMT_NEW = struct.Struct("=LLL")
 
 
-def rol32(x, k):
+def rol32(x: int, k: int) -> int:
     return ((x) << (k)) | (uint32(x) >> (32 - (k)))
 
 
-def mix_new(a, b, c):
+def mix_new(a: int, b: int, c: int) -> Tuple[int, int, int]:
     a = (a - c) ^ rol32(c, 4)
     c += b
     b = (b - a) ^ rol32(a, 6)
@@ -115,7 +117,7 @@ def mix_new(a, b, c):
     return uint32(a), uint32(b), uint32(c)
 
 
-def final_new(a, b, c):
+def final_new(a: int, b: int, c: int) -> Tuple[int, int, int]:
     c = (c ^ b) - rol32(b, 14)
     a = (a ^ c) - rol32(c, 11)
     b = (b ^ a) - rol32(a, 25)
@@ -127,7 +129,7 @@ def final_new(a, b, c):
     return uint32(a), uint32(b), uint32(c)
 
 
-def hashtext_new_py(k):
+def hashtext_new_py(k: Union[bytes, str]) -> int:
     """New Postgres hashtext()"""
     if isinstance(k, str):
         k = k.encode()
