@@ -41,8 +41,8 @@ try:
             ...
 
 except ImportError:
-    Cursor = Any
-    Connection = Any
+    Cursor = Any        # type: ignore
+    Connection = Any    # type: ignore
 
 
 class dbdict(dict):
