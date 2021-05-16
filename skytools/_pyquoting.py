@@ -6,6 +6,8 @@ Here is pure Python that should match C code in _cquoting.
 import re
 from urllib.parse import quote_plus, unquote_plus  # noqa
 
+from typing import Match, Optional, Any, Dict, Mapping
+
 __all__ = (
     "quote_literal", "quote_copy", "quote_bytea_raw",
     "db_urlencode", "db_urldecode", "unescape",
@@ -17,7 +19,7 @@ __all__ = (
 # SQL quoting
 #
 
-def quote_literal(s):
+def quote_literal(s: Any) -> str:
     r"""Quote a literal value for SQL.
 
     If string contains '\\', extended E'' quoting is used,
@@ -36,7 +38,7 @@ def quote_literal(s):
     return "'" + s2 + "'"
 
 
-def quote_copy(s):
+def quote_copy(s: Any) -> str:
     """Quoting for copy command.  None is converted to \\N.
 
     Python implementation.
@@ -52,7 +54,7 @@ def quote_copy(s):
     return s
 
 
-_bytea_map = None
+_bytea_map: Optional[Dict[int, str]] = None
 
 
 def quote_bytea_raw(s):
@@ -82,7 +84,7 @@ def quote_bytea_raw(s):
 # Database specific urlencode and urldecode.
 #
 
-def db_urlencode(dict_val):
+def db_urlencode(dict_val: Mapping[str, Any]) -> str:
     """Database specific urlencode.
 
     Encode None as key without '='.  That means that in "foo&bar=",
@@ -101,7 +103,7 @@ def db_urlencode(dict_val):
     return '&'.join(elem_list)
 
 
-def db_urldecode(qs):
+def db_urldecode(qs: str) -> Dict[str, Optional[str]]:
     """Database specific urldecode.
 
     Decode key without '=' as None.
@@ -110,7 +112,7 @@ def db_urldecode(qs):
     Python implementation.
     """
 
-    res = {}
+    res: Dict[str,Optional[str]] = {}
     for elem in qs.split('&'):
         if not elem:
             continue
@@ -141,7 +143,7 @@ _esc_map = {
 }
 
 
-def _sub_unescape_c(m):
+def _sub_unescape_c(m: Match) -> str:
     """unescape single escape seq."""
     v = m.group(1)
     if (len(v) == 1) and (v < '0' or v > '7'):
@@ -153,7 +155,7 @@ def _sub_unescape_c(m):
         return chr(int(v, 8))
 
 
-def unescape(val):
+def unescape(val: str) -> str:
     """Removes C-style escapes from string.
     Python implementation.
     """
@@ -164,7 +166,7 @@ _esql_re = r"''|\\([0-7]{1,3}|.)"
 _esql_rc = re.compile(_esql_re)
 
 
-def _sub_unescape_sqlext(m):
+def _sub_unescape_sqlext(m: Match) -> str:
     """Unescape extended-quoted string."""
     if m.group() == "''":
         return "'"
@@ -177,7 +179,7 @@ def _sub_unescape_sqlext(m):
     return chr(int(v, 8))
 
 
-def unquote_literal(val, stdstr=False):
+def unquote_literal(val: str, stdstr: bool = False) -> Optional[str]:
     """Unquotes SQL string.
 
     E'..' -> extended quoting.
