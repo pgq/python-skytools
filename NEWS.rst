@@ -2,6 +2,31 @@
 NEWS
 ====
 
+Skytools 3.7 (xxxx-xx-xx)
+-------------------------
+
+Features:
+
+* config: config_format=2 switches to extended format.
+* querybuilder: alt SQL for missing value.
+* querybuilder: handle more value types in inline queries.
+* querybuilder/plpy: always use prepared plan.  Prevously when GD/SD
+  was not given, it switched to inline params, but that was problem
+  because inline value quoting may be different that PL/Python's.
+  Now it always uses plpy.prepare.
+
+Cleanups:
+
+* querybuilder: switch to functools.lru_cache, instead local LRU.
+* querybuilder: use regex for parsing, gives cleaner code.
+* querybuilder: improve error handling
+* natsort: switch to string key, instead of tuple.
+* style: Add type annotations to most modules.
+* style: use new-style super() everywhere.
+* ci: drop win32 repack, abi3 is now supported on win32
+* ci: drop ubuntu 16.04, to be obsoleted.
+* ci: build wheels using manylinux2014 images.
+
 Skytools 3.6.1 (2020-09-29)
 ---------------------------
 
