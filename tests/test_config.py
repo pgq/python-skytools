@@ -12,6 +12,7 @@ from skytools.config import (
 
 TOP = os.path.dirname(__file__)
 CONFIG = os.path.join(TOP, 'config.ini')
+CONFIG2 = os.path.join(TOP, 'config2.ini')
 
 
 def test_config_str():
@@ -184,4 +185,16 @@ def test_extended_compat():
     cf.read_file(io.StringIO(config), 'conf.ini')
     with pytest.raises(NoOptionError):
         cf.get('foo', 'key')
+
+
+def test_config_format():
+    cf1 = Config("fmt1", CONFIG2)
+    cf2 = Config("fmt2", CONFIG2)
+
+    with pytest.raises(ConfigError):
+        Config("fmt3", CONFIG2)
+
+    assert cf1.get("bar") == "1"
+    assert cf2.get("bar1") == "%(foo)s"
+    assert cf2.get("bar2") == "1"
 

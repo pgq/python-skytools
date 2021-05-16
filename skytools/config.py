@@ -10,6 +10,7 @@ from configparser import Error as ConfigError
 from configparser import (
     ExtendedInterpolation, Interpolation, InterpolationDepthError,
     InterpolationError, NoOptionError, NoSectionError,
+    RawConfigParser,
 )
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
@@ -19,6 +20,24 @@ __all__ = (
     'Config', 'NoOptionError', 'ConfigError',
     'ConfigParser', 'ExtendedConfigParser', 'ExtendedCompatConfigParser'
 )
+
+
+def read_versioned_config(filenames: Sequence[str], main_section: str) -> ConfigParser:
+    """Pick syntax based on "config_format" value.
+    """
+    rcf = RawConfigParser()
+    rcf.read(filenames)
+
+    # avoid has_option here, so value can live in DEFAULT section
+    ver = rcf.get(main_section, "config_format", fallback="1")
+    if ver == "1":
+        cf = ConfigParser()
+    elif ver == "2":
+        cf = ExtendedConfigParser()
+    else:
+        raise ConfigError('Unsupported config format %r in %r' % (ver, filenames))
+    cf.read(filenames)
+    return cf
 
 
 class Config:
@@ -67,12 +86,14 @@ class Config:
         self.main_section = main_section
         self.filename = filename
         self.override = override or {}
-        self.cf = ConfigParser()
 
         if filename is None:
+            self.cf = ConfigParser()
             self.cf.add_section(main_section)
         elif not os.path.isfile(filename):
             raise ConfigError('Config file not found: ' + filename)
+        else:
+            self.cf = read_versioned_config([filename], main_section)
 
         self.reload()
 
