@@ -12,10 +12,22 @@ import select
 import signal
 import sys
 import time
-from typing import Dict
+
+from typing import Dict, Optional, Sequence, Tuple, Any, Mapping, List
+
+try:
+    from typing import Protocol
+    class Runnable(Protocol):
+        def run(self) -> None: ...
+except ImportError:
+    class Runnable(Protocol):   # type: ignore
+        def run(self) -> None: ...
+
 
 import skytools
 import skytools.skylog
+
+from .sqltools import Connection
 
 try:
     import skytools.installer_config
@@ -27,6 +39,7 @@ except ImportError:
 __all__ = (
     'BaseScript', 'UsageError', 'daemonize', 'DBScript',
 )
+
 
 
 class UsageError(Exception):
@@ -64,7 +77,7 @@ def daemonize():
 # Pidfile locking+cleanup & daemonization combined
 #
 
-def run_single_process(runnable, daemon, pidfile):
+def run_single_process(runnable: Runnable, daemon: bool, pidfile: Optional[str]):
     """Run runnable class, possibly daemonized, locked on pidfile."""
 
     # check if another process is running
@@ -90,7 +103,7 @@ def run_single_process(runnable, daemon, pidfile):
 
         runnable.run()
     finally:
-        if own_pidfile:
+        if own_pidfile and pidfile:
             try:
                 os.remove(pidfile)
             except BaseException:
@@ -101,11 +114,11 @@ def run_single_process(runnable, daemon, pidfile):
 # logging setup
 #
 
-_log_config_done = 0
-_log_init_done = {}
+_log_config_done: int = 0
+_log_init_done: Dict[str, int] = {}
 
 
-def _init_log(job_name, service_name, cf, log_level, is_daemon):
+def _init_log(job_name:str, service_name:str, cf:skytools.Config, log_level:int, is_daemon:bool):
     """Logging setup happens here."""
     global _log_config_done
 
@@ -124,7 +137,7 @@ def _init_log(job_name, service_name, cf, log_level, is_daemon):
     if use_skylog and not _log_config_done:
         # python logging.config braindamage:
         # cannot specify external classess without such hack
-        logging.skylog = skytools.skylog
+        logging.skylog = skytools.skylog    # type: ignore
         skytools.skylog.set_service_name(service_name, job_name)
 
         # load general config
@@ -220,37 +233,40 @@ class BaseScript:
         # how many seconds to sleep after catching a exception
         #exception_sleep = 20
     """
-    service_name = None
-    job_name = None
-    cf = None
+    service_name: str
+    job_name: str
+    cf: "skytools.Config"
+    go_daemon: bool
+    need_reload: bool
+
     cf_defaults: Dict[str, str] = {}
-    pidfile = None
+    pidfile: Optional[str] = None
 
     # >0 - sleep time if work() requests sleep
     # 0  - exit if work requests sleep
     # <0 - run work() once [same as looping=0]
-    loop_delay = 1.0
+    loop_delay: float = 1.0
 
     # 0 - run work() once
     # 1 - run work() repeatedly
-    looping = 1
+    looping: int = 1
 
     # result from last work() call:
     #  1 - there is probably more work, don't sleep
     #  0 - no work, sleep before calling again
     # -1 - exception was thrown
-    work_state = 1
+    work_state: int = 1
 
     # setup logger here, this allows override by subclass
     log = logging.getLogger('skytools.BaseScript')
 
     # start time
-    started = 0
+    started: int = 0
 
     # set to True to use argparse
-    ARGPARSE = False
+    ARGPARSE: bool = False
 
-    def __init__(self, service_name, args):
+    def __init__(self, service_name: str, args: Sequence[str]):
         """Script setup.
 
         User class should override work() and optionally __init__(), startup(),
@@ -264,10 +280,10 @@ class BaseScript:
         @param args: cmdline args (sys.argv[1:]), but can be overridden
         """
         self.service_name = service_name
-        self.go_daemon = 0
-        self.need_reload = 0
+        self.go_daemon = False
+        self.need_reload = False
         self.exception_count = 0
-        self.stat_dict = {}
+        self.stat_dict: Dict[str, float] = {}
         self.log_level = logging.INFO
 
         # parse command line
@@ -278,7 +294,7 @@ class BaseScript:
             self.print_version()
             sys.exit(0)
         if self.options.daemon:
-            self.go_daemon = 1
+            self.go_daemon = True
         if self.options.quiet:
             self.log_level = logging.WARNING
         if self.options.verbose:
@@ -311,15 +327,15 @@ class BaseScript:
         elif self.options.cmd == "reload":
             self.send_signal(signal.SIGHUP)
 
-    def parse_args(self, args):
+    def parse_args(self, args: Sequence[str]) -> Tuple[Any, Sequence[str]]:
         if self.ARGPARSE:
-            parser = self.init_argparse()
-            options = parser.parse_args(args)
+            arg_parser = self.init_argparse()
+            options = arg_parser.parse_args(args)
             args = getattr(options, "args", [])
-        else:
-            parser = self.init_optparse()
-            options, args = parser.parse_args(args)
-        return options, args
+            return options, args
+        opt_parser = self.init_optparse()
+        options2, args2 = opt_parser.parse_args(args)
+        return options2, args2
 
     def print_version(self):
         service = self.service_name
@@ -396,7 +412,7 @@ class BaseScript:
                                user_defs=self.cf_defaults,
                                override=self.cf_override)
 
-    def init_optparse(self, parser=None):
+    def init_optparse(self, parser: Optional[optparse.OptionParser] = None) -> optparse.OptionParser:
         """Initialize a OptionParser() instance that will be used to
         parse command line arguments.
 
@@ -443,7 +459,7 @@ class BaseScript:
 
         return p
 
-    def init_argparse(self, parser=None):
+    def init_argparse(self, parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
         """Initialize a ArgumentParser() instance that will be used to
         parse command line arguments.
 
@@ -489,7 +505,7 @@ class BaseScript:
 
         return p
 
-    def send_signal(self, sig):
+    def send_signal(self, sig: int):
         if not self.pidfile:
             self.log.warning("No pidfile in config, nothing to do")
         elif os.path.isfile(self.pidfile):
@@ -500,7 +516,7 @@ class BaseScript:
             self.log.warning("No pidfile, process not running")
         sys.exit(0)
 
-    def set_single_loop(self, do_single_loop):
+    def set_single_loop(self, do_single_loop: int):
         """Changes whether the script will loop or not."""
         if do_single_loop:
             self.looping = 0
@@ -525,7 +541,7 @@ class BaseScript:
     def reload(self):
         "Reload config."
         # avoid double loading on startup
-        if not self.cf:
+        if not getattr(self, "cf", None):
             self.cf = self.load_config()
         else:
             self.cf.reload()
@@ -552,19 +568,18 @@ class BaseScript:
             sys.exit(1)
         self.last_sigint = t
 
-    def stat_get(self, key):
+    def stat_get(self, key: str) -> Optional[float]:
         """Reads a stat value."""
         try:
-            value = self.stat_dict[key]
+            return self.stat_dict[key]
         except KeyError:
-            value = None
-        return value
+            return None
 
-    def stat_put(self, key, value):
+    def stat_put(self, key: str, value: float):
         """Sets a stat value."""
         self.stat_dict[key] = value
 
-    def stat_increase(self, key, increase=1):
+    def stat_increase(self, key: str, increase:float=1):
         """Increases a stat value."""
         try:
             self.stat_dict[key] += increase
@@ -679,7 +694,7 @@ class BaseScript:
             return -1
         sys.exit(1)
 
-    def sleep(self, secs):
+    def sleep(self, secs: float):
         """Make script sleep for some amount of time."""
         try:
             time.sleep(secs)
@@ -770,7 +785,11 @@ class DBScript(BaseScript):
         #connection_lifetime = 1200
     """
 
-    def __init__(self, service_name, args):
+    db_cache: Dict[str, Connection]
+    _db_defaults: Dict[str, Mapping[str, str]]
+    _listen_map: Dict[str, List[str]]
+
+    def __init__(self, service_name: str, args: Sequence[str]):
         """Script setup.
 
         User class should override work() and optionally __init__(), startup(),
@@ -783,7 +802,7 @@ class DBScript(BaseScript):
             It will be also default job_name, if not specified in config.
         @param args: cmdline args (sys.argv[1:]), but can be overridden
         """
-        self.db_cache = {}
+        self.db_cache: Dict = {}
         self._db_defaults = {}
         self._listen_map = {}  # dbname: channel_list
         super().__init__(service_name, args)
