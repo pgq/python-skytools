@@ -11,6 +11,7 @@ from configparser import (
     ExtendedInterpolation, Interpolation, InterpolationDepthError,
     InterpolationError, NoOptionError, NoSectionError,
 )
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 import skytools
 
@@ -28,8 +29,18 @@ class Config:
      - Accepts defaults in get() functions.
      - List value support.
     """
-    def __init__(self, main_section, filename, sane_config=None,
-                 user_defs=None, override=None, ignore_defs=False):
+    main_section: str               # main section
+    filename: Optional[str]         # file name that was loaded
+    override: Mapping[str, str]     # override values in config file
+    defs: Mapping[str, str]         # defaults visible in all sections
+    cf: ConfigParser                # actual ConfigParser instance
+
+    def __init__(self, main_section: str,
+                 filename: Optional[str],
+                 sane_config: Optional[bytes] = None,   # unused
+                 user_defs: Optional[Mapping[str, str]] = None,
+                 override: Optional[Mapping[str, str]] = None,
+                 ignore_defs: bool = False):
         """Initialize Config and read from file.
         """
         # use config file name as default job_name
@@ -65,7 +76,7 @@ class Config:
 
         self.reload()
 
-    def reload(self):
+    def reload(self) -> None:
         """Re-reads config file."""
         if self.filename:
             self.cf.read(self.filename)
@@ -82,7 +93,7 @@ class Config:
             for k, v in self.override.items():
                 self.cf.set(self.main_section, k, v)
 
-    def get(self, key, default=None):
+    def get(self, key: str, default: Optional[str] = None) -> str:
         """Reads string value, if not set then default."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -92,7 +103,7 @@ class Config:
 
         return str(self.cf.get(self.main_section, key))
 
-    def getint(self, key, default=None):
+    def getint(self, key: str, default: Optional[int] = None) -> int:
         """Reads int value, if not set then default."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -102,7 +113,7 @@ class Config:
 
         return self.cf.getint(self.main_section, key)
 
-    def getboolean(self, key, default=None):
+    def getboolean(self, key: str, default: bool = None) -> bool:
         """Reads boolean value, if not set then default."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -112,7 +123,7 @@ class Config:
 
         return self.cf.getboolean(self.main_section, key)
 
-    def getfloat(self, key, default=None):
+    def getfloat(self, key: str, default: float = None) -> float:
         """Reads float value, if not set then default."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -122,7 +133,7 @@ class Config:
 
         return self.cf.getfloat(self.main_section, key)
 
-    def getlist(self, key, default=None):
+    def getlist(self, key: str, default: Sequence[str] = None) -> Sequence[str]:
         """Reads comma-separated list from key."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -131,14 +142,14 @@ class Config:
             return default
 
         s = self.get(key).strip()
-        res = []
+        res: List[str] = []
         if not s:
             return res
         for v in s.split(","):
             res.append(v.strip())
         return res
 
-    def getdict(self, key, default=None):
+    def getdict(self, key: str, default: Optional[Mapping[str, str]] = None) -> Mapping[str, str]:
         """Reads key-value dict from parameter.
 
         Key and value are separated with ':'.  If missing,
@@ -151,7 +162,7 @@ class Config:
             return default
 
         s = self.get(key).strip()
-        res = {}
+        res: Dict[str, str] = {}
         if not s:
             return res
         for kv in s.split(","):
@@ -165,7 +176,7 @@ class Config:
             res[k] = v
         return res
 
-    def getfile(self, key, default=None):
+    def getfile(self, key: str, default: Optional[str] = None) -> str:
         """Reads filename from config.
 
         In addition to reading string value, expands ~ to user directory.
@@ -181,7 +192,7 @@ class Config:
 
         return fn
 
-    def getbytes(self, key, default=None):
+    def getbytes(self, key: str, default: Optional[str] = None) -> int:
         """Reads a size value in human format, if not set then default.
 
         Examples: 1, 2 B, 3K, 4 MB
@@ -215,27 +226,27 @@ class Config:
             raise NoOptionError(orig_key, self.main_section)
         return default
 
-    def sections(self):
+    def sections(self) -> Sequence[str]:
         """Returns list of sections in config file, excluding DEFAULT."""
         return self.cf.sections()
 
-    def has_section(self, section):
+    def has_section(self, section: str) -> bool:
         """Checks if section is present in config file, excluding DEFAULT."""
         return self.cf.has_section(section)
 
-    def clone(self, main_section):
+    def clone(self, main_section: str) -> "Config":
         """Return new Config() instance with new main section on same config file."""
         return Config(main_section, self.filename)
 
-    def options(self):
+    def options(self) -> Sequence[str]:
         """Return list of options in main section."""
         return self.cf.options(self.main_section)
 
-    def has_option(self, opt):
+    def has_option(self, opt: str) -> bool:
         """Checks if option exists in main section."""
         return self.cf.has_option(self.main_section, opt)
 
-    def items(self):
+    def items(self) -> Sequence[Tuple[str, str]]:
         """Returns list of (name, value) for each option in main section."""
         return self.cf.items(self.main_section)
 
