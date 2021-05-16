@@ -20,7 +20,7 @@ try:
     class Runnable(Protocol):
         def run(self) -> None: ...
 except ImportError:
-    class Runnable(Protocol):   # type: ignore
+    class Runnable:   # type: ignore
         def run(self) -> None: ...
 
 
