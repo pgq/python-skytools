@@ -10,7 +10,7 @@ import io
 __all__ = ('gzip_append',)
 
 
-def gzip_append(filename, data, level=6):
+def gzip_append(filename: str, data: bytes, level: int = 6) -> None:
     """Append a block of data to file with safety checks."""
 
     # compress data
