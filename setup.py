@@ -35,6 +35,7 @@ setup(
     maintainer="Marko Kreen",
     maintainer_email="markokr@gmail.com",
     packages=["skytools"],
+    package_data={"skytools": ["py.typed"]},
     ext_modules = [
         Extension("skytools._cquoting", ["modules/cquoting.c"], **abi3_options),
         Extension("skytools._chashtext", ["modules/hashtext.c"], **abi3_options),
