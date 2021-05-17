@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 import skytools
 
-from .sqltools import Cursor
+from .basetypes import Cursor, DictRow
 
 try:
     import plpy
@@ -278,7 +278,7 @@ class PLPyQuery:
         self.arg_map = qb._arg_value_list
         self.sql = sql
 
-    def execute(self, arg_dict: Mapping[str, Any], all_keys_required=True) -> List[Mapping[str, Any]]:
+    def execute(self, arg_dict: Mapping[str, Any], all_keys_required=True) -> Sequence[DictRow]:
         try:
             if all_keys_required:
                 arg_list = [arg_dict[k] for k in self.arg_map]
@@ -300,7 +300,7 @@ class PLPyQuery:
 def plpy_exec(gd: Optional[Dict[str, Any]],
               sql: str,
               args: Optional[Mapping[str, Any]],
-              all_keys_required=True) -> Sequence[Mapping[str, Any]]:
+              all_keys_required=True) -> Sequence[DictRow]:
     """Cached plan execution for PL/Python.
 
     @param gd:  dict to store cached plans under.  If None, caching is disabled.
