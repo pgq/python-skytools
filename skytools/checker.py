@@ -1,19 +1,38 @@
 """Catch moment when tables are in sync on master and slave.
 """
 
-
+import logging
 import os
 import subprocess
 import sys
 import time
 
+from typing import Optional, List, Dict, Sequence, Tuple
+
 import skytools
+
+from .basetypes import Cursor, Connection
+
+DictRow = Dict[str, str]
 
 
 class TableRepair:
     """Checks that tables in two databases are in sync."""
 
-    def __init__(self, table_name, log):
+    table_name: str
+    fq_table_name: str
+    log: logging.Logger
+    pkey_list: List[str]
+    common_fields: List[str]
+    apply_fixes: bool
+    apply_cursor: Optional[Cursor]
+    cnt_insert: int
+    cnt_update: int
+    cnt_delete: int
+    total_src: int
+    total_dst: int
+
+    def __init__(self, table_name: str, log: logging.Logger):
         self.table_name = table_name
         self.fq_table_name = skytools.quote_fqident(table_name)
         self.log = log
@@ -25,7 +44,7 @@ class TableRepair:
 
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.cnt_insert = 0
         self.cnt_update = 0
         self.cnt_delete = 0
@@ -36,7 +55,8 @@ class TableRepair:
         self.apply_fixes = False
         self.apply_cursor = None
 
-    def do_repair(self, src_db, dst_db, where, pfx='repair', apply_fixes=False):
+    def do_repair(self, src_db: Connection, dst_db: Connection, where: str,
+            pfx: str = 'repair', apply_fixes: bool = False) -> None:
         """Actual comparison."""
 
         self.reset()
@@ -79,7 +99,7 @@ class TableRepair:
         if apply_fixes:
             dst_db.commit()
 
-    def do_sort(self, src, dst):
+    def do_sort(self, src: str, dst: str) -> None:
         p = subprocess.Popen(["sort", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         s_ver = p.communicate()[0]
         del p
@@ -89,7 +109,7 @@ class TableRepair:
         xenv['LC_ALL'] = 'C'
 
         cmdline = ['sort', '-T', '.']
-        if s_ver.find("coreutils") > 0:
+        if s_ver.find(b"coreutils") > 0:
             cmdline.append('-S')
             cmdline.append('30%')
         cmdline.append('-o')
@@ -99,7 +119,7 @@ class TableRepair:
         if p.wait() != 0:
             raise Exception('sort failed')
 
-    def gen_copy_tbl(self, src_curs, dst_curs, where):
+    def gen_copy_tbl(self, src_curs: Cursor, dst_curs: Cursor, where: str) -> str:
         """Create COPY expession from common fields."""
         self.pkey_list = skytools.get_table_pkeys(src_curs, self.table_name)
         dst_pkey = skytools.get_table_pkeys(dst_curs, self.table_name)
@@ -131,13 +151,13 @@ class TableRepair:
 
         return tbl_expr
 
-    def dump_table(self, copy_cmd, curs, fn):
+    def dump_table(self, copy_cmd: str, curs: Cursor, fn: str) -> None:
         """Dump table to disk."""
         with open(fn, "w", 64 * 1024) as f:
             curs.copy_expert(copy_cmd, f)
             self.log.info('%s: Got %d bytes', self.table_name, f.tell())
 
-    def get_row(self, ln):
+    def get_row(self, ln: str) -> Optional[DictRow]:
         """Parse a row into dict."""
         if not ln:
             return None
@@ -147,7 +167,7 @@ class TableRepair:
             row[self.common_fields[i]] = t[i]
         return row
 
-    def dump_compare(self, src_fn, dst_fn, fix):
+    def dump_compare(self, src_fn: str, dst_fn: str, fix: str) -> None:
         """Dump + compare single table."""
         self.log.info("Comparing dumps: %s", self.table_name)
         f1 = open(src_fn, "r", 64 * 1024)
@@ -169,15 +189,15 @@ class TableRepair:
                 dst_row = self.get_row(dst_ln)
 
                 diff = self.cmp_keys(src_row, dst_row)
-                if diff > 0:
+                if diff > 0 and dst_row:
                     # src > dst
                     self.got_missed_delete(dst_row, fix)
                     keep_src = 1
-                elif diff < 0:
+                elif diff < 0 and src_row:
                     # src < dst
                     self.got_missed_insert(src_row, fix)
                     keep_dst = 1
-                else:
+                elif src_row and dst_row:
                     if self.cmp_data(src_row, dst_row) != 0:
                         self.got_missed_update(src_row, dst_row, fix)
 
@@ -197,7 +217,7 @@ class TableRepair:
         f1.close()
         f2.close()
 
-    def got_missed_insert(self, src_row, fn):
+    def got_missed_insert(self, src_row: DictRow, fn: str) -> None:
         """Create sql for missed insert."""
         self.cnt_insert += 1
         fld_list = self.common_fields
@@ -211,12 +231,12 @@ class TableRepair:
             self.fq_table_name, ", ".join(fq_list), ", ".join(val_list))
         self.show_fix(q, 'insert', fn)
 
-    def got_missed_update(self, src_row, dst_row, fn):
+    def got_missed_update(self, src_row: DictRow, dst_row: DictRow, fn: str) -> None:
         """Create sql for missed update."""
         self.cnt_update += 1
         fld_list = self.common_fields
-        set_list = []
-        whe_list = []
+        set_list: List[str] = []
+        whe_list: List[str] = []
         for f in self.pkey_list:
             self.addcmp(whe_list, skytools.quote_ident(f), skytools.unescape_copy(src_row[f]))
         for f in fld_list:
@@ -232,31 +252,31 @@ class TableRepair:
             self.fq_table_name, ", ".join(set_list), " and ".join(whe_list))
         self.show_fix(q, 'update', fn)
 
-    def got_missed_delete(self, dst_row, fn):
+    def got_missed_delete(self, dst_row: DictRow, fn: str) -> None:
         """Create sql for missed delete."""
         self.cnt_delete += 1
-        whe_list = []
+        whe_list: List[str] = []
         for f in self.pkey_list:
             self.addcmp(whe_list, skytools.quote_ident(f), skytools.unescape_copy(dst_row[f]))
         q = "delete from only %s where %s;" % (self.fq_table_name, " and ".join(whe_list))
         self.show_fix(q, 'delete', fn)
 
-    def show_fix(self, q, desc, fn):
+    def show_fix(self, q: str, desc: str, fn: str) -> None:
         """Print/write/apply repair sql."""
         self.log.debug("missed %s: %s", desc, q)
         with open(fn, "a") as f:
             f.write("%s\n" % q)
 
-        if self.apply_fixes:
+        if self.apply_fixes and self.apply_cursor:
             self.apply_cursor.execute(q)
 
-    def addeq(self, dst_list, f, v):
+    def addeq(self, dst_list: List[str], f: str, v: Optional[str]) -> None:
         """Add quoted SET."""
         vq = skytools.quote_literal(v)
         s = "%s = %s" % (f, vq)
         dst_list.append(s)
 
-    def addcmp(self, dst_list, f, v):
+    def addcmp(self, dst_list: List[str], f: str, v: Optional[str]) -> None:
         """Add quoted comparison."""
         if v is None:
             s = "%s is null" % f
@@ -265,7 +285,7 @@ class TableRepair:
             s = "%s = %s" % (f, vq)
         dst_list.append(s)
 
-    def cmp_data(self, src_row, dst_row):
+    def cmp_data(self, src_row: DictRow, dst_row: DictRow) -> int:
         """Compare data field-by-field."""
         for k in self.common_fields:
             v1 = src_row[k]
@@ -274,7 +294,7 @@ class TableRepair:
                 return -1
         return 0
 
-    def cmp_value(self, v1, v2):
+    def cmp_value(self, v1: str, v2: str) -> int:
         """Compare single field, tolerates tz vs notz dates."""
         if v1 == v2:
             return 0
@@ -293,7 +313,7 @@ class TableRepair:
 
         return -1
 
-    def cmp_keys(self, src_row, dst_row):
+    def cmp_keys(self, src_row: Optional[DictRow], dst_row: Optional[DictRow]) -> int:
         """Compare primary keys of the rows.
 
         Returns 1 if src > dst, -1 if src < dst and 0 if src == dst"""
@@ -318,11 +338,12 @@ class TableRepair:
 
 class Syncer(skytools.DBScript):
     """Checks that tables in two databases are in sync."""
-    lock_timeout = 10
-    ticker_lag_limit = 20
-    consumer_lag_limit = 20
+    lock_timeout: float = 10
+    ticker_lag_limit: int = 20
+    consumer_lag_limit: int = 20
 
-    def sync_table(self, cstr1, cstr2, queue_name, consumer_name, table_name):
+    def sync_table(self, cstr1: str, cstr2: str, queue_name: str,
+            consumer_name: str, table_name: str) -> Tuple[Connection, Connection]:
         """Syncer main function.
 
         Returns (src_db, dst_db) that are in transaction
@@ -396,14 +417,14 @@ class Syncer(skytools.DBScript):
 
         return (src_db, dst_db)
 
-    def set_lock_timeout(self, curs):
+    def set_lock_timeout(self, curs: Cursor) -> None:
         ms = int(1000 * self.lock_timeout)
         if ms > 0:
             q = "SET LOCAL statement_timeout = %d" % ms
             self.log.debug(q)
             curs.execute(q)
 
-    def check_consumer(self, curs, queue_name, consumer_name):
+    def check_consumer(self, curs: Cursor, queue_name: str, consumer_name: str) -> None:
         """ Before locking anything check if consumer is working ok.
         """
         self.log.info("Queue: %s Consumer: %s", queue_name, consumer_name)
@@ -431,7 +452,7 @@ class Syncer(skytools.DBScript):
             self.log.error('Consumer lagging too much, cannot proceed')
             sys.exit(1)
 
-    def force_tick(self, curs, queue_name):
+    def force_tick(self, curs: Cursor, queue_name: str) -> None:
         """ Force tick into source queue so that consumer can move on faster
         """
         q = "select pgq.force_tick(%s)"
@@ -507,7 +528,8 @@ class Checker(Syncer):
                and q.queue_name like 'xm%%%%'
     """
 
-    def __init__(self, args):
+
+    def __init__(self, args: Sequence[str]):
         """Checker init."""
         super().__init__('data_checker', args)
         self.set_single_loop(1)
@@ -517,7 +539,7 @@ class Checker(Syncer):
 
         self.table_list = self.cf.getlist('table_list')
 
-    def work(self):
+    def work(self) -> None:
         """Syncer main function."""
 
         source_query = self.cf.get('source_query')
@@ -573,7 +595,7 @@ class Checker(Syncer):
                         raise Exception('unknown check type')
                     self.reset()
 
-    def do_compare(self, tbl, src_db, dst_db, where):
+    def do_compare(self, tbl: str, src_db: Connection, dst_db: Connection, where: str) -> bool:
         """Actual comparison."""
 
         src_curs = src_db.cursor()
