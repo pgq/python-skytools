@@ -11,6 +11,8 @@ from typing import Sequence
 
 import skytools
 
+from .basetypes import Connection, ExecuteParams, DictRow
+
 __all__ = ['AdminScript']
 
 
@@ -22,7 +24,8 @@ class AdminScript(skytools.DBScript):
     otherwise error is given.
     """
     commands_without_pidfile: Sequence[str] = ()
-    def __init__(self, service_name, args):
+
+    def __init__(self, service_name: str, args: Sequence[str]):
         """AdminScript init."""
         super().__init__(service_name, args)
 
@@ -37,7 +40,7 @@ class AdminScript(skytools.DBScript):
         if self.pidfile:
             self.pidfile = self.pidfile + ".admin"
 
-    def work(self):
+    def work(self) -> None:
         """Non-looping work function, calls command function."""
 
         self.set_single_loop(1)
@@ -119,14 +122,14 @@ class AdminScript(skytools.DBScript):
         print('\n')
         return 1
 
-    def exec_stmt(self, db, sql, args):
+    def exec_stmt(self, db: Connection, sql: str, args: ExecuteParams) -> None:
         """Run regular non-query SQL on db."""
         self.log.debug("exec_stmt: %s", skytools.quote_statement(sql, args))
         curs = db.cursor()
         curs.execute(sql, args)
         db.commit()
 
-    def exec_query(self, db, sql, args):
+    def exec_query(self, db: Connection, sql: str, args: ExecuteParams) -> Sequence[DictRow]:
         """Run regular query SQL on db."""
         self.log.debug("exec_query: %s", skytools.quote_statement(sql, args))
         curs = db.cursor()
