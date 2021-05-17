@@ -2,7 +2,7 @@
 NEWS
 ====
 
-Skytools 3.7 (xxxx-xx-xx)
+Skytools 3.7 (2021-05-17)
 -------------------------
 
 Features:
