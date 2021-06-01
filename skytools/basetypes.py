@@ -2,7 +2,7 @@
 """
 
 import io
-from typing import IO, Any, Iterable, Mapping, Optional, Sequence, Tuple, Union
+from typing import IO, Any, Iterable, Mapping, Optional, Sequence, Tuple, Union, Type
 
 try:
     from typing import Protocol
@@ -18,35 +18,40 @@ class DictRow(Protocol):
 
     Both Psycopg2 DictRow and PL/Python rows support this.
     """
-    def keys(self) -> Iterable[str]: ...
-    def values(self) -> Iterable[Any]: ...
-    def items(self) -> Iterable[Tuple[str, Any]]: ...
-    def __getitem__(self, key: Union[str, int]) -> Any: ...
-    def __iter__(self) -> Iterable[str]: ...
-    def __len__(self) -> int: ...
-    def __contains__(self, key: str) -> bool: ...
+    def keys(self) -> Iterable[str]: raise NotImplementedError
+    def values(self) -> Iterable[Any]: raise NotImplementedError
+    def items(self) -> Iterable[Tuple[str, Any]]: raise NotImplementedError
+    def get(self, key: str, default: Any = None) -> Any: raise NotImplementedError
+    def __getitem__(self, key: Union[str, int]) -> Any: raise NotImplementedError
+    def __iter__(self) -> Iterable[str]: raise NotImplementedError
+    def __len__(self) -> int: raise NotImplementedError
+    def __contains__(self, key: str) -> bool: raise NotImplementedError
 
 
 class Cursor(Protocol):
-    def execute(self, sql: str, params: Optional[ExecuteParams] = None) -> None: ...
-    def fetchall(self) -> Sequence[DictRow]: ...
-    def fetchone(self) -> DictRow: ...
-    def copy_from(self, buf: IO[str], hdr: str) -> None: ...
-    def copy_expert(self, sql: str, f: Union[IO[str], io.TextIOBase]) -> None: ...
+    @property
+    def rowcount(self) -> int: raise NotImplementedError
+    def execute(self, sql: str, params: Optional[ExecuteParams] = None) -> None: raise NotImplementedError
+    def fetchall(self) -> Sequence[DictRow]: raise NotImplementedError
+    def fetchone(self) -> DictRow: raise NotImplementedError
+    def __enter__(self) -> "Cursor": raise NotImplementedError
+    def __exit__(self, typ: Type, value: Any, traceback: Any) -> Any: raise NotImplementedError
+    def copy_from(self, buf: IO[str], hdr: str) -> None: raise NotImplementedError
+    def copy_expert(self, sql: str, f: Union[IO[str], io.TextIOBase]) -> None: raise NotImplementedError
 
 
 class Connection(Protocol):
-    def cursor(self) -> Cursor: ...
-    def rollback(self) -> None: ...
-    def commit(self) -> None: ...
+    def cursor(self) -> Cursor: raise NotImplementedError
+    def rollback(self) -> None: raise NotImplementedError
+    def commit(self) -> None: raise NotImplementedError
 
 
 class Runnable(Protocol):
-    def run(self) -> None: ...
+    def run(self) -> None: raise NotImplementedError
 
 
 class HasFileno(Protocol):
-    def fileno(self) -> int: ...
+    def fileno(self) -> int: raise NotImplementedError
 
 
 FileDescriptor = int
