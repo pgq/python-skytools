@@ -15,10 +15,10 @@ def test_dbdict():
 
     del row.c
     with pytest.raises(AttributeError):
-        row.c
+        assert row.c
 
     with pytest.raises(KeyError):
-        row['c']
+        assert row['c']
 
     row.merge({'q': 4})
     assert row.q == 4
