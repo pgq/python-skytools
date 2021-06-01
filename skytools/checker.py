@@ -7,7 +7,7 @@ import subprocess
 import sys
 import time
 
-from typing import Optional, List, Dict, Sequence, Tuple
+from typing import Optional, List, Dict, Sequence, Tuple, IO
 
 import skytools
 
@@ -100,9 +100,8 @@ class TableRepair:
             dst_db.commit()
 
     def do_sort(self, src: str, dst: str) -> None:
-        p = subprocess.Popen(["sort", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        s_ver = p.communicate()[0]
-        del p
+        with subprocess.Popen(["sort", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+            s_ver = p.communicate()[0]
 
         xenv = os.environ.copy()
         xenv['LANG'] = 'C'
@@ -115,9 +114,9 @@ class TableRepair:
         cmdline.append('-o')
         cmdline.append(dst)
         cmdline.append(src)
-        p = subprocess.Popen(cmdline, env=xenv)
-        if p.wait() != 0:
-            raise Exception('sort failed')
+        with subprocess.Popen(cmdline, env=xenv) as p:
+            if p.wait() != 0:
+                raise Exception('sort failed')
 
     def gen_copy_tbl(self, src_curs: Cursor, dst_curs: Cursor, where: str) -> str:
         """Create COPY expession from common fields."""
@@ -170,8 +169,11 @@ class TableRepair:
     def dump_compare(self, src_fn: str, dst_fn: str, fix: str) -> None:
         """Dump + compare single table."""
         self.log.info("Comparing dumps: %s", self.table_name)
-        f1 = open(src_fn, "r", 64 * 1024)
-        f2 = open(dst_fn, "r", 64 * 1024)
+        with open(src_fn, "r", 64 * 1024) as f1:
+            with open(dst_fn, "r", 64 * 1024) as f2:
+                self.dump_compare_streams(f1, f2, fix)
+
+    def dump_compare_streams(self, f1: IO[str], f2: IO[str], fix: str) -> None:
         src_ln = f1.readline()
         dst_ln = f2.readline()
         if src_ln:
