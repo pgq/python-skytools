@@ -11,7 +11,7 @@ from typing import Sequence
 
 import skytools
 
-from .basetypes import Connection, ExecuteParams, DictRow
+from .basetypes import Connection, DictRow, ExecuteParams
 
 __all__ = ['AdminScript']
 

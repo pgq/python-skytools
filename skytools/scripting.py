@@ -12,14 +12,12 @@ import select
 import signal
 import sys
 import time
-
-from typing import Dict, Optional, Sequence, Tuple, Any, Mapping, List
-
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import skytools
 import skytools.skylog
 
-from .basetypes import Runnable, Connection
+from .basetypes import Connection, Runnable
 
 try:
     import skytools.installer_config
@@ -31,7 +29,6 @@ except ImportError:
 __all__ = (
     'BaseScript', 'UsageError', 'daemonize', 'DBScript',
 )
-
 
 
 class UsageError(Exception):
@@ -110,7 +107,7 @@ _log_config_done: int = 0
 _log_init_done: Dict[str, int] = {}
 
 
-def _init_log(job_name:str, service_name:str, cf:skytools.Config, log_level:int, is_daemon:bool):
+def _init_log(job_name: str, service_name: str, cf: skytools.Config, log_level: int, is_daemon: bool):
     """Logging setup happens here."""
     global _log_config_done
 
@@ -571,7 +568,7 @@ class BaseScript:
         """Sets a stat value."""
         self.stat_dict[key] = value
 
-    def stat_increase(self, key: str, increase:float=1):
+    def stat_increase(self, key: str, increase: float = 1):
         """Increases a stat value."""
         try:
             self.stat_dict[key] += increase

@@ -6,12 +6,11 @@ import os
 import subprocess
 import sys
 import time
-
-from typing import Optional, List, Dict, Sequence, Tuple, IO
+from typing import IO, Dict, List, Optional, Sequence, Tuple
 
 import skytools
 
-from .basetypes import Cursor, Connection
+from .basetypes import Connection, Cursor
 
 DictRow = Dict[str, str]
 
@@ -56,7 +55,7 @@ class TableRepair:
         self.apply_cursor = None
 
     def do_repair(self, src_db: Connection, dst_db: Connection, where: str,
-            pfx: str = 'repair', apply_fixes: bool = False) -> None:
+                  pfx: str = 'repair', apply_fixes: bool = False) -> None:
         """Actual comparison."""
 
         self.reset()
@@ -345,7 +344,7 @@ class Syncer(skytools.DBScript):
     consumer_lag_limit: int = 20
 
     def sync_table(self, cstr1: str, cstr2: str, queue_name: str,
-            consumer_name: str, table_name: str) -> Tuple[Connection, Connection]:
+                   consumer_name: str, table_name: str) -> Tuple[Connection, Connection]:
         """Syncer main function.
 
         Returns (src_db, dst_db) that are in transaction
@@ -529,7 +528,6 @@ class Checker(Syncer):
                and d.db_name = %%(db_name)s
                and q.queue_name like 'xm%%%%'
     """
-
 
     def __init__(self, args: Sequence[str]):
         """Checker init."""

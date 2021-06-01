@@ -4,9 +4,8 @@ Here is pure Python that should match C code in _cquoting.
 """
 
 import re
+from typing import Any, Dict, Mapping, Match, Optional
 from urllib.parse import quote_plus, unquote_plus  # noqa
-
-from typing import Match, Optional, Any, Dict, Mapping
 
 __all__ = (
     "quote_literal", "quote_copy", "quote_bytea_raw",
@@ -112,7 +111,7 @@ def db_urldecode(qs: str) -> Dict[str, Optional[str]]:
     Python implementation.
     """
 
-    res: Dict[str,Optional[str]] = {}
+    res: Dict[str, Optional[str]] = {}
     for elem in qs.split('&'):
         if not elem:
             continue

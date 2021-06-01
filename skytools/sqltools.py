@@ -4,10 +4,11 @@
 import io
 import logging
 import os
-from typing import Any, List, Mapping, Optional, Sequence, Tuple, Union, Dict
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 import skytools
-from .basetypes import Cursor, Connection
+
+from .basetypes import Connection, Cursor
 
 __all__ = (
     "fq_name_parts", "fq_name", "get_table_oid", "get_table_pkeys",

@@ -2,7 +2,9 @@
 """
 
 import io
-from typing import IO, Any, Iterable, Mapping, Optional, Sequence, Tuple, Union, Type
+from typing import (
+    IO, Any, Iterable, Mapping, Optional, Sequence, Tuple, Type, Union,
+)
 
 try:
     from typing import Protocol

@@ -9,8 +9,7 @@ from configparser import MAX_INTERPOLATION_DEPTH, ConfigParser
 from configparser import Error as ConfigError
 from configparser import (
     ExtendedInterpolation, Interpolation, InterpolationDepthError,
-    InterpolationError, NoOptionError, NoSectionError,
-    RawConfigParser,
+    InterpolationError, NoOptionError, NoSectionError, RawConfigParser,
 )
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
