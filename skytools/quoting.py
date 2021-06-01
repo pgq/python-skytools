@@ -60,26 +60,23 @@ def quote_statement(sql: str, dict_or_list: Union[Mapping[str, Any], Sequence[An
         return sql % tuple(qvals)
 
 
-# reserved keywords (RESERVED_KEYWORD + TYPE_FUNC_NAME_KEYWORD)
-_ident_kwmap = {
-    "all": 1, "analyse": 1, "analyze": 1, "and": 1, "any": 1, "array": 1, "as": 1,
-    "asc": 1, "asymmetric": 1, "authorization": 1, "between": 1, "binary": 1, "both": 1, "case": 1,
-    "cast": 1, "check": 1, "collate": 1, "collation": 1, "column": 1, "concurrently": 1,
-    "constraint": 1, "create": 1, "cross": 1, "current_catalog": 1, "current_date": 1,
-    "current_role": 1, "current_schema": 1, "current_time": 1, "current_timestamp": 1,
-    "current_user": 1, "default": 1, "deferrable": 1, "desc": 1, "distinct": 1,
-    "do": 1, "else": 1, "end": 1, "except": 1, "false": 1, "fetch": 1,
-    "for": 1, "foreign": 1, "freeze": 1, "from": 1, "full": 1, "grant": 1, "group": 1,
-    "having": 1, "ilike": 1, "in": 1, "initially": 1, "inner": 1, "intersect": 1,
-    "into": 1, "is": 1, "isnull": 1, "join": 1, "lateral": 1, "leading": 1, "left": 1,
-    "like": 1, "limit": 1, "localtime": 1, "localtimestamp": 1, "natural": 1,
-    "not": 1, "notnull": 1, "null": 1, "offset": 1, "on": 1, "only": 1,
-    "or": 1, "order": 1, "outer": 1, "overlaps": 1, "placing": 1, "primary": 1,
-    "references": 1, "returning": 1, "right": 1, "select": 1, "session_user": 1,
-    "similar": 1, "some": 1, "symmetric": 1, "table": 1, "tablesample": 1, "then": 1, "to": 1, "trailing": 1,
-    "true": 1, "union": 1, "unique": 1, "user": 1, "using": 1, "variadic": 1, "verbose": 1,
-    "when": 1, "where": 1, "window": 1, "with": 1,
-}
+# reserved keywords (RESERVED_KEYWORD + TYPE_FUNC_NAME_KEYWORD + COL_NAME_KEYWORD)
+# same list as postgres quote_ident()
+_ident_kwmap = frozenset("""
+    all analyse analyze and any array as asc asymmetric authorization between bigint binary
+    bit boolean both case cast char character check coalesce collate collation column
+    concurrently constraint create cross current_catalog current_date current_role current_schema
+    current_time current_timestamp current_user dec decimal default deferrable desc distinct
+    do else end except exists extract false fetch float for foreign freeze from full grant
+    greatest group grouping having ilike in initially inner inout int integer intersect
+    interval into is isnull join lateral leading least left like limit localtime localtimestamp
+    national natural nchar none normalize not notnull null nullif numeric offset on only or order
+    out outer overlaps overlay placing position precision primary real references returning
+    right row select session_user setof similar smallint some substring symmetric table
+    tablesample then time timestamp to trailing treat trim true union unique user using
+    values varchar variadic verbose when where window with xmlattributes xmlconcat xmlelement
+    xmlexists xmlforest xmlnamespaces xmlparse xmlpi xmlroot xmlserialize xmltable
+""".split())
 
 _ident_bad = re.compile(r"[^a-z0-9_]|^[0-9]")
 
