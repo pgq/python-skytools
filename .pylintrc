@@ -79,6 +79,7 @@ disable=bad-continuation,
 	using-constant-test,
 	useless-object-inheritance,
 	duplicate-code,
+        singleton-comparison,
 
 	arguments-differ,
 	multiple-statements,

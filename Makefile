@@ -6,7 +6,6 @@ NEWS = NEWS.rst
 
 all:
 	tox -e lint
-	tox -e mypy
 	tox -e py3
 
 clean:
