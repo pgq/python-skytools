@@ -4,7 +4,7 @@
 import io
 import logging
 import os
-from typing import Any, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, List, Mapping, Optional, Sequence, Tuple, Union, Dict
 
 import skytools
 from .basetypes import Cursor, Connection
@@ -20,23 +20,23 @@ __all__ = (
 )
 
 
-class dbdict(dict):
+class dbdict(Dict[str, Any]):
     """Wrapper on actual dict that allows accessing dict keys as attributes.
     """
     # obj.foo access
-    def __getattr__(self, k):
+    def __getattr__(self, k: str) -> Any:
         "Return attribute."
         try:
             return self[k]
         except KeyError:
             raise AttributeError(k) from None
-    def __setattr__(self, k, v):
+    def __setattr__(self, k: str, v: Any) -> None:
         "Set attribute."
         self[k] = v
-    def __delattr__(self, k):
+    def __delattr__(self, k: str) -> None:
         "Remove attribute."
         del self[k]
-    def merge(self, other):
+    def merge(self, other: Dict[str, Any]):
         for key in other:
             if key not in self:
                 self[key] = other[key]
