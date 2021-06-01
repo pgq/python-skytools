@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 import skytools
 
-from .basetypes import Cursor, DictRow
+from .basetypes import Cursor
 
 try:
     import plpy
@@ -238,7 +238,7 @@ class PLPyQueryBuilder(QueryBuilderCore):
         else:
             self._plan_cache = None
 
-    def execute(self) -> List[skytools.dbdict]:
+    def execute(self) -> Sequence[skytools.dbdict]:
         """Server-side query execution via plpy.
 
         Query can be run either cached or uncached, depending
@@ -278,13 +278,16 @@ class PLPyQuery:
         self.arg_map = qb._arg_value_list
         self.sql = sql
 
-    def execute(self, arg_dict: Mapping[str, Any], all_keys_required=True) -> Sequence[DictRow]:
+    def execute(self, arg_dict: Mapping[str, Any], all_keys_required=True) -> Sequence[skytools.dbdict]:
         try:
             if all_keys_required:
                 arg_list = [arg_dict[k] for k in self.arg_map]
             else:
                 arg_list = [arg_dict.get(k) for k in self.arg_map]
-            return plpy.execute(self.plan, arg_list)
+            res = plpy.execute(self.plan, arg_list)
+            if res:
+                return [skytools.dbdict(row) for row in res]
+            return res
         except KeyError:
             need = set(self.arg_map)
             got = set(arg_dict.keys())
@@ -300,7 +303,7 @@ class PLPyQuery:
 def plpy_exec(gd: Optional[Dict[str, Any]],
               sql: str,
               args: Optional[Mapping[str, Any]],
-              all_keys_required=True) -> Sequence[DictRow]:
+              all_keys_required=True) -> Sequence[skytools.dbdict]:
     """Cached plan execution for PL/Python.
 
     @param gd:  dict to store cached plans under.  If None, caching is disabled.
