@@ -12,6 +12,9 @@ clean:
 	rm -rf build *.egg-info */__pycache__ tests/*.pyc
 	rm -rf .pybuild MANIFEST
 
+xlint:
+	tox -e xlint
+
 xclean: clean
 	rm -rf .tox dist
 
