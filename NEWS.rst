@@ -2,6 +2,24 @@
 NEWS
 ====
 
+Skytools 3.7.1 (2021-06-08)
+---------------------------
+
+Fixes:
+
+* quoting: drop obsolete keywords from quote_ident
+* quoting: add COL_NAME_KEYWORDs into quote_ident list
+* querybuilder: use dbdict more consistently
+
+Cleanups:
+
+* basetypes: tune Protocol classes
+* tests: avoid 'pointless-statement'
+* sqltools: annotate dbdict
+* checker: use 'with' with files
+* modules: add .pyi annotations
+
+
 Skytools 3.7 (2021-05-17)
 -------------------------
 
