@@ -1,8 +1,6 @@
 """Setup for skytools module.
 """
 
-import sys
-
 from setuptools import Extension, setup
 
 # load version
@@ -11,7 +9,7 @@ with open("skytools/installer_config.py") as f:
     for ln in f:
         if ln.startswith("package_version"):
             _version = ln.split()[2].strip("\"'")
-len(_version)
+assert _version
 
 # load info
 with open("README.rst") as f:
