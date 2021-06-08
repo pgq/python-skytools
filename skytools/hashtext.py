@@ -12,9 +12,9 @@ from typing import Tuple, Union
 try:
     from skytools._chashtext import hashtext_new, hashtext_old
 except ImportError:
-    def hashtext_old(v: str) -> int:
+    def hashtext_old(v: Union[bytes, str]) -> int:
         return hashtext_old_py(v)
-    def hashtext_new(v: str) -> int:
+    def hashtext_new(v: Union[bytes, str]) -> int:
         return hashtext_new_py(v)
 
 

@@ -56,7 +56,7 @@ def quote_copy(s: Any) -> str:
 _bytea_map: Optional[Dict[int, str]] = None
 
 
-def quote_bytea_raw(s):
+def quote_bytea_raw(s: bytes) -> str:
     """Quoting for bytea parser.  Returns None as None.
 
     Python implementation.
