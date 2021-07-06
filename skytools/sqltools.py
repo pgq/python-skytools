@@ -341,8 +341,8 @@ def magic_insert(curs: Cursor, tablename: str,
         curs.execute(buf.getvalue())
     else:
         buf.seek(0)
-        hdr = "%s (%s)" % (qtablename, ",".join(qfields))
-        curs.copy_from(buf, hdr)
+        sql = "COPY %s (%s) FROM STDIN" % (qtablename, ",".join(qfields))
+        curs.copy_expert(sql, buf)
     return None
 
 
@@ -401,9 +401,10 @@ class CopyPipe(io.TextIOBase):
 
         self.buf.seek(0)
         if self.sql_from:
-            self.dstcurs.copy_expert(self.sql_from, self.buf)
+            sql = self.sql_from
         else:
-            self.dstcurs.copy_from(self.buf, self.tablename or "missing_table_name")
+            sql = "COPY %s FROM STDIN" % (self.tablename or "missing_table_name",)
+        self.dstcurs.copy_expert(sql, self.buf)
         self.buf.seek(0)
         self.buf.truncate()
 

@@ -38,8 +38,7 @@ class Cursor(Protocol):
     def fetchone(self) -> DictRow: raise NotImplementedError
     def __enter__(self) -> "Cursor": raise NotImplementedError
     def __exit__(self, typ: Type, value: Any, traceback: Any) -> Any: raise NotImplementedError
-    def copy_from(self, buf: IO[str], hdr: str) -> None: raise NotImplementedError
-    def copy_expert(self, sql: str, f: Union[IO[str], io.TextIOBase]) -> None: raise NotImplementedError
+    def copy_expert(self, sql: str, f: Union[IO[str], io.TextIOBase], size: int = 8192) -> None: raise NotImplementedError
 
 
 class Connection(Protocol):
