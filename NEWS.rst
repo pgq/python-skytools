@@ -2,6 +2,13 @@
 NEWS
 ====
 
+Skytools 3.7.2 (2021-07-06)
+---------------------------
+
+Fixes:
+
+* Avoid psycopg copy_from, not usable in v2.9
+
 Skytools 3.7.1 (2021-06-08)
 ---------------------------
 
