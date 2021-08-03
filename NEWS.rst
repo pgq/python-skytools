@@ -2,6 +2,13 @@
 NEWS
 ====
 
+Skytools 3.7.3 (2021-08-03)
+---------------------------
+
+Fixes:
+
+* Allow binary I/O in copy_expert signature.
+
 Skytools 3.7.2 (2021-07-06)
 ---------------------------
 
