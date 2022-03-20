@@ -2,7 +2,7 @@
 """
 
 import re
-from typing import Iterator, List, Optional, Sequence, Tuple
+from typing import Iterator, List, Optional, Sequence, Tuple, Dict, Union
 
 import skytools
 
@@ -60,11 +60,11 @@ def parse_pgarray(array: Optional[str]) -> Optional[List[Optional[str]]]:
 
 class _logtriga_parser:
     """Parses logtriga/sqltriga partial SQL to values."""
-    pklist = None
-    def tokenizer(self, sql):
+    pklist: Optional[Sequence[str]] = None
+    def tokenizer(self, sql: str) -> Iterator[str]:
         """Token generator."""
-        for ___typ, tok in sql_tokenizer(sql, ignore_whitespace=True):
-            yield tok
+        for tup in sql_tokenizer(sql, ignore_whitespace=True):
+            yield tup[1]
 
     def parse_insert(self, tk, fields, values, key_fields, key_values):
         """Handler for inserts."""
@@ -138,17 +138,18 @@ class _logtriga_parser:
         values = [skytools.unquote_literal(f) for f in values]
         return skytools.dbdict(zip(fields, values))
 
-    def parse_sql(self, op, sql, pklist=None, splitkeys=False):
+    def parse_sql(self, op: str, sql: str, pklist: Optional[Sequence[str]] = None, splitkeys: bool = False
+    ) -> Union[skytools.dbdict, Tuple[skytools.dbdict, skytools.dbdict]]:
         """Main entry point."""
         if pklist is None:
             self.pklist = []
         else:
             self.pklist = pklist
         tk = self.tokenizer(sql)
-        fields = []
-        values = []
-        key_fields = []
-        key_values = []
+        fields: List[str] = []
+        values: List[str] = []
+        key_fields: List[str] = []
+        key_values: List[str] = []
         try:
             if op == "I":
                 self.parse_insert(tk, fields, values, key_fields, key_values)
@@ -170,11 +171,15 @@ class _logtriga_parser:
         return self._create_dbdict(fields + key_fields, values + key_values)
 
 
-def parse_logtriga_sql(op, sql, splitkeys=False):
+def parse_logtriga_sql(
+    op: str, sql: str, splitkeys: bool = False
+) -> Union[skytools.dbdict, Tuple[skytools.dbdict, skytools.dbdict]]:
     return parse_sqltriga_sql(op, sql, splitkeys=splitkeys)
 
 
-def parse_sqltriga_sql(op, sql, pklist=None, splitkeys=False):
+def parse_sqltriga_sql(
+    op: str, sql: str, pklist: Optional[Sequence[str]] = None, splitkeys: bool = False
+) -> Union[skytools.dbdict, Tuple[skytools.dbdict, skytools.dbdict]]:
     """Parse partial SQL used by pgq.sqltriga() back to data values.
 
     Parser has following limitations:
@@ -189,7 +194,7 @@ def parse_sqltriga_sql(op, sql, pklist=None, splitkeys=False):
     return _logtriga_parser().parse_sql(op, sql, pklist, splitkeys=splitkeys)
 
 
-def parse_tabbed_table(txt):
+def parse_tabbed_table(txt: str) -> List[Dict[str, str]]:
     r"""Parse a tab-separated table into list of dicts.
 
     Expect first row to be column names.
@@ -199,7 +204,7 @@ def parse_tabbed_table(txt):
 
     txt = txt.replace("\r\n", "\n")
     fields = None
-    data = []
+    data: List[Dict[str, str]] = []
     for ln in txt.split("\n"):
         if not ln:
             continue
@@ -244,8 +249,10 @@ _std_sql_rc = _ext_sql_rc = None
 _std_sql_fq_rc = _ext_sql_fq_rc = None
 
 
-def sql_tokenizer(sql, standard_quoting=False, ignore_whitespace=False,
-                  fqident=False, show_location=False):
+def sql_tokenizer(
+        sql: str, standard_quoting: bool = False, ignore_whitespace: bool = False,
+        fqident: bool = False, show_location: bool = False
+        ) -> Iterator[Union[Tuple[str, str], Tuple[str, str, int]]]:
     r"""Parser SQL to tokens.
 
     Iterator, returns (toktype, tokstr) tuples.
@@ -274,7 +281,7 @@ def sql_tokenizer(sql, standard_quoting=False, ignore_whitespace=False,
         if not m:
             break
         pos = m.end()
-        typ = m.lastgroup
+        typ = m.lastgroup or '?'
         if ignore_whitespace and typ == "ws":
             continue
         tk = m.group()
@@ -299,7 +306,8 @@ def parse_statements(sql: str, standard_quoting: bool = False) -> Iterator[str]:
         _copy_from_stdin_rc = re.compile(_copy_from_stdin_re, re.X | re.I)
     tokens: List[str] = []
     pcount = 0  # '(' level
-    for typ, t in sql_tokenizer(sql, standard_quoting=standard_quoting):
+    for tmp in sql_tokenizer(sql, standard_quoting=standard_quoting):
+        typ, t = tmp[0], tmp[1]
         # skip whitespace and comments before statement
         if len(tokens) == 0 and typ == "ws":
             continue

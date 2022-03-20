@@ -7,9 +7,12 @@ exclude_lines =
 omit =
     .tox/*
     tests/*
+    */tests/*
 
 [paths]
-source =
+source_pkgs = 
     skytools/
     */skytools/
 
+[run]
+source_pkgs = skytools

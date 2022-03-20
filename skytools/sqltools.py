@@ -483,7 +483,7 @@ class DBObject:
             fn = self.find_file()
             if log:
                 log.info("  Reading from %s" % fn)
-            with open(fn, "r") as f:
+            with open(fn, "r", encoding="utf8") as f:
                 sql = f.read()
         else:
             raise Exception('object not defined')
@@ -573,7 +573,7 @@ def installer_find_file(filename: str) -> str:
 def installer_apply_file(db: Connection, filename: str, log: logging.Logger) -> None:
     """Find SQL file and apply it to db, statement-by-statement."""
     fn = installer_find_file(filename)
-    with open(fn, "r") as f:
+    with open(fn, "r", encoding="utf8") as f:
         sql = f.read()
     if log:
         log.info("applying %s" % fn)

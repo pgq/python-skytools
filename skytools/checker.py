@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 import time
-from typing import IO, Dict, List, Optional, Sequence, Tuple
+from typing import IO, List, Optional, Sequence, Tuple, Dict, cast, Mapping, Any
 
 import skytools
 
@@ -31,7 +31,7 @@ class TableRepair:
     total_src: int
     total_dst: int
 
-    def __init__(self, table_name: str, log: logging.Logger):
+    def __init__(self, table_name: str, log: logging.Logger) -> None:
         self.table_name = table_name
         self.fq_table_name = skytools.quote_fqident(table_name)
         self.log = log
@@ -151,7 +151,7 @@ class TableRepair:
 
     def dump_table(self, copy_cmd: str, curs: Cursor, fn: str) -> None:
         """Dump table to disk."""
-        with open(fn, "w", 64 * 1024) as f:
+        with open(fn, "w", 64 * 1024, encoding="utf8") as f:
             curs.copy_expert(copy_cmd, f)
             self.log.info('%s: Got %d bytes', self.table_name, f.tell())
 
@@ -160,16 +160,16 @@ class TableRepair:
         if not ln:
             return None
         t = ln[:-1].split('\t')
-        row = {}
-        for i in range(len(self.common_fields)):
-            row[self.common_fields[i]] = t[i]
+        row: DictRow = {}
+        for i, n in enumerate(self.common_fields):
+            row[n] = t[i]
         return row
 
     def dump_compare(self, src_fn: str, dst_fn: str, fix: str) -> None:
         """Dump + compare single table."""
         self.log.info("Comparing dumps: %s", self.table_name)
-        with open(src_fn, "r", 64 * 1024) as f1:
-            with open(dst_fn, "r", 64 * 1024) as f2:
+        with open(src_fn, "r", 64 * 1024, encoding="utf8") as f1:
+            with open(dst_fn, "r", 64 * 1024, encoding="utf8") as f2:
                 self.dump_compare_streams(f1, f2, fix)
 
     def dump_compare_streams(self, f1: IO[str], f2: IO[str], fix: str) -> None:
@@ -265,7 +265,7 @@ class TableRepair:
     def show_fix(self, q: str, desc: str, fn: str) -> None:
         """Print/write/apply repair sql."""
         self.log.debug("missed %s: %s", desc, q)
-        with open(fn, "a") as f:
+        with open(fn, "a", encoding="utf8") as f:
             f.write("%s\n" % q)
 
         if self.apply_fixes and self.apply_cursor:
@@ -529,7 +529,7 @@ class Checker(Syncer):
                and q.queue_name like 'xm%%%%'
     """
 
-    def __init__(self, args: Sequence[str]):
+    def __init__(self, args: Sequence[str]) -> None:
         """Checker init."""
         super().__init__('data_checker', args)
         self.set_single_loop(1)
@@ -539,7 +539,7 @@ class Checker(Syncer):
 
         self.table_list = self.cf.getlist('table_list')
 
-    def work(self) -> None:
+    def work(self) -> Optional[int]:
         """Syncer main function."""
 
         source_query = self.cf.get('source_query')
@@ -558,12 +558,13 @@ class Checker(Syncer):
             s_host = src_row['hostname']
             s_db = src_row['db_name']
 
-            curs.execute(consumer_query, src_row)
+            cast_row = cast(Mapping[str, Any], src_row)
+            curs.execute(consumer_query, cast_row)
             r = curs.fetchone()
             consumer_name = r['consumer_name']
             queue_name = r['queue_name']
 
-            curs.execute(target_query, src_row)
+            curs.execute(target_query, cast_row)
             for dst_row in curs.fetchall():
                 d_db = dst_row['db_name']
                 d_host = dst_row['hostname']
@@ -581,19 +582,20 @@ class Checker(Syncer):
                     if check == 'compare':
                         self.do_compare(tbl, src_db, dst_db, where)
                     elif check == 'repair':
-                        r = TableRepair(tbl, self.log)
-                        r.do_repair(src_db, dst_db, where, 'fix.' + tbl, False)
+                        tr = TableRepair(tbl, self.log)
+                        tr.do_repair(src_db, dst_db, where, 'fix.' + tbl, False)
                     elif check == 'repair-apply':
-                        r = TableRepair(tbl, self.log)
-                        r.do_repair(src_db, dst_db, where, 'fix.' + tbl, True)
+                        tr = TableRepair(tbl, self.log)
+                        tr.do_repair(src_db, dst_db, where, 'fix.' + tbl, True)
                     elif check == 'compare-repair-apply':
                         ok = self.do_compare(tbl, src_db, dst_db, where)
                         if not ok:
-                            r = TableRepair(tbl, self.log)
-                            r.do_repair(src_db, dst_db, where, 'fix.' + tbl, True)
+                            tr = TableRepair(tbl, self.log)
+                            tr.do_repair(src_db, dst_db, where, 'fix.' + tbl, True)
                     else:
                         raise Exception('unknown check type')
                     self.reset()
+        return None
 
     def do_compare(self, tbl: str, src_db: Connection, dst_db: Connection, where: str) -> bool:
         """Actual comparison."""

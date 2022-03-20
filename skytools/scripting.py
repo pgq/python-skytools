@@ -12,12 +12,12 @@ import select
 import signal
 import sys
 import time
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union, Callable, Type, cast
 
 import skytools
 import skytools.skylog
 
-from .basetypes import Connection, Runnable
+from .basetypes import Connection, Runnable, Cursor, DictRow, ExecuteParams
 
 try:
     import skytools.installer_config
@@ -39,7 +39,7 @@ class UsageError(Exception):
 # daemon mode
 #
 
-def daemonize():
+def daemonize() -> None:
     """Turn the process into daemon.
 
     Goes background and disables all i/o.
@@ -66,7 +66,7 @@ def daemonize():
 # Pidfile locking+cleanup & daemonization combined
 #
 
-def run_single_process(runnable: Runnable, daemon: bool, pidfile: Optional[str]):
+def run_single_process(runnable: Runnable, daemon: bool, pidfile: Optional[str]) -> None:
     """Run runnable class, possibly daemonized, locked on pidfile."""
 
     # check if another process is running
@@ -107,7 +107,7 @@ _log_config_done: int = 0
 _log_init_done: Dict[str, int] = {}
 
 
-def _init_log(job_name: str, service_name: str, cf: skytools.Config, log_level: int, is_daemon: bool):
+def _init_log(job_name: str, service_name: str, cf: skytools.Config, log_level: int, is_daemon: bool) -> logging.Logger:
     """Logging setup happens here."""
     global _log_config_done
 
@@ -250,12 +250,12 @@ class BaseScript:
     log = logging.getLogger('skytools.BaseScript')
 
     # start time
-    started: int = 0
+    started: float = 0
 
     # set to True to use argparse
     ARGPARSE: bool = False
 
-    def __init__(self, service_name: str, args: Sequence[str]):
+    def __init__(self, service_name: str, args: Sequence[str]) -> None:
         """Script setup.
 
         User class should override work() and optionally __init__(), startup(),
@@ -326,14 +326,14 @@ class BaseScript:
         options2, args2 = opt_parser.parse_args(args)
         return options2, args2
 
-    def print_version(self):
+    def print_version(self) -> None:
         service = self.service_name
         ver = getattr(self, '__version__', None)
         if ver:
             service += ' version %s' % ver
         print('%s, Skytools version %s' % (service, getattr(skytools, '__version__')))
 
-    def print_ini(self):
+    def print_ini(self) -> None:
         """Prints out ini file from doc string of the script of default for dbscript
 
         Used by --ini option on command line.
@@ -355,7 +355,7 @@ class BaseScript:
                     self._print_ini_frag(doc)
             bases = parents
 
-    def _print_ini_frag(self, doc):
+    def _print_ini_frag(self, doc: str) -> None:
         # use last '::' block as config template
         pos = doc and doc.rfind('::\n') or -1
         if pos < 0:
@@ -386,7 +386,7 @@ class BaseScript:
 
         print('')
 
-    def load_config(self):
+    def load_config(self) -> skytools.Config:
         """Loads and returns skytools.Config instance.
 
         By default it uses first command-line argument as config
@@ -494,7 +494,7 @@ class BaseScript:
 
         return p
 
-    def send_signal(self, sig: int):
+    def send_signal(self, sig: int) -> None:
         if not self.pidfile:
             self.log.warning("No pidfile in config, nothing to do")
         elif os.path.isfile(self.pidfile):
@@ -505,17 +505,17 @@ class BaseScript:
             self.log.warning("No pidfile, process not running")
         sys.exit(0)
 
-    def set_single_loop(self, do_single_loop: int):
+    def set_single_loop(self, do_single_loop: int) -> None:
         """Changes whether the script will loop or not."""
         if do_single_loop:
             self.looping = 0
         else:
             self.looping = 1
 
-    def _boot_daemon(self):
+    def _boot_daemon(self) -> None:
         run_single_process(self, self.go_daemon, self.pidfile)
 
-    def start(self):
+    def start(self) -> None:
         """This will launch main processing thread."""
         if self.go_daemon:
             if not self.pidfile:
@@ -523,11 +523,11 @@ class BaseScript:
                 sys.exit(1)
         self.run_func_safely(self._boot_daemon)
 
-    def stop(self):
+    def stop(self) -> None:
         """Safely stops processing loop."""
         self.looping = 0
 
-    def reload(self):
+    def reload(self) -> None:
         "Reload config."
         # avoid double loading on startup
         if not getattr(self, "cf", None):
@@ -543,12 +543,13 @@ class BaseScript:
         self.exception_grace = self.cf.getfloat("exception_grace", 5 * 60)
         self.exception_reset = self.cf.getfloat("exception_reset", 15 * 60)
 
-    def hook_sighup(self, sig, frame):
+    def hook_sighup(self, sig: int, frame: Any) -> None:
         "Internal SIGHUP handler.  Minimal code here."
-        self.need_reload = 1
+        self.need_reload = True
 
-    last_sigint = 0
-    def hook_sigint(self, sig, frame):
+    last_sigint: float = 0
+
+    def hook_sigint(self, sig: int, frame: Any) -> None:
         "Internal SIGINT handler.  Minimal code here."
         self.stop()
         t = time.time()
@@ -564,18 +565,18 @@ class BaseScript:
         except KeyError:
             return None
 
-    def stat_put(self, key: str, value: float):
+    def stat_put(self, key: str, value: float) -> None:
         """Sets a stat value."""
         self.stat_dict[key] = value
 
-    def stat_increase(self, key: str, increase: float = 1):
+    def stat_increase(self, key: str, increase: float = 1) -> None:
         """Increases a stat value."""
         try:
             self.stat_dict[key] += increase
         except KeyError:
             self.stat_dict[key] = increase
 
-    def send_stats(self):
+    def send_stats(self) -> None:
         "Send statistics to log."
 
         res = []
@@ -589,11 +590,11 @@ class BaseScript:
         self.log.info(logmsg)
         self.stat_dict = {}
 
-    def reset(self):
+    def reset(self) -> None:
         "Something bad happened, reset all state."
         pass
 
-    def run(self):
+    def run(self) -> None:
         "Thread main loop."
 
         # run startup, safely
@@ -603,7 +604,7 @@ class BaseScript:
             # reload config, if needed
             if self.need_reload:
                 self.reload()
-                self.need_reload = 0
+                self.need_reload = False
 
             # do some work
             work = self.run_once()
@@ -612,7 +613,10 @@ class BaseScript:
                 break
 
             # remember work state
-            self.work_state = work
+            if work:
+                self.work_state = 1
+            else:
+                self.work_state = 0
             # should sleep?
             if not work:
                 if self.loop_delay > 0:
@@ -625,7 +629,7 @@ class BaseScript:
         # run shutdown, safely?
         self.shutdown()
 
-    def run_once(self):
+    def run_once(self) -> int:
         state = self.run_func_safely(self.work, True)
 
         # send stats that was added
@@ -633,8 +637,9 @@ class BaseScript:
 
         return state
 
-    last_func_fail = None
-    def run_func_safely(self, func, prefer_looping=False):
+    last_func_fail: Optional[float] = None
+
+    def run_func_safely(self, func, prefer_looping:bool=False) -> int:
         "Run users work function, safely."
         try:
             r = func()
@@ -642,7 +647,7 @@ class BaseScript:
                 self.last_func_fail = None
             # set exception count to 0 after success
             self.exception_count = 0
-            return r
+            return 1 if r else 0
         except UsageError as d:
             self.log.error(str(d))
             sys.exit(1)
@@ -683,7 +688,7 @@ class BaseScript:
             return -1
         sys.exit(1)
 
-    def sleep(self, secs: float):
+    def sleep(self, secs: float) -> None:
         """Make script sleep for some amount of time."""
         try:
             time.sleep(secs)
@@ -691,7 +696,7 @@ class BaseScript:
             if ex.errno != errno.EINTR:
                 raise
 
-    def sleep_on_exception(self):
+    def sleep_on_exception(self) -> None:
         """Make script sleep for some amount of time when an exception occurs.
 
         To implement more advance exception sleeping like exponential backoff you
@@ -700,11 +705,13 @@ class BaseScript:
         """
         self.sleep(self.exception_sleep)
 
-    def _is_quiet_exception(self, ex):
-        return ((self.exception_quiet == ["ALL"] or ex.__class__.__name__ in self.exception_quiet)
-                and self.last_func_fail and time.time() < self.last_func_fail + self.exception_grace)
+    def _is_quiet_exception(self, ex: Exception) -> bool:
+        if "ALL" in self.exception_quiet or ex.__class__.__name__ in self.exception_quiet:
+            if self.last_func_fail and time.time() < self.last_func_fail + self.exception_grace:
+                return True
+        return False
 
-    def exception_hook(self, det, emsg):
+    def exception_hook(self, det: Exception, emsg: str) -> None:
         """Called on after exception processing.
 
         Can do additional logging.
@@ -718,7 +725,7 @@ class BaseScript:
         else:
             self.log.exception(lm)
 
-    def work(self):
+    def work(self) -> Optional[int]:
         """Here should user's processing happen.
 
         Return value is taken as boolean - if true, the next loop
@@ -726,7 +733,7 @@ class BaseScript:
         """
         raise Exception("Nothing implemented?")
 
-    def startup(self):
+    def startup(self) -> None:
         """Will be called just before entering main loop.
 
         In case of daemon, if will be called in same process as work(),
@@ -740,7 +747,7 @@ class BaseScript:
         if hasattr(signal, 'SIGINT'):
             signal.signal(signal.SIGINT, self.hook_sigint)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Will be called just after exiting main loop.
 
         In case of daemon, if will be called in same process as work(),
@@ -774,11 +781,11 @@ class DBScript(BaseScript):
         #connection_lifetime = 1200
     """
 
-    db_cache: Dict[str, Connection]
-    _db_defaults: Dict[str, Mapping[str, str]]
+    db_cache: Dict[str, "DBCachedConn"]
+    _db_defaults: Dict[str, Mapping[str, int]]
     _listen_map: Dict[str, List[str]]
 
-    def __init__(self, service_name: str, args: Sequence[str]):
+    def __init__(self, service_name: str, args: Sequence[str]) -> None:
         """Script setup.
 
         User class should override work() and optionally __init__(), startup(),
@@ -796,13 +803,13 @@ class DBScript(BaseScript):
         self._listen_map = {}  # dbname: channel_list
         super().__init__(service_name, args)
 
-    def connection_hook(self, dbname, conn):
+    def connection_hook(self, dbname: str, conn: Connection) -> None:
         pass
 
-    def set_database_defaults(self, dbname, **kwargs):
+    def set_database_defaults(self, dbname: str, **kwargs: int) -> None:
         self._db_defaults[dbname] = kwargs
 
-    def add_connect_string_profile(self, connstr, profile):
+    def add_connect_string_profile(self, connstr: str, profile: Optional[str]) -> str:
         """Add extra profile info to connect string.
         """
         if profile:
@@ -811,8 +818,9 @@ class DBScript(BaseScript):
                 connstr += ' ' + extra
         return connstr
 
-    def get_database(self, dbname, autocommit=0, isolation_level=-1,
-                     cache=None, connstr=None, profile=None):
+    def get_database(self, dbname: str, autocommit: int = 0, isolation_level: int = -1,
+            cache: Optional[str] = None, connstr: Optional[str] = None,
+            profile: Optional[str] = None) -> Connection:
         """Load cached database connection.
 
         User must not store it permanently somewhere,
@@ -824,9 +832,10 @@ class DBScript(BaseScript):
         if not cache:
             cache = dbname
 
-        params = {}
+        params: Dict[str, int] = {}
         defs = self._db_defaults.get(cache, {})
-        params.update(defs)
+        for k in defs:
+            params[k] = defs[k]
         if isolation_level >= 0:
             params['isolation_level'] = isolation_level
         elif autocommit:
@@ -867,7 +876,7 @@ class DBScript(BaseScript):
 
         return dbc.get_connection(params['isolation_level'], clist)
 
-    def close_database(self, dbname):
+    def close_database(self, dbname: str) -> None:
         """Explicitly close a cached connection.
 
         Next call to get_database() will reconnect.
@@ -877,14 +886,14 @@ class DBScript(BaseScript):
             dbc.reset()
             del self.db_cache[dbname]
 
-    def reset(self):
+    def reset(self) -> None:
         "Something bad happened, reset all connections."
         for dbc in self.db_cache.values():
             dbc.reset()
         self.db_cache = {}
         super().reset()
 
-    def run_once(self):
+    def run_once(self) -> int:
         state = super().run_once()
 
         # reconnect if needed
@@ -893,9 +902,9 @@ class DBScript(BaseScript):
 
         return state
 
-    def exception_hook(self, d, emsg):
+    def exception_hook(self, det: Exception, emsg: str) -> None:
         """Log database and query details from exception."""
-        curs = getattr(d, 'cursor', None)
+        curs = getattr(det, 'cursor', None)
         conn = getattr(curs, 'connection', None)
         if conn:
             # db connection
@@ -906,14 +915,14 @@ class DBScript(BaseScript):
                 sql = sql[:60] + " ..."
             lm = "Job %s got error on connection: %s.   Query: %s" % (
                 self.job_name, emsg, sql)
-            if self._is_quiet_exception(d):
+            if self._is_quiet_exception(det):
                 self.log.warning(lm)
             else:
                 self.log.exception(lm)
         else:
-            super().exception_hook(d, emsg)
+            super().exception_hook(det, emsg)
 
-    def sleep(self, secs):
+    def sleep(self, secs: float) -> None:
         """Make script sleep for some amount of time."""
         fdlist = []
         for dbname in self._listen_map:
@@ -939,7 +948,7 @@ class DBScript(BaseScript):
             self.log.info('wait canceled')
         return None
 
-    def _exec_cmd(self, curs, sql, args, quiet=False, prefix=None):
+    def _exec_cmd(self, curs: Cursor, sql: str, args: ExecuteParams, quiet: bool = False, prefix: Optional[str] = None) -> Tuple[bool, Sequence[DictRow]]:
         """Internal tool: Run SQL on cursor."""
         if self.options.verbose:
             self.log.debug("exec_cmd: %s", skytools.quote_statement(sql, args))
@@ -957,7 +966,7 @@ class DBScript(BaseScript):
             except KeyError:
                 self.log.error("Query does not conform to exec_cmd API:")
                 self.log.error("SQL: %s", skytools.quote_statement(sql, args))
-                self.log.error("Row: %s", repr(row.copy()))
+                self.log.error("Row: %s", repr(dict(row.items())))
                 sys.exit(1)
             level = code // 100
             if level == 1:
@@ -975,10 +984,10 @@ class DBScript(BaseScript):
                 ok = False
         return (ok, rows)
 
-    def _exec_cmd_many(self, curs, sql, baseargs, extra_list, quiet=False, prefix=None):
+    def _exec_cmd_many(self, curs: Cursor, sql: str, baseargs: List[Any], extra_list: Sequence[Any], quiet:bool=False, prefix:Optional[str]=None) -> Tuple[bool, Sequence[DictRow]]:
         """Internal tool: Run SQL on cursor multiple times."""
         ok = True
-        rows = []
+        rows: List[DictRow] = []
         for a in extra_list:
             (tmp_ok, tmp_rows) = self._exec_cmd(curs, sql, baseargs + [a], quiet, prefix)
             if not tmp_ok:
@@ -986,14 +995,19 @@ class DBScript(BaseScript):
             rows += tmp_rows
         return (ok, rows)
 
-    def exec_cmd(self, db_or_curs, q, args, commit=True, quiet=False, prefix=None):
+    def exec_cmd(self, db_or_curs: Union[Connection, Cursor], q: str, args: ExecuteParams,
+            commit: bool = True, quiet: bool = False, prefix: Optional[str] = None) -> Sequence[DictRow]:
         """Run SQL on db with code/value error handling."""
+
+        db: Optional[Connection]
+        curs: Cursor
+
         if hasattr(db_or_curs, 'cursor'):
-            db = db_or_curs
+            db = cast(Connection, db_or_curs)
             curs = db.cursor()
         else:
             db = None
-            curs = db_or_curs
+            curs = cast(Cursor, db_or_curs)
         (ok, rows) = self._exec_cmd(curs, q, args, quiet, prefix)
         if ok:
             if commit and db:
@@ -1007,15 +1021,15 @@ class DBScript(BaseScript):
             # error is already logged
             sys.exit(1)
 
-    def exec_cmd_many(self, db_or_curs, sql, baseargs, extra_list,
-                      commit=True, quiet=False, prefix=None):
+    def exec_cmd_many(self, db_or_curs: Union[Connection, Cursor], sql: str, baseargs: List[Any], extra_list: Sequence[Any],
+            commit: bool = True, quiet: bool = False, prefix: Optional[str] = None) -> Sequence[DictRow]:
         """Run SQL on db multiple times."""
         if hasattr(db_or_curs, 'cursor'):
-            db = db_or_curs
+            db = cast(Connection, db_or_curs)
             curs = db.cursor()
         else:
             db = None
-            curs = db_or_curs
+            curs = cast(Cursor, db_or_curs)
         (ok, rows) = self._exec_cmd_many(curs, sql, baseargs, extra_list, quiet, prefix)
         if ok:
             if commit and db:
@@ -1029,7 +1043,7 @@ class DBScript(BaseScript):
             # error is already logged
             sys.exit(1)
 
-    def execute_with_retry(self, dbname, stmt, args, exceptions=None):
+    def execute_with_retry(self, dbname: str, stmt: str, args: List[Any], exceptions: Optional[Sequence[Type[Exception]]] = None) -> Tuple[int, Cursor]:
         """ Execute SQL and retry if it fails.
         Return number of retries and current valid cursor, or raise an exception.
         """
@@ -1039,10 +1053,10 @@ class DBScript(BaseScript):
         sql_retry_formula_a = self.cf.getint("sql_retry_formula_a", 1)
         sql_retry_formula_b = self.cf.getint("sql_retry_formula_b", 5)
         sql_retry_formula_cap = self.cf.getint("sql_retry_formula_cap", 60)
-        elist = exceptions or tuple()
+        elist = tuple(exceptions) if exceptions else ()
         stime = time.time()
         tried = 0
-        dbc = None
+        dbc: Optional[DBCachedConn] = None
         while True:
             try:
                 if dbc is None:
@@ -1071,7 +1085,7 @@ class DBScript(BaseScript):
             self.sleep(y)
         return tried, curs
 
-    def listen(self, dbname, channel):
+    def listen(self, dbname: str, channel: str) -> None:
         """Make connection listen for specific event channel.
 
         Listening will be activated on next .get_database() call.
@@ -1086,7 +1100,7 @@ class DBScript(BaseScript):
         if channel not in clist:
             clist.append(channel)
 
-    def unlisten(self, dbname, channel='*'):
+    def unlisten(self, dbname: str, channel: str = '*') -> None:
         """Stop connection for listening on specific event channel.
 
         Listening will stop on next .get_database() call.
@@ -1103,9 +1117,23 @@ class DBScript(BaseScript):
             pass
 
 
+SetupFunc = Callable[[str, Connection], None]
+
+
 class DBCachedConn:
     """Cache a db connection."""
-    def __init__(self, name, loc, max_age=DEF_CONN_AGE, verbose=False, setup_func=None, channels=()):
+
+    name: str
+    loc: str
+    conn: Optional[Connection]
+    conn_time: float
+    max_age: int
+    isolation_level: int
+    verbose: bool
+    setup_func: Optional[SetupFunc]
+    listen_channel_list: Sequence[str]
+
+    def __init__(self, name: str, loc: str, max_age:int=DEF_CONN_AGE, verbose:bool=False, setup_func: Optional[SetupFunc] = None, channels: Sequence[str] = ()) -> None:
         self.name = name
         self.loc = loc
         self.conn = None
@@ -1116,12 +1144,12 @@ class DBCachedConn:
         self.setup_func = setup_func
         self.listen_channel_list = []
 
-    def fileno(self):
+    def fileno(self) -> Optional[int]:
         if not self.conn:
             return None
         return self.conn.cursor().fileno()
 
-    def get_connection(self, isolation_level=-1, listen_channel_list=()):
+    def get_connection(self, isolation_level:int=-1, listen_channel_list: Sequence[str]=()) -> Connection:
 
         # default isolation_level is READ COMMITTED
         if isolation_level < 0:
@@ -1130,22 +1158,28 @@ class DBCachedConn:
         # new conn?
         if not self.conn:
             self.isolation_level = isolation_level
-            self.conn = skytools.connect_database(self.loc)
-            self.conn.set_isolation_level(isolation_level)
+            conn = skytools.connect_database(self.loc)
+            conn = skytools.connect_database(self.loc)
+            conn.set_isolation_level(isolation_level)
+
+            self.conn = conn
             self.conn_time = time.time()
             if self.setup_func:
-                self.setup_func(self.name, self.conn)
+                self.setup_func(self.name, conn)
         else:
             if self.isolation_level != isolation_level:
                 raise Exception("Conflict in isolation_level")
+            conn = self.conn
 
         self._sync_listen(listen_channel_list)
 
         # done
-        return self.conn
+        return conn
 
-    def _sync_listen(self, new_clist):
+    def _sync_listen(self, new_clist: Sequence[str]) -> None:
         if not new_clist and not self.listen_channel_list:
+            return
+        if not self.conn:
             return
         curs = self.conn.cursor()
         for ch in self.listen_channel_list:
@@ -1158,7 +1192,7 @@ class DBCachedConn:
             self.conn.commit()
         self.listen_channel_list = new_clist[:]
 
-    def refresh(self):
+    def refresh(self) -> None:
         if not self.conn:
             return
         #for row in self.conn.notifies():
@@ -1170,7 +1204,7 @@ class DBCachedConn:
         if time.time() - self.conn_time >= self.max_age:
             self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         if not self.conn:
             return
 
@@ -1185,7 +1219,7 @@ class DBCachedConn:
         except BaseException:
             pass
 
-    def check_connstr(self, connstr):
+    def check_connstr(self, connstr: str) -> None:
         """Drop connection if connect string has changed.
         """
         if self.loc != connstr:

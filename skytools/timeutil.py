@@ -26,7 +26,7 @@ class FixedOffsetTimezone(tzinfo):
     __offset: timedelta
     __name: str
 
-    def __init__(self, offset: int):
+    def __init__(self, offset: int) -> None:
         super().__init__()
 
         self.__offset = timedelta(minutes=offset)

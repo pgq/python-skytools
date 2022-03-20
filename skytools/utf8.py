@@ -39,7 +39,7 @@ def sanitize_unicode(u: str) -> str:
 
     # regex for finding invalid chars, works on unicode string
     if not _urc:
-        rx = u"[\uD800-\uDBFF] [\uDC00-\uDFFF]? | [\0\uDC00-\uDFFF]"
+        rx = "[\uD800-\uDBFF] [\uDC00-\uDFFF]? | [\0\uDC00-\uDFFF]"
         _urc = re.compile(rx, re.X)
 
     # now find and fix UTF16 surrogates

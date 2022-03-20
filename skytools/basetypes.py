@@ -44,12 +44,19 @@ class Cursor(Protocol):
         size: int = 8192
     ) -> None:
         raise NotImplementedError
+    def fileno(self) -> int: raise NotImplementedError
+    @property
+    def description(self) -> Sequence[Tuple[str, int, int, int, Optional[int], Optional[int], None]]: raise NotImplementedError
 
 
 class Connection(Protocol):
     def cursor(self) -> Cursor: raise NotImplementedError
     def rollback(self) -> None: raise NotImplementedError
     def commit(self) -> None: raise NotImplementedError
+    def close(self) -> None: raise NotImplementedError
+    @property
+    def isolation_level(self) -> int: raise NotImplementedError
+    def set_isolation_level(self, level: int) -> None: raise NotImplementedError
 
 
 class Runnable(Protocol):

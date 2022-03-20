@@ -1,13 +1,9 @@
 """Admin scripting.
 """
 
-# allow getargspec
-# pylint:disable=deprecated-method
-
-
 import inspect
 import sys
-from typing import Sequence
+from typing import Sequence, Optional, Any, Mapping, Callable
 
 import skytools
 
@@ -25,7 +21,7 @@ class AdminScript(skytools.DBScript):
     """
     commands_without_pidfile: Sequence[str] = ()
 
-    def __init__(self, service_name: str, args: Sequence[str]):
+    def __init__(self, service_name: str, args: Sequence[str]) -> None:
         """AdminScript init."""
         super().__init__(service_name, args)
 
@@ -40,7 +36,7 @@ class AdminScript(skytools.DBScript):
         if self.pidfile:
             self.pidfile = self.pidfile + ".admin"
 
-    def work(self) -> None:
+    def work(self) -> Optional[int]:
         """Non-looping work function, calls command function."""
 
         self.set_single_loop(1)
@@ -56,7 +52,10 @@ class AdminScript(skytools.DBScript):
         fn = getattr(self, fname)
 
         # check if correct number of arguments
-        (args, varargs, ___varkw, ___defaults) = inspect.getargspec(fn)
+        (
+                args, varargs, ___varkw, ___defaults,
+                ___kwonlyargs, __kwonlydefaults, ___annotations,
+        ) = inspect.getfullargspec(fn)
         n_args = len(args) - 1  # drop 'self'
         if varargs is None and n_args != len(cmdargs):
             helpstr = ""
@@ -69,7 +68,9 @@ class AdminScript(skytools.DBScript):
         # run command
         fn(*cmdargs)
 
-    def fetch_list(self, db, sql, args, keycol=None):
+        return None
+
+    def fetch_list(self, db: Connection, sql: str, args: ExecuteParams, keycol: Optional[str] = None) -> Sequence[Any]:
         """Fetch a resultset from db, optionally turning it into value list."""
         curs = db.cursor()
         curs.execute(sql, args)
@@ -81,7 +82,7 @@ class AdminScript(skytools.DBScript):
             res = [r[keycol] for r in rows]
         return res
 
-    def display_table(self, db, desc, sql, args=(), fields=(), fieldfmt=None):
+    def display_table(self, db: Connection, desc: str, sql: str, args: ExecuteParams = (), fields: Sequence[str] = (), fieldfmt: Optional[Mapping[str, Callable[[Any], str]]]=None) -> int:
         """Display multirow query as a table."""
 
         self.log.debug("display_table: %s", skytools.quote_statement(sql, args))
@@ -100,7 +101,7 @@ class AdminScript(skytools.DBScript):
         widths = [15] * len(fields)
         for row in rows:
             for i, k in enumerate(fields):
-                rlen = row[k] and len(str(row[k])) or 0
+                rlen = len(str(row[k])) if row[k] else 0
                 widths[i] = widths[i] > rlen and widths[i] or rlen
         widths = [w + 2 for w in widths]
 

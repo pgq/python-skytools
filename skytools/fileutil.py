@@ -1,6 +1,8 @@
 """File utilities
 """
 
+# pylint:disable=unspecified-encoding
+
 import errno
 import os
 import sys
@@ -14,13 +16,20 @@ def write_atomic_unix(fn: str, data: Union[bytes, str], bakext: Optional[str] = 
 
     if mode not in ['', 'b', 't']:
         raise ValueError("unsupported fopen mode")
-    if mode == 'b' and not isinstance(data, bytes):
+
+    if mode == "b" and not isinstance(data, bytes):
         data = data.encode('utf8')
+
+    mode = 'w' + mode
 
     # write new data to tmp file
     fn2 = fn + '.new'
-    with open(fn2, 'w' + mode) as f:
-        f.write(data)
+    if "b" in mode:
+        with open(fn2, mode) as f:
+            f.write(data)
+    else:
+        with open(fn2, mode, encoding="utf8") as f:
+            f.write(data)
 
     # link old data to bak file
     if bakext:
@@ -61,7 +70,7 @@ def signal_pidfile(pidfile: str, sig: int) -> bool:
 
     ln = ''
     try:
-        with open(pidfile, 'r') as f:
+        with open(pidfile, 'r', encoding="utf8") as f:
             ln = f.readline().strip()
         pid = int(ln)
         if sig == 0 and sys.platform == 'win32':
@@ -118,13 +127,19 @@ def win32_write_atomic(fn: str, data: Union[bytes, str], bakext: Optional[str] =
     if mode not in ['', 'b', 't']:
         raise ValueError("unsupported fopen mode")
 
-    if mode == 'b' and not isinstance(data, bytes):
+    if mode == "b" and not isinstance(data, bytes):
         data = data.encode('utf8')
+
+    mode = "w" + mode
 
     # write new data to tmp file
     fn2 = fn + '.new'
-    with open(fn2, 'w' + mode) as f:
-        f.write(data)
+    if "b" in mode:
+        with open(fn2, mode) as f:
+            f.write(data)
+    else:
+        with open(fn2, mode, encoding="utf8") as f:
+            f.write(data)
 
     # move old data to bak file
     if bakext:

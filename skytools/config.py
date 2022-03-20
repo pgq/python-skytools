@@ -11,7 +11,7 @@ from configparser import (
     ExtendedInterpolation, Interpolation, InterpolationDepthError,
     InterpolationError, NoOptionError, NoSectionError, RawConfigParser,
 )
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, MutableMapping, Set
 
 import skytools
 
@@ -58,7 +58,7 @@ class Config:
                  sane_config: Optional[bytes] = None,   # unused
                  user_defs: Optional[Mapping[str, str]] = None,
                  override: Optional[Mapping[str, str]] = None,
-                 ignore_defs: bool = False):
+                 ignore_defs: bool = False) -> None:
         """Initialize Config and read from file.
         """
         # use config file name as default job_name
@@ -227,7 +227,7 @@ class Config:
 
         return skytools.hsize_to_bytes(s)
 
-    def get_wildcard(self, key, values=(), default=None):
+    def get_wildcard(self, key: str, values: Sequence[str] = (), default: Optional[str] = None) -> str:
         """Reads a wildcard property from conf and returns its string value, if not set then default."""
 
         orig_key = key
@@ -274,24 +274,29 @@ class Config:
     getbool = getboolean
 
 
+ParserSection = Mapping[str, str]
+ParserState = MutableMapping[str, ParserSection]
+#ParserState = ConfigParser
+ParserLoop = Set[Tuple[str, str]]
+
 class ExtendedInterpolationCompat(Interpolation):
     _EXT_VAR_RX = r'\$\$|\$\{[^(){}]+\}'
     _OLD_VAR_RX = r'%%|%\([^(){}]+\)s'
     _var_rc = re.compile('(%s|%s)' % (_EXT_VAR_RX, _OLD_VAR_RX))
     _bad_rc = re.compile('[%$]')
 
-    def before_get(self, parser, section, option, rawval, defaults):
-        dst = []
-        self._interpolate_ext(dst, parser, section, option, rawval, defaults, set())
+    def before_get(self, parser: ParserState, section: str, option: str, value: str, defaults: ParserSection) -> str:
+        dst: List[str] = []
+        self._interpolate_ext(dst, parser, section, option, value, defaults, set())
         return ''.join(dst)
 
-    def before_set(self, parser, section, option, value):
+    def before_set(self, parser: ParserState, section: str, option: str, value: str) -> str:
         sub = self._var_rc.sub('', value)
         if self._bad_rc.search(sub):
             raise ValueError("invalid interpolation syntax in %r" % value)
         return value
 
-    def _interpolate_ext(self, dst, parser, section, option, rawval, defaults, loop_detect):
+    def _interpolate_ext(self, dst: List[str], parser: ParserState, section: str, option: str, rawval: str, defaults: ParserSection, loop_detect: ParserLoop) -> None:
         if not rawval:
             return
 
@@ -306,7 +311,7 @@ class ExtendedInterpolationCompat(Interpolation):
         parts = self._var_rc.split(rawval)
         for i, frag in enumerate(parts):
             fullkey = None
-            use_vars = defaults
+            use_vars: Optional[ParserSection] = defaults
             if i % 2 == 0:
                 dst.append(frag)
                 continue
@@ -328,11 +333,12 @@ class ExtendedInterpolationCompat(Interpolation):
             else:
                 raise InterpolationError(section, option, 'Internal parse error: %r' % frag)
 
-            key = parser.optionxform(key)
-            newpart = parser.get(ksect, key, raw=True, vars=use_vars)
-            if newpart is None:
-                raise InterpolationError(ksect, key, 'Key referenced is None')
-            self._interpolate_ext(dst, parser, ksect, key, newpart, defaults, loop_detect)
+            if isinstance(parser, RawConfigParser):
+                key = parser.optionxform(key)
+                newpart = parser.get(ksect, key, raw=True, vars=use_vars)
+                if newpart is None:
+                    raise InterpolationError(ksect, key, 'Key referenced is None')
+                self._interpolate_ext(dst, parser, ksect, key, newpart, defaults, loop_detect)
 
         loop_detect.remove(xloop)
 

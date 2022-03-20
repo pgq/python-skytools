@@ -60,10 +60,9 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=bad-continuation,
-	bad-whitespace,
-	bare-except,
+disable=bare-except,
 	broad-except,
+        useless-return,
 	consider-using-in,
 	consider-using-ternary,
 	fixme,
@@ -72,7 +71,6 @@ disable=bad-continuation,
 	missing-docstring,
 	no-else-raise,
 	no-else-return,
-	no-self-use,
 	trailing-newlines,
 	unused-argument,
 	unused-variable,
@@ -80,6 +78,7 @@ disable=bad-continuation,
 	useless-object-inheritance,
 	duplicate-code,
         singleton-comparison,
+        consider-using-f-string,
 
 	arguments-differ,
 	multiple-statements,
@@ -88,7 +87,6 @@ disable=bad-continuation,
 	unnecessary-pass,
 	cyclic-import,
 	invalid-name,
-	bad-continuation,
 	too-many-ancestors,
 	import-outside-toplevel,
 	protected-access,
@@ -410,17 +408,10 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=160
+max-line-length=190
 
 # Maximum number of lines in a module.
 max-module-lines=10000
-
-# List of optional constructs for which whitespace checking is disabled. `dict-
-# separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
-# `trailing-comma` allows a space between comma and closing bracket: (a, ).
-# `empty-line` allows space-only lines.
-no-space-check=trailing-comma,
-               dict-separator
 
 # Allow the body of a class to be on the same line as the declaration if body
 # contains single statement.

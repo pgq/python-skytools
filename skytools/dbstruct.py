@@ -1,6 +1,8 @@
 """Find table structure and allow CREATE/DROP elements from it.
 """
 
+# pylint:disable=arguments-renamed
+
 import re
 from typing import List
 
