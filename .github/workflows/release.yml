@@ -48,7 +48,7 @@ jobs:
         with: {name: "dist", path: "sdist"}
       - uses: pypa/cibuildwheel@v2.8.0
         with:
-          package-dir: dist/${{env.TGZ}}
+          package-dir: sdist/${{env.TGZ}}
         env:
           CIBW_ARCHS: ${{matrix.sys.arches}}
       - name: "Check"
