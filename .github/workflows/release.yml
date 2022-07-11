@@ -23,7 +23,6 @@ jobs:
 
   cibuildwheel:
     name: "Wheels: ${{matrix.sys.name}}"
-    needs: [sdist]
     runs-on: ${{matrix.sys.os}}
     strategy:
       matrix:
@@ -33,31 +32,13 @@ jobs:
           - {os: "windows-latest", name: "Windows", arches: "auto"}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v2
-        with: {python-version: "3.9"}
-      - name: "SetEnv"
-        shell: bash
-        run: |
-          PACKAGE=$(python setup.py --name)
-          VERSION=$(python setup.py --version)
-          TGZ="${PACKAGE}-${VERSION}.tar.gz"
-          echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "TGZ=${TGZ}" >> $GITHUB_ENV
-      - uses: actions/download-artifact@v2
-        with: {name: "dist", path: "sdist"}
       - uses: pypa/cibuildwheel@v2.8.0
-        with:
-          package-dir: sdist/${{env.TGZ}}
-          output-dir: wheelhouse
         env:
           CIBW_ARCHS: ${{matrix.sys.arches}}
       - name: "Check"
         shell: bash
         run: |
           ls -l
-          ls -l sdist
-          ls -l ..
           ls -l wheelhouse
       - uses: actions/upload-artifact@v3
         with: {name: "dist", path: "wheelhouse"}
@@ -65,7 +46,7 @@ jobs:
   publish:
     name: "Publish"
     runs-on: ubuntu-latest
-    needs: [cibuildwheel]
+    needs: [sdist, cibuildwheel]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
