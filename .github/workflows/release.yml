@@ -49,11 +49,13 @@ jobs:
       - uses: pypa/cibuildwheel@v2.8.0
         with:
           package-dir: sdist/${{env.TGZ}}
+          output-dir: wheelhouse
         env:
           CIBW_ARCHS: ${{matrix.sys.arches}}
       - name: "Check"
         shell: bash
         run: |
+          ls -l
           ls -l wheelhouse
       - uses: actions/upload-artifact@v3
         with: {name: "dist", path: "wheelhouse"}
