@@ -2,6 +2,15 @@
 NEWS
 ====
 
+Skytools 3.8 (2022-07-11)
+-------------------------
+
+Cleanups:
+
+* Lots of typing improvements
+* Refresh CI setup
+* Work around PyPy3.9 bug
+
 Skytools 3.7.3 (2021-08-03)
 ---------------------------
 
