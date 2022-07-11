@@ -1,4 +1,11 @@
 
+/* work around pypy3.9 v7.3.9 bug with Py_LIMITED_API */
+#ifdef PYPY_VERSION
+#ifndef Py_None
+#define Py_None (&_Py_NoneStruct)
+#endif
+#endif
+
 /*
  * Get string data from Python object.
  */
