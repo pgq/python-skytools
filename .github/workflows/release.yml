@@ -12,64 +12,60 @@ on:
 jobs:
   sdist:
     name: "Build source package"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
-        with: {python-version: "3.8"}
+        with: {python-version: "3.9"}
       - run: python setup.py sdist
       - uses: actions/upload-artifact@v2
         with: {name: "dist", path: "dist"}
 
-  linux_wheels:
-    name: "Wheel: manylinux2014"
-    needs: [sdist]
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with: {name: "dist", path: "sdist"}
-      - uses: "docker://quay.io/pypa/manylinux2014_x86_64:latest"
-        with: {entrypoint: "./.github/workflows/manylinux.sh"}
-      - uses: "docker://quay.io/pypa/manylinux2014_i686:latest"
-        with: {entrypoint: "./.github/workflows/manylinux.sh"}
-      - uses: actions/upload-artifact@v2
-        with: {name: "dist", path: "dist"}
-
-  other_wheels:
-    name: "Wheel: ${{matrix.sys.name}}-${{matrix.sys.pyarch}}-${{matrix.pyver}}"
+  cibuildwheel:
+    name: "Wheels: ${{matrix.sys.name}}"
     needs: [sdist]
     runs-on: ${{matrix.sys.os}}
     strategy:
       matrix:
         sys:
-          - {os: "macos-10.15", name: "MacOS 10.15", pyarch: "x64"}
-          - {os: "windows-2019", name: "Windows 2019", pyarch: "x86"}
-          - {os: "windows-2019", name: "Windows 2019", pyarch: "x64"}
-        pyver: ["3.6"]
+          - {os: "ubuntu-latest", name: "Linux", arches: "auto"}
+          - {os: "macos-latest", name: "MacOS", arches: "x86_64 arm64 universal2"}
+          - {os: "windows-latest", name: "Windows", arches: "auto"}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
-        with: {architecture: "${{matrix.sys.pyarch}}", python-version: "${{matrix.pyver}}"}
-      - uses: actions/download-artifact@v2
-        with: {name: "dist", path: "sdist"}
-      - name: "Build"
+        with: {python-version: "3.9"}
+      - name: "SetEnv"
         shell: bash
         run: |
-          pip install --disable-pip-version-check -U wheel
-          pip wheel --disable-pip-version-check --build-option --py-limited-api=cp36 -w dist sdist/*.tar.gz
-          ls -l dist
-      - uses: actions/upload-artifact@v2
-        with: {name: "dist", path: "dist"}
+          PACKAGE=$(python setup.py --name)
+          VERSION=$(python setup.py --version)
+          TGZ="${PACKAGE}-${VERSION}.tar.gz"
+          echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "TGZ=${TGZ}" >> $GITHUB_ENV
+      - uses: actions/download-artifact@v2
+        with: {name: "dist", path: "sdist"}
+      - uses: pypa/cibuildwheel@v2.8.0
+        with:
+          package-dir: dist/${{env.TGZ}}
+        env:
+          CIBW_ARCHS: ${{matrix.sys.arches}}
+      - name: "Check"
+        shell: bash
+        run: |
+          ls -l wheelhouse
+      - uses: actions/upload-artifact@v3
+        with: {name: "dist", path: "wheelhouse"}
 
   publish:
     name: "Publish"
-    runs-on: ubuntu-20.04
-    needs: [linux_wheels, other_wheels]
+    runs-on: ubuntu-latest
+    needs: [cibuildwheel]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
-        with: {python-version: "3.8"}
+        with: {python-version: "3.9"}
       - uses: actions/download-artifact@v2
         with: {name: "dist", path: "dist"}
       - name: "Prepare"
@@ -96,6 +92,7 @@ jobs:
           mkdir -p tmp
           make -s shownote > tmp/note.md
           cat tmp/note.md
+          ls -l dist
 
       - name: "Create release"
         id: github_release
