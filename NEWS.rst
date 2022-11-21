@@ -2,6 +2,14 @@
 NEWS
 ====
 
+Skytools 3.8.1 (2022-11-21)
+---------------------------
+
+Fixes:
+
+* full_copy: use ``ONLY`` when using filter query
+* test_scripting: support Python 3.11
+
 Skytools 3.8 (2022-07-11)
 -------------------------
 
