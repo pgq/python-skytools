@@ -92,17 +92,17 @@ def test_optparse_signals(capsys):
     with pytest.raises(SystemExit):
         OptScript("testscript", ["-s", CONF])
     res = capsys.readouterr()
-    assert "SIGINT" in res.out
+    assert "SIGINT" in res.out or f"signal: {signal.SIGINT}" in res.out
 
     with pytest.raises(SystemExit):
         OptScript("testscript", ["-r", CONF])
     res = capsys.readouterr()
-    assert "SIGHUP" in res.out
+    assert "SIGHUP" in res.out or f"signal: {signal.SIGHUP}" in res.out
 
     with pytest.raises(SystemExit):
         OptScript("testscript", ["-k", CONF])
     res = capsys.readouterr()
-    assert "SIGTERM" in res.out
+    assert "SIGTERM" in res.out or f"signal: {signal.SIGTERM}" in res.out
 
 
 @pytest.mark.skipif(WIN32, reason="need to use signals")
@@ -110,17 +110,17 @@ def test_argparse_signals(capsys):
     with pytest.raises(SystemExit):
         ArgScript("testscript", ["-s", CONF])
     res = capsys.readouterr()
-    assert "SIGINT" in res.out
+    assert "SIGINT" in res.out or f"signal: {signal.SIGINT}" in res.out
 
     with pytest.raises(SystemExit):
         ArgScript("testscript", ["-r", CONF])
     res = capsys.readouterr()
-    assert "SIGHUP" in res.out
+    assert "SIGHUP" in res.out or f"signal: {signal.SIGHUP}" in res.out
 
     with pytest.raises(SystemExit):
         ArgScript("testscript", ["-k", CONF])
     res = capsys.readouterr()
-    assert "SIGTERM" in res.out
+    assert "SIGTERM" in res.out or f"signal: {signal.SIGTERM}" in res.out
 
 
 def test_optparse_confopt(capsys):
