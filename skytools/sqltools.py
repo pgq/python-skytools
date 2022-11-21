@@ -440,7 +440,7 @@ def full_copy(tablename: str, src_curs: Cursor, dst_curs: Cursor,
 
     dst = build_statement(dst_tablename, dst_column_list)
     if condition:
-        src = "(SELECT %s FROM %s WHERE %s)" % (build_qfields(column_list),
+        src = "(SELECT %s FROM ONLY %s WHERE %s)" % (build_qfields(column_list),
                                                 skytools.quote_fqident(tablename),
                                                 condition)
     else:
