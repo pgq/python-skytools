@@ -133,7 +133,7 @@ class Config:
 
         return self.cf.getint(self.main_section, key)
 
-    def getboolean(self, key: str, default: bool = None) -> bool:
+    def getboolean(self, key: str, default: Optional[bool] = None) -> bool:
         """Reads boolean value, if not set then default."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -143,7 +143,7 @@ class Config:
 
         return self.cf.getboolean(self.main_section, key)
 
-    def getfloat(self, key: str, default: float = None) -> float:
+    def getfloat(self, key: str, default: Optional[float] = None) -> float:
         """Reads float value, if not set then default."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -153,7 +153,7 @@ class Config:
 
         return self.cf.getfloat(self.main_section, key)
 
-    def getlist(self, key: str, default: Sequence[str] = None) -> Sequence[str]:
+    def getlist(self, key: str, default: Optional[Sequence[str]] = None) -> Sequence[str]:
         """Reads comma-separated list from key."""
 
         if not self.cf.has_option(self.main_section, key):

@@ -217,7 +217,7 @@ class QueryBuilder(QueryBuilderCore):
 class PLPyQueryBuilder(QueryBuilderCore):
 
     def __init__(self, sqlexpr: str, params: Optional[Mapping[str, Any]],
-                 plan_cache: Dict[str, Any] = None,
+                 plan_cache: Optional[Dict[str, Any]] = None,
                  sqls: Optional[List[Dict[str, str]]] = None):
         """Init the object.
 

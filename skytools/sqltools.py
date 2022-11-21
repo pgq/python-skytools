@@ -638,7 +638,7 @@ def mk_update_sql(row: DictRow, tbl: str, pkey_list: Sequence[str], field_map: O
                                                 ", ".join(set_list), " and ".join(whe_list))
 
 
-def mk_delete_sql(row: DictRow, tbl: str, pkey_list: Sequence[str], field_map: Mapping[str, str] = None):
+def mk_delete_sql(row: DictRow, tbl: str, pkey_list: Sequence[str], field_map: Optional[Mapping[str, str]] = None):
     """Generate DELETE statement from dict data.
     """
     if len(pkey_list) < 1:
