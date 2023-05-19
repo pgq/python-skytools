@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: "Setup Python ${{matrix.test.PY}}"
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.test.PY}}
 
@@ -50,13 +50,13 @@ jobs:
           - {os: "macos-latest", osname: "MacOS", PY: "3.11", TOXENV: "py311", arch: "x64"}
           - {os: "windows-latest", osname: "Windows", PY: "3.10", TOXENV: "py310", arch: "x64"}
           - {os: "windows-latest", osname: "Windows", PY: "3.11", TOXENV: "py311", arch: "x64"}
-            #- {os: "ubuntu-latest", osname: "Linux", PY: "pypy-3.9", TOXENV: "pypy39", arch: "x64"}
+          #- {os: "ubuntu-latest", osname: "Linux", PY: "pypy-3.9", TOXENV: "pypy39", arch: "x64"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v3
 
       - name: "Setup Python ${{matrix.test.PY}}"
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.test.PY}}
           architecture: ${{matrix.test.arch}}
@@ -88,7 +88,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: "Setup Python ${{matrix.test.PY}}"
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.test.PY}}
 
@@ -99,6 +99,11 @@ jobs:
       - name: "InstallDB"
         run: |
           echo "::group::apt-get-update"
+          sudo -nH apt-get -q update
+          sudo -nH apt-get -q install curl ca-certificates gnupg
+          curl https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+          | gpg --dearmor \
+          | sudo -nH tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg
           echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main ${{matrix.test.PG}}" \
           | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo -nH apt-get -q update
@@ -150,7 +155,7 @@ jobs:
           - {os: "windows-latest", name: "Windows", arches: "auto"}
     steps:
       - uses: actions/checkout@v3
-      - uses: pypa/cibuildwheel@v2.8.0
+      - uses: pypa/cibuildwheel@v2.12.3
         env:
           CIBW_ARCHS: ${{matrix.sys.arches}}
       - name: "Check"
