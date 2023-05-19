@@ -2,6 +2,13 @@
 NEWS
 ====
 
+Skytools 3.8.2 (2023-05-19)
+---------------------------
+
+Fixes:
+
+* scripting: restore tracking of failed work() state
+
 Skytools 3.8.1 (2022-11-21)
 ---------------------------
 
