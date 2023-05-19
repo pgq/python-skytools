@@ -614,7 +614,7 @@ class BaseScript:
 
             # remember work state
             if work:
-                self.work_state = 1
+                self.work_state = 1 if work > 0 else -1
             else:
                 self.work_state = 0
             # should sleep?
