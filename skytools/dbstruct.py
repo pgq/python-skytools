@@ -369,7 +369,7 @@ class TGrant(TElem):
 
         sql_list = []
         for role, acl, ___who in self.acl_list:
-            qrole = quote_ident(role)
+            qrole = quote_ident(role) if role else "public"
             astr1, astr2 = self.acl_to_grants(acl)
             if astr1:
                 sql = "GRANT %s ON %s\n  TO %s;" % (astr1, qtarget, qrole)
@@ -382,7 +382,10 @@ class TGrant(TElem):
     def get_drop_sql(self, curs):
         sql_list = []
         for user, ___acl, ___who in self.acl_list:
-            sql = "REVOKE ALL FROM %s ON %s;" % (quote_ident(user), quote_fqident(self.name))
+            sql = "REVOKE ALL FROM %s ON %s;" % (
+                quote_ident(user) if user else "public",
+                quote_fqident(self.name)
+            )
             sql_list.append(sql)
         return "\n".join(sql_list)
 
