@@ -639,7 +639,7 @@ class BaseStruct:
                 sql = o.get_create_sql(None, None)
                 if sql:
                     res.append(sql)
-        return "".join(res)
+        return "\n".join(res)
 
 
 class TableStruct(BaseStruct):
