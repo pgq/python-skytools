@@ -8,8 +8,11 @@ import socket
 import time
 from logging import LoggerAdapter
 
+from typing import Any, Optional, Union, Dict
+
 import skytools
 import skytools.tnetstrings
+from skytools.basetypes import Buffer
 
 __all__ = ['getLogger']
 
@@ -34,7 +37,7 @@ _log_extra = {
 }
 
 
-def set_service_name(service_name, job_name):
+def set_service_name(service_name: str, job_name: str) -> None:
     """Set info about current script."""
     global _service_name, _job_name
 
@@ -49,7 +52,7 @@ def set_service_name(service_name, job_name):
 _old_factory = logging.getLogRecordFactory()
 
 
-def _new_factory(*args, **kwargs):
+def _new_factory(*args: Any, **kwargs: Any) -> logging.LogRecord:
     record = _old_factory(*args, **kwargs)
     record.__dict__.update(_log_extra)
     return record
@@ -61,7 +64,7 @@ logging.setLogRecordFactory(_new_factory)
 # configurable file logger
 class EasyRotatingFileHandler(logging.handlers.RotatingFileHandler):
     """Easier setup for RotatingFileHandler."""
-    def __init__(self, filename, maxBytes=10 * 1024 * 1024, backupCount=3):
+    def __init__(self, filename: str, maxBytes: int = 10 * 1024 * 1024, backupCount: int = 3) -> None:
         """Args same as for RotatingFileHandler, but in filename '~' is expanded."""
         fn = os.path.expanduser(filename)
         super().__init__(fn, maxBytes=maxBytes, backupCount=backupCount)
@@ -93,7 +96,7 @@ class UdpLogServerHandler(logging.handlers.DatagramHandler):
     # cut longer msgs
     MAXMSG = 1024
 
-    def makePickle(self, record):
+    def makePickle(self, record: logging.LogRecord) -> bytes:
         """Create message in JSON format."""
         # get & cut msg
         msg = self.format(record)
@@ -108,13 +111,11 @@ class UdpLogServerHandler(logging.handlers.DatagramHandler):
             time.time() * 1000, txt_level, skytools.quote_json(msg),
             jobname, svcname, hostname, hostaddr
         )
-        return pkt
+        return pkt.encode("utf8")
 
-    def send(self, s):
+    def send(self, s: Buffer) -> None:
         """Disable socket caching."""
         sock = self.makeSocket()
-        if not isinstance(s, bytes):
-            s = s.encode('utf8')
         sock.sendto(s, (self.host, self.port))
         sock.close()
 
@@ -128,9 +129,9 @@ class UdpTNetStringsHandler(logging.handlers.DatagramHandler):
         'created', 'exc_text', 'levelname', 'levelno', 'message', 'msecs', 'name',
         'hostaddr', 'hostname', 'job_name', 'service_name']
 
-    _udp_reset = 0
+    _udp_reset: float = 0
 
-    def makePickle(self, record):
+    def makePickle(self, record: logging.LogRecord) -> bytes:
         """ Create message in TNetStrings format.
         """
         msg = {}
@@ -140,7 +141,7 @@ class UdpTNetStringsHandler(logging.handlers.DatagramHandler):
         tnetstr = skytools.tnetstrings.dumps(msg)
         return tnetstr
 
-    def send(self, s):
+    def send(self, s: Buffer) -> None:
         """ Cache socket for a moment, then recreate it.
         """
         now = time.time()
@@ -149,7 +150,8 @@ class UdpTNetStringsHandler(logging.handlers.DatagramHandler):
                 self.sock.close()
             self.sock = self.makeSocket()
             self._udp_reset = now
-        self.sock.sendto(s, (self.host, self.port))
+        if self.sock:
+            self.sock.sendto(s, (self.host, self.port))
 
 
 class LogDBHandler(logging.handlers.SocketHandler):
@@ -171,13 +173,20 @@ class LogDBHandler(logging.handlers.SocketHandler):
         logging.CRITICAL: 'FATAL',
     }
 
-    def __init__(self, connect_string):
+    sock: Any
+    closeOnError: bool
+    connect_string: str
+    stat_cache: Dict[str, Union[int, float]]
+    stat_flush_period: float
+    last_stat_flush: float
+
+    def __init__(self, connect_string: str) -> None:
         """
         Initializes the handler with a specific connection string.
         """
 
-        super().__init__(None, None)
-        self.closeOnError = 1
+        super().__init__("localhost", 1)
+        self.closeOnError = True
 
         self.connect_string = connect_string
 
@@ -186,13 +195,13 @@ class LogDBHandler(logging.handlers.SocketHandler):
         # send first stat line immediately
         self.last_stat_flush = 0
 
-    def createSocket(self):
+    def createSocket(self) -> None:
         try:
             super().createSocket()
         except BaseException:
             self.sock = self.makeSocket()
 
-    def makeSocket(self, timeout=1):
+    def makeSocket(self, timeout: float = 1) -> Any:
         """Create server connection.
         In this case its not socket but database connection."""
 
@@ -200,7 +209,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         db.set_isolation_level(0)  # autocommit
         return db
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         """Process log record."""
 
         # we do not want log debug messages
@@ -214,7 +223,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         except BaseException:
             self.handleError(record)
 
-    def process_rec(self, record):
+    def process_rec(self, record: logging.LogRecord) -> None:
         """Aggregate stats if needed, and send to logdb."""
         # render msg
         msg = self.format(record)
@@ -237,7 +246,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         txt_level = self._level_map.get(record.levelno, "ERROR")
         self.send_to_logdb(_job_name, txt_level, msg)
 
-    def aggregate_stats(self, msg):
+    def aggregate_stats(self, msg: str) -> None:
         """Sum stats together, to lessen load on logdb."""
 
         msg = msg[1:-1]
@@ -250,7 +259,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
                 agg += int(v)
             self.stat_cache[k] = agg
 
-    def flush_stats(self, service):
+    def flush_stats(self, service: str) -> None:
         """Send acquired stats to logdb."""
         res = []
         for k, v in self.stat_cache.items():
@@ -261,7 +270,7 @@ class LogDBHandler(logging.handlers.SocketHandler):
         self.stat_cache = {}
         self.last_stat_flush = time.time()
 
-    def send_to_logdb(self, service, level, msg):
+    def send_to_logdb(self, service: str, level: str, msg: str) -> None:
         """Actual sending is done here."""
 
         if self.sock is None:
@@ -280,9 +289,9 @@ class SysLogHandler(logging.handlers.SysLogHandler):
     # be compatible with both 2.6 and 2.7
     socktype = socket.SOCK_DGRAM
 
-    _udp_reset = 0
+    _udp_reset: float = 0
 
-    def _custom_format(self, record):
+    def _custom_format(self, record: logging.LogRecord) -> str:
         msg = self.format(record) + '\000'
 
         # We need to convert record level to lowercase, maybe this will
@@ -292,31 +301,27 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         msg = prio + msg
         return msg
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         """
         Emit a record.
 
         The record is formatted, and then sent to the syslog server. If
         exception information is present, it is NOT sent to the server.
         """
-        msg = self._custom_format(record)
-        # Message is a string. Convert to bytes as required by RFC 5424
-        if not isinstance(msg, bytes):
-            msg = msg.encode('utf-8')
-            ## this puts BOM in wrong place
-            #if codecs:
-            #    msg = codecs.BOM_UTF8 + msg
+        xmsg = self._custom_format(record)
+        msg = xmsg if isinstance(xmsg, bytes) else xmsg.encode("utf8")
+
         try:
             if self.unixsocket:
                 try:
-                    self.socket.send(msg)
+                    self.socket.send(msg)   # type: ignore[has-type]
                 except socket.error:
-                    self._connect_unixsocket(self.address)
-                    self.socket.send(msg)
+                    self._connect_unixsocket(self.address)  # type: ignore[attr-defined]
+                    self.socket.send(msg)                   # type: ignore[has-type]
             elif self.socktype == socket.SOCK_DGRAM:
                 now = time.time()
                 if now - 1 > self._udp_reset:
-                    self.socket.close()
+                    self.socket.close()  # type: ignore[has-type]
                     self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     self._udp_reset = now
                 self.socket.sendto(msg, self.address)
@@ -331,7 +336,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
 class SysLogHostnameHandler(SysLogHandler):
     """Slightly modified standard SysLogHandler - sends also hostname and service type"""
 
-    def _custom_format(self, record):
+    def _custom_format(self, record: logging.LogRecord) -> str:
         msg = self.format(record)
         format_string = '<%d> %s %s %s\000'
         msg = format_string % (self.encodePriority(self.facility, self.mapPriority(record.levelname)),
@@ -347,12 +352,12 @@ if not hasattr(LoggerAdapter, 'fatal'):
 class SkyLogger(LoggerAdapter):
     """Adds API to existing Logger.
     """
-    def trace(self, msg, *args, **kwargs):
+    def trace(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log message with severity TRACE."""
         self.log(TRACE, msg, *args, **kwargs)
 
 
-def getLogger(name=None, **kwargs_extra):
+def getLogger(name: Optional[str] = None, **kwargs_extra: Any) -> SkyLogger:
     """Get logger with extra functionality.
 
     Adds additional log levels, and extra fields to log record.
