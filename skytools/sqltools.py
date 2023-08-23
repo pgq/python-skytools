@@ -4,7 +4,7 @@
 import io
 import logging
 import os
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union, cast, Callable
 
 import skytools
 
@@ -37,7 +37,7 @@ class dbdict(Dict[str, Any]):
     def __delattr__(self, k: str) -> None:
         "Remove attribute."
         del self[k]
-    def merge(self, other: Dict[str, Any]):
+    def merge(self, other: Dict[str, Any]) -> None:
         for key in other:
             if key not in self:
                 self[key] = other[key]
@@ -77,7 +77,7 @@ def get_table_oid(curs: Cursor, table_name: str) -> int:
     res = curs.fetchall()
     if len(res) == 0:
         raise Exception('Table not found: ' + table_name)
-    return res[0][0]
+    return cast(int, res[0][0])
 
 
 def get_table_pkeys(curs: Cursor, tbl: str) -> List[str]:
@@ -111,7 +111,7 @@ def exists_schema(curs: Cursor, schema: str) -> int:
     q = "select count(1) from pg_namespace where nspname = %s"
     curs.execute(q, [schema])
     res = curs.fetchone()
-    return res[0]
+    return cast(int, res[0])
 
 
 def exists_table(curs: Cursor, table_name: str) -> int:
@@ -122,7 +122,7 @@ def exists_table(curs: Cursor, table_name: str) -> int:
              and n.nspname = %s and c.relname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return res[0]
+    return cast(int, res[0])
 
 
 def exists_sequence(curs: Cursor, seq_name: str) -> int:
@@ -133,7 +133,7 @@ def exists_sequence(curs: Cursor, seq_name: str) -> int:
              and n.nspname = %s and c.relname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return res[0]
+    return cast(int, res[0])
 
 
 def exists_view(curs: Cursor, view_name: str) -> int:
@@ -144,7 +144,7 @@ def exists_view(curs: Cursor, view_name: str) -> int:
              and n.nspname = %s and c.relname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return res[0]
+    return cast(int, res[0])
 
 
 def exists_type(curs: Cursor, type_name: str) -> int:
@@ -155,7 +155,7 @@ def exists_type(curs: Cursor, type_name: str) -> int:
              and n.nspname = %s and t.typname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return res[0]
+    return cast(int, res[0])
 
 
 def exists_function(curs: Cursor, function_name: str, nargs: int) -> int:
@@ -173,7 +173,7 @@ def exists_function(curs: Cursor, function_name: str, nargs: int) -> int:
         name = "pg_catalog." + function_name
         return exists_function(curs, name, nargs)
 
-    return res[0]
+    return cast(int, res[0])
 
 
 def exists_language(curs: Cursor, lang_name: str) -> int:
@@ -182,7 +182,7 @@ def exists_language(curs: Cursor, lang_name: str) -> int:
            where lanname = %s"""
     curs.execute(q, [lang_name])
     res = curs.fetchone()
-    return res[0]
+    return cast(int, res[0])
 
 
 def exists_temp_table(curs: Cursor, tbl: str) -> int:
@@ -280,10 +280,10 @@ DictRows = Sequence[DictRow]
 ListRows = Sequence[ListRow]
 
 
-def magic_insert(curs: Cursor, tablename: str,
+def magic_insert(curs: Optional[Cursor], tablename: str,
                  data: Union[ListRows, DictRows],
                  fields: Optional[Sequence[str]] = None,
-                 use_insert: bool = False, quoted_table: bool = False):
+                 use_insert: bool = False, quoted_table: bool = False) -> Optional[str]:
     r"""Copy/insert a list of dict/list data to database.
 
     If curs is None, then the copy or insert statements are returned
@@ -353,6 +353,15 @@ def magic_insert(curs: Cursor, tablename: str,
 class CopyPipe(io.TextIOBase):
     """Splits one big COPY to chunks.
     """
+    tablename: Optional[str]
+    sql_from: Optional[str]
+    dstcurs: Cursor
+    buf: io.StringIO
+    limit: int
+    write_hook: Optional[Callable[["CopyPipe", str], str]]
+    flush_hook: Optional[Callable[["CopyPipe"], None]]
+    total_rows: int
+    total_bytes: int
 
     def __init__(self, dstcurs: Cursor,
                  tablename: Optional[str] = None,
@@ -414,8 +423,8 @@ def full_copy(tablename: str, src_curs: Cursor, dst_curs: Cursor,
               condition: Optional[str] = None,
               dst_tablename: Optional[str] = None,
               dst_column_list: Optional[Sequence[str]] = None,
-              write_hook=None,
-              flush_hook=None):
+              write_hook: Optional[Callable[[CopyPipe, str], str]] = None,
+              flush_hook: Optional[Callable[[CopyPipe], None]] = None) -> Tuple[int, int]:
     """COPY table from one db to another."""
 
     # default dst table and dst columns to source ones
@@ -424,13 +433,13 @@ def full_copy(tablename: str, src_curs: Cursor, dst_curs: Cursor,
     if len(dst_column_list) != len(column_list):
         raise Exception('src and dst column lists must match in length')
 
-    def build_qfields(cols):
+    def build_qfields(cols: Sequence[str]) -> str:
         if cols:
             return ",".join([skytools.quote_ident(f) for f in cols])
         else:
             return "*"
 
-    def build_statement(table, cols):
+    def build_statement(table: str, cols: Sequence[str]) -> str:
         qtable = skytools.quote_fqident(table)
         if cols:
             qfields = build_qfields(cols)
@@ -467,13 +476,13 @@ class DBObject:
     sql: Optional[str] = None
     sql_file: Optional[str] = None
 
-    def __init__(self, name: str, sql: Optional[str] = None, sql_file: Optional[str] = None):
+    def __init__(self, name: str, sql: Optional[str] = None, sql_file: Optional[str] = None) -> None:
         """Generic dbobject init."""
         self.name = name
         self.sql = sql
         self.sql_file = sql_file
 
-    def create(self, curs: Cursor, log: Optional[logging.Logger] = None):
+    def create(self, curs: Cursor, log: Optional[logging.Logger] = None) -> None:
         """Create a dbobject."""
         if log:
             log.info('Installing %s' % self.name)
@@ -518,7 +527,7 @@ class DBTable(DBObject):
 class DBFunction(DBObject):
     """Handles db function."""
 
-    def __init__(self, name: str, nargs: int, sql: Optional[str] = None, sql_file: Optional[str] = None):
+    def __init__(self, name: str, nargs: int, sql: Optional[str] = None, sql_file: Optional[str] = None) -> None:
         """Function object - number of args is significant."""
         super().__init__(name, sql, sql_file)
         self.nargs = nargs
@@ -531,7 +540,7 @@ class DBFunction(DBObject):
 class DBLanguage(DBObject):
     """Handles db language."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         """PL object - creation happens with CREATE LANGUAGE."""
         super().__init__(name, sql="create language %s" % name)
 
@@ -588,7 +597,8 @@ def installer_apply_file(db: Connection, filename: str, log: logging.Logger) -> 
 #
 
 def mk_insert_sql(row: DictRow, tbl: str,
-                  pkey_list: Optional[Sequence[str]] = None, field_map: Optional[Mapping[str, str]] = None):
+                  pkey_list: Optional[Sequence[str]] = None,
+                  field_map: Optional[Mapping[str, str]] = None) -> str:
     """Generate INSERT statement from dict data.
     """
     col_list = []
@@ -607,7 +617,9 @@ def mk_insert_sql(row: DictRow, tbl: str,
         skytools.quote_fqident(tbl), col_str, val_str)
 
 
-def mk_update_sql(row: DictRow, tbl: str, pkey_list: Sequence[str], field_map: Optional[Mapping[str, str]] = None):
+def mk_update_sql(row: DictRow, tbl: str,
+                  pkey_list: Sequence[str],
+                  field_map: Optional[Mapping[str, str]] = None) -> str:
     """Generate UPDATE statement from dict data.
     """
     if len(pkey_list) < 1:
@@ -638,7 +650,9 @@ def mk_update_sql(row: DictRow, tbl: str, pkey_list: Sequence[str], field_map: O
                                                 ", ".join(set_list), " and ".join(whe_list))
 
 
-def mk_delete_sql(row: DictRow, tbl: str, pkey_list: Sequence[str], field_map: Optional[Mapping[str, str]] = None):
+def mk_delete_sql(row: DictRow, tbl: str,
+                  pkey_list: Sequence[str],
+                  field_map: Optional[Mapping[str, str]] = None) -> str:
     """Generate DELETE statement from dict data.
     """
     if len(pkey_list) < 1:

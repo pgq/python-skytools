@@ -7,7 +7,7 @@ from skytools.sqltools import (
 )
 
 
-def test_dbdict():
+def test_dbdict() -> None:
     row = dbdict(a=1, b=2)
     assert (row.a, row.b, row['a'], row['b']) == (1, 2, 1, 2)
     row.c = 3
@@ -24,19 +24,19 @@ def test_dbdict():
     assert row.q == 4
 
 
-def test_fq_name_parts():
+def test_fq_name_parts() -> None:
     assert fq_name_parts('tbl') == ('public', 'tbl')
     assert fq_name_parts('foo.tbl') == ('foo', 'tbl')
     assert fq_name_parts('foo.tbl.baz') == ('foo', 'tbl.baz')
 
 
-def test_fq_name():
+def test_fq_name() -> None:
     assert fq_name('tbl') == 'public.tbl'
     assert fq_name('foo.tbl') == 'foo.tbl'
     assert fq_name('foo.tbl.baz') == 'foo.tbl.baz'
 
 
-def test_snapshot():
+def test_snapshot() -> None:
     sn = Snapshot('11:20:11,12,15')
     assert sn.contains(9)
     assert not sn.contains(11)
@@ -46,7 +46,7 @@ def test_snapshot():
         Snapshot(':')
 
 
-def test_magic_insert():
+def test_magic_insert() -> None:
     res = magic_insert(None, 'tbl', [[1, '1'], [2, '2']], ['col1', 'col2'])
     exp = 'COPY public.tbl (col1,col2) FROM STDIN;\n1\t1\n2\t2\n\\.\n'
     assert res == exp
@@ -91,7 +91,7 @@ def test_magic_insert():
     assert res == exp
 
 
-def test_mk_insert_sql():
+def test_mk_insert_sql() -> None:
     row = {'id': 1, 'data': None}
     res = mk_insert_sql(row, 'tbl')
     exp = "insert into public.tbl (id, data) values ('1', null);"
@@ -103,7 +103,7 @@ def test_mk_insert_sql():
     assert res == exp
 
 
-def test_mk_update_sql():
+def test_mk_update_sql() -> None:
     res = mk_update_sql({'id': 0, 'id2': '2', 'data': 'str\\'}, 'Table', ['id', 'id2'])
     exp = 'update only public."Table" set data = E\'str\\\\\' where id = \'0\' and id2 = \'2\';'
     assert res == exp
@@ -117,7 +117,7 @@ def test_mk_update_sql():
         mk_update_sql({'id': 0, 'id2': '2', 'data': 'str\\'}, 'Table', [])
 
 
-def test_mk_delete_sql():
+def test_mk_delete_sql() -> None:
     res = mk_delete_sql({'a': 1, 'b': 2, 'c': 3}, 'tablename', ['a', 'b'])
     exp = "delete from only public.tablename where a = '1' and b = '2';"
     assert res == exp
