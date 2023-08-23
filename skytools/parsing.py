@@ -60,13 +60,14 @@ def parse_pgarray(array: Optional[str]) -> Optional[List[Optional[str]]]:
 
 class _logtriga_parser:
     """Parses logtriga/sqltriga partial SQL to values."""
-    pklist: Optional[Sequence[str]] = None
+    pklist: List[str]
     def tokenizer(self, sql: str) -> Iterator[str]:
         """Token generator."""
         for tup in sql_tokenizer(sql, ignore_whitespace=True):
             yield tup[1]
 
-    def parse_insert(self, tk, fields, values, key_fields, key_values):
+    def parse_insert(self, tk: Iterator[str], fields: List[str], values: List[str],
+                     key_fields: List[str], key_values: List[str]) -> None:
         """Handler for inserts."""
         # (col1, col2) values ('data', null)
         if next(tk) != "(":
@@ -93,7 +94,8 @@ class _logtriga_parser:
         t = next(tk)
         raise ValueError("expected EOF, got " + repr(t))
 
-    def parse_update(self, tk, fields, values, key_fields, key_values):
+    def parse_update(self, tk: Iterator[str], fields: List[str], values: List[str],
+                     key_fields: List[str], key_values: List[str]) -> None:
         """Handler for updates."""
         # col1 = 'data1', col2 = null where pk1 = 'pk1' and pk2 = 'pk2'
         while True:
@@ -119,7 +121,8 @@ class _logtriga_parser:
             if t.lower() != "and":
                 raise ValueError("syntax error, expected AND got " + repr(t))
 
-    def parse_delete(self, tk, fields, values, key_fields, key_values):
+    def parse_delete(self, tk: Iterator[str], fields: List[str], values: List[str],
+                     key_fields: List[str], key_values: List[str]) -> None:
         """Handler for deletes."""
         # pk1 = 'pk1' and pk2 = 'pk2'
         while True:
@@ -133,10 +136,10 @@ class _logtriga_parser:
             if t.lower() != "and":
                 raise ValueError("syntax error, expected AND, got " + repr(t))
 
-    def _create_dbdict(self, fields, values):
-        fields = [skytools.unquote_ident(f) for f in fields]
-        values = [skytools.unquote_literal(f) for f in values]
-        return skytools.dbdict(zip(fields, values))
+    def _create_dbdict(self, fields: List[str], values: List[str]) -> skytools.dbdict:
+        fields2 = [skytools.unquote_ident(f) for f in fields]
+        values2 = [skytools.unquote_literal(v) for v in values]
+        return skytools.dbdict(zip(fields2, values2))
 
     def parse_sql(self, op: str, sql: str, pklist: Optional[Sequence[str]] = None, splitkeys: bool = False
     ) -> Union[skytools.dbdict, Tuple[skytools.dbdict, skytools.dbdict]]:
@@ -144,7 +147,7 @@ class _logtriga_parser:
         if pklist is None:
             self.pklist = []
         else:
-            self.pklist = pklist
+            self.pklist = list(pklist)
         tk = self.tokenizer(sql)
         fields: List[str] = []
         values: List[str] = []
@@ -340,7 +343,7 @@ _acl_re = r'''
 _acl_rc = None
 
 
-def parse_acl(acl: str) -> Optional[Tuple[str, str, str]]:
+def parse_acl(acl: str) -> Optional[Tuple[Optional[str], str, Optional[str]]]:
     """Parse ACL entry.
     """
     global _acl_rc
@@ -400,7 +403,9 @@ def hsize_to_bytes(input_str: str) -> int:
     if not m:
         raise ValueError("cannot parse: %s" % input_str)
     units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-    nbytes = int(m.group(1)) * 1024 ** units.index(m.group(2).upper())
+    unit = m.group(2) or ''
+    nbytes = int(m.group(1)) * 1024 ** units.index(unit.upper())
+    assert isinstance(nbytes, int)
     return nbytes
 
 
