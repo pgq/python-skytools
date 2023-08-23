@@ -48,11 +48,14 @@ Sample usage::
     # now commit the transaction
     db.commit()
 """
+from typing import cast
 
 import psycopg2
 import psycopg2.extensions
 import psycopg2.extras
 from psycopg2 import Error as DBError
+
+from .basetypes import Connection
 
 __all__ = (
     'connect_database', 'DBError', 'I_AUTOCOMMIT', 'I_READ_COMMITTED',
@@ -72,9 +75,9 @@ I_REPEATABLE_READ = psycopg2.extensions.ISOLATION_LEVEL_REPEATABLE_READ
 I_SERIALIZABLE = psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE
 
 
-def connect_database(connstr):
+def connect_database(connstr: str) -> Connection:
     """Create a db connection with DictCursor.
     """
     db = psycopg2.connect(connstr, cursor_factory=psycopg2.extras.DictCursor)
-    return db
+    return cast(Connection, db)
 
