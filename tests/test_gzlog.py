@@ -6,7 +6,7 @@ import tempfile
 from skytools.gzlog import gzip_append
 
 
-def test_gzlog():
+def test_gzlog() -> None:
     fd, tmpname = tempfile.mkstemp(suffix='.gz')
     os.close(fd)
     try:

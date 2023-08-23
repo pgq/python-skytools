@@ -3,7 +3,7 @@ from skytools.hashtext import (
 )
 
 
-def test_hashtext_new_const():
+def test_hashtext_new_const() -> None:
     c0 = [hashtext_new_py(b'x' * (0 * 5 + j)) for j in range(5)]
     c1 = [hashtext_new_py(b'x' * (1 * 5 + j)) for j in range(5)]
     c2 = [hashtext_new_py(b'x' * (2 * 5 + j)) for j in range(5)]
@@ -13,7 +13,7 @@ def test_hashtext_new_const():
     assert c2 == [755764456, -1494243903, 631527812, 28686851, -9498641]
 
 
-def test_hashtext_old_const():
+def test_hashtext_old_const() -> None:
     c0 = [hashtext_old_py(b'x' * (0 * 5 + j)) for j in range(5)]
     c1 = [hashtext_old_py(b'x' * (1 * 5 + j)) for j in range(5)]
     c2 = [hashtext_old_py(b'x' * (2 * 5 + j)) for j in range(5)]
@@ -23,21 +23,21 @@ def test_hashtext_old_const():
     assert c2 == [-682756517, 317827663, -495599455, -1411793989, 1739997714]
 
 
-def test_hashtext_new_impl():
+def test_hashtext_new_impl() -> None:
     data = b'HypficUjFitraxlumCitcemkiOkIkthi'
     p = [hashtext_new_py(data[:l]) for l in range(len(data) + 1)]
     c = [hashtext_new(data[:l]) for l in range(len(data) + 1)]
     assert p == c, '%s <> %s' % (p, c)
 
 
-def test_hashtext_old_impl():
+def test_hashtext_old_impl() -> None:
     data = b'HypficUjFitraxlumCitcemkiOkIkthi'
     p = [hashtext_old_py(data[:l]) for l in range(len(data) + 1)]
     c = [hashtext_old(data[:l]) for l in range(len(data) + 1)]
     assert p == c, '%s <> %s' % (p, c)
 
 
-def test_hashtext_new_input_types():
+def test_hashtext_new_input_types() -> None:
     data = b'HypficUjFitraxlumCitcemkiOkIkthi'
     exp = hashtext_new(data)
     assert hashtext_new(data.decode("utf8")) == exp
@@ -50,7 +50,7 @@ def test_hashtext_new_input_types():
     #assert hashtext_new_py(bytearray(data)) == exp
 
 
-def test_hashtext_old_input_types():
+def test_hashtext_old_input_types() -> None:
     data = b'HypficUjFitraxlumCitcemkiOkIkthi'
     exp = hashtext_old(data)
     assert hashtext_old(data.decode("utf8")) == exp
