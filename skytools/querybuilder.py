@@ -12,7 +12,7 @@ See L{plpy_exec} for examples.
 import json
 import re
 from functools import lru_cache
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Union, Tuple, cast
 
 import skytools
 
@@ -81,17 +81,17 @@ class QArg:
 class PlanCache:
     """Cache for limited amount of plans."""
 
-    def __init__(self, maxplans: int = 100):
+    def __init__(self, maxplans: int = 100) -> None:
         self.maxplans = maxplans
 
         @lru_cache(maxplans)
-        def _cached_prepare(key):
+        def _cached_prepare(key: Tuple[str, Tuple[str, ...]]) -> Any:
             sql, types = key
             return plpy.prepare(sql, types)
 
         self._cached_prepare = _cached_prepare
 
-    def get_plan(self, sql: str, types: Sequence[str]):
+    def get_plan(self, sql: str, types: Sequence[str]) -> Any:
         """Prepare the plan and cache it."""
         key = (sql, tuple(types))
         return self._cached_prepare(key)
@@ -124,12 +124,12 @@ class QueryBuilderCore:
         if sqlexpr:
             self.add(sqlexpr, required=True)
 
-    def add(self, expr: str, sql_type: str = "text", required: bool = False):
+    def add(self, expr: str, sql_type: str = "text", required: bool = False) -> None:
         """Add SQL fragment to query.
         """
         self._add_expr('', expr, self._params, sql_type, required)
 
-    def get_sql(self, param_type: int = PARAM_INLINE):
+    def get_sql(self, param_type: int = PARAM_INLINE) -> str:
         """Return generated SQL (thus far) as string.
 
         Possible values for param_type:
@@ -141,7 +141,7 @@ class QueryBuilderCore:
         tmp = [str(part) for part in self._sql_parts]
         return "".join(tmp)
 
-    def _add_expr(self, pfx: str, expr: str, params: Optional[Mapping[str, Any]], sql_type: str, required: bool):
+    def _add_expr(self, pfx: str, expr: str, params: Optional[Mapping[str, Any]], sql_type: str, required: bool) -> None:
         parts: List[Union[str, QArg]] = []
         types: List[str] = []
         values: List[Any] = []
@@ -238,7 +238,7 @@ class PLPyQueryBuilder(QueryBuilderCore):
         else:
             self._plan_cache = None
 
-    def execute(self) -> Sequence[skytools.dbdict]:
+    def execute(self) -> List[skytools.dbdict]:
         """Server-side query execution via plpy.
 
         Query can be run either cached or uncached, depending
@@ -261,8 +261,9 @@ class PLPyQueryBuilder(QueryBuilderCore):
 
         res = plpy.execute(plan, args)
         if res:
-            res = [skytools.dbdict(r) for r in res]
-        return res
+            return [skytools.dbdict(r) for r in res]
+        else:
+            return []
 
 
 class PLPyQuery:
@@ -270,7 +271,7 @@ class PLPyQuery:
 
     See L{plpy_exec} for simple usage.
     """
-    def __init__(self, sql: str):
+    def __init__(self, sql: str) -> None:
         qb = QueryBuilder(sql, None)
         p_sql = qb.get_sql(PARAM_PLPY)
         p_types = qb._arg_type_list
@@ -278,7 +279,9 @@ class PLPyQuery:
         self.arg_map = qb._arg_value_list
         self.sql = sql
 
-    def execute(self, arg_dict: Mapping[str, Any], all_keys_required=True) -> Sequence[skytools.dbdict]:
+    def execute(self, arg_dict: Optional[Mapping[str, Any]], all_keys_required: bool = True) -> List[skytools.dbdict]:
+        if arg_dict is None:
+            arg_dict = {}
         try:
             if all_keys_required:
                 arg_list = [arg_dict[k] for k in self.arg_map]
@@ -287,7 +290,7 @@ class PLPyQuery:
             res = plpy.execute(self.plan, arg_list)
             if res:
                 return [skytools.dbdict(row) for row in res]
-            return res
+            return []
         except KeyError:
             need = set(self.arg_map)
             got = set(arg_dict.keys())
@@ -303,7 +306,7 @@ class PLPyQuery:
 def plpy_exec(gd: Optional[Dict[str, Any]],
               sql: str,
               args: Optional[Mapping[str, Any]],
-              all_keys_required=True) -> Sequence[skytools.dbdict]:
+              all_keys_required: bool = True) -> List[skytools.dbdict]:
     """Cached plan execution for PL/Python.
 
     @param gd:  dict to store cached plans under.  If None, caching is disabled.
@@ -315,13 +318,15 @@ def plpy_exec(gd: Optional[Dict[str, Any]],
     if gd is None:
         return PLPyQueryBuilder(sql, args).execute()
 
+    if 'plq_cache' not in gd:
+        gd['plq_cache'] = {}
+    cache = cast(Dict[str, PLPyQuery], gd['plq_cache'])
+
     try:
-        sq = gd['plq_cache'][sql]
+        sq = cache[sql]
     except KeyError:
-        if 'plq_cache' not in gd:
-            gd['plq_cache'] = {}
         sq = PLPyQuery(sql)
-        gd['plq_cache'][sql] = sq
+        cache[sql] = sq
     return sq.execute(args, all_keys_required)
 
 
@@ -382,14 +387,15 @@ def run_exists(cur: Cursor, sql: str, params: Optional[Mapping[str, Any]] = None
 # fake plpy for testing
 class fake_plpy:
     log: List[str] = []
-    def prepare(self, sql, types):
+    def prepare(self, sql: str, types: Sequence[str]) -> Tuple[str, str, Sequence[str]]:
         self.log.append("DBG: plpy.prepare(%s, %s)" % (repr(sql), repr(types)))
         return ('PLAN', sql, types)
 
-    def execute(self, plan, args=()):
+    def execute(self, plan: Any, args: Any = ()) -> List[skytools.dbdict]:
         self.log.append("DBG: plpy.execute(%s, %s)" % (repr(plan), repr(args)))
+        return []
 
-    def error(self, msg):
+    def error(self, msg: str) -> None:
         self.log.append("DBG: plpy.error(%s)" % repr(msg))
         raise Exception("plpy.error")
 

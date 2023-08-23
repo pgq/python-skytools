@@ -1,13 +1,15 @@
 
+from typing import Dict, Any
+
 import pytest
 
-from skytools.querybuilder import (
+from skytools.querybuilder import ( # type: ignore[attr-defined]
     PARAM_DBAPI, PARAM_INLINE, PARAM_PLPY,
     PlanCache, QueryBuilder, plpy, plpy_exec,
 )
 
 
-def test_cached_plan():
+def test_cached_plan() -> None:
     cache = PlanCache(3)
 
     p1 = cache.get_plan('sql1', ['text'])
@@ -27,7 +29,7 @@ def test_cached_plan():
     assert p1 is not p1x
 
 
-def test_querybuilder_core():
+def test_querybuilder_core() -> None:
     args = {'success': 't', 'total': 45, 'ccy': 'EEK', 'id': 556}
     q = QueryBuilder("update orders set total = {total} where id = {id}", args)
     q.add(" and optional = {non_exist}")
@@ -40,7 +42,7 @@ def test_querybuilder_core():
     assert q.get_sql(PARAM_PLPY) == exp
 
 
-def test_querybuilder_parse_errors():
+def test_querybuilder_parse_errors() -> None:
     args = {'id': 1}
     with pytest.raises(ValueError):
         QueryBuilder("values ({{id)", args)
@@ -52,7 +54,7 @@ def test_querybuilder_parse_errors():
         QueryBuilder("values ({id||})", args)
 
 
-def test_querybuilder_inline():
+def test_querybuilder_inline() -> None:
     from decimal import Decimal
     args = {
         'list': [1, 2], 'tup': ('s', 'x'), 'dict': {'a': 1}, 'none': None,
@@ -63,7 +65,7 @@ def test_querybuilder_inline():
     assert q.get_sql(PARAM_INLINE) == exp
 
 
-def test_querybuilder_altsql():
+def test_querybuilder_altsql() -> None:
     args = {'id': 1}
     q = QueryBuilder("values ({id|XX}, {missing|DEFAULT})", args)
     exp = "values ('1', DEFAULT)"
@@ -73,8 +75,8 @@ def test_querybuilder_altsql():
         QueryBuilder("values ({missing|DEFAULT})", None)
 
 
-def test_plpy_exec():
-    GD = {}
+def test_plpy_exec() -> None:
+    GD: Dict[str, Any] = {}
     plpy.log.clear()
     plpy_exec(GD, "select {arg1}, {arg2:int4}, {arg1}", {'arg1': '1', 'arg2': '2'})
     assert plpy.log == [
