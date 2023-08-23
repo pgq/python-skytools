@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 import time
+import pathlib
 
 import pytest
 
@@ -15,24 +16,25 @@ CONF = os.path.join(os.path.dirname(__file__), "config.ini")
 TEST_DB = os.environ.get("TEST_DB")
 
 
-def checklog(log, word):
+def checklog(log: str, word: str) -> bool:
     with open(log, 'r') as f:
         return word in f.read()
 
 
 class Runner:
-    def __init__(self, logfile, word, sleep=0):
+    def __init__(self, logfile: str, word: str, sleep: int = 0) -> None:
         self.logfile = logfile
         self.word = word
         self.sleep = sleep
-    def run(self):
+
+    def run(self) -> None:
         with open(self.logfile, "a") as f:
             f.write(self.word + "\n")
         time.sleep(self.sleep)
 
 
 @pytest.mark.skipif(WIN32, reason="cannot daemonize on win32")
-def test_bg_process(tmp_path):
+def test_bg_process(tmp_path: pathlib.Path) -> None:
     pidfile = str(tmp_path / "proc.pid")
     logfile = str(tmp_path / "proc.log")
 
@@ -61,11 +63,11 @@ class OptScript(skytools.BaseScript):
     ARGPARSE = False
     looping = 0
 
-    def send_signal(self, code):
+    def send_signal(self, code: int) -> None:
         print("signal: %s" % code)
         sys.exit(0)
 
-    def work(self):
+    def work(self) -> None:
         print("opt=%s" % self.cf.get("opt"))
 
 
@@ -73,14 +75,14 @@ class ArgScript(OptScript):
     ARGPARSE = True
 
 
-def test_optparse_script(capsys):
+def test_optparse_script(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit):
         OptScript("testscript", ["-h"])
     res = capsys.readouterr()
     assert "display" in res.out
 
 
-def test_argparse_script(capsys):
+def test_argparse_script(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit):
         ArgScript("testscript", ["-h"])
     res = capsys.readouterr()
@@ -88,7 +90,7 @@ def test_argparse_script(capsys):
 
 
 @pytest.mark.skipif(WIN32, reason="use signals on win32")
-def test_optparse_signals(capsys):
+def test_optparse_signals(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit):
         OptScript("testscript", ["-s", CONF])
     res = capsys.readouterr()
@@ -106,7 +108,7 @@ def test_optparse_signals(capsys):
 
 
 @pytest.mark.skipif(WIN32, reason="need to use signals")
-def test_argparse_signals(capsys):
+def test_argparse_signals(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit):
         ArgScript("testscript", ["-s", CONF])
     res = capsys.readouterr()
@@ -123,14 +125,14 @@ def test_argparse_signals(capsys):
     assert "SIGTERM" in res.out or f"signal: {signal.SIGTERM}" in res.out
 
 
-def test_optparse_confopt(capsys):
+def test_optparse_confopt(capsys: pytest.CaptureFixture[str]) -> None:
     s = ArgScript("testscript", [CONF])
     s.start()
     res = capsys.readouterr()
     assert "opt=test" in res.out
 
 
-def test_argparse_confopt(capsys):
+def test_argparse_confopt(capsys: pytest.CaptureFixture[str]) -> None:
     s = ArgScript("testscript", [CONF])
     s.start()
     res = capsys.readouterr()
@@ -141,7 +143,7 @@ class DBScript(skytools.DBScript):
     ARGPARSE = True
     looping = 0
 
-    def work(self):
+    def work(self) -> None:
         db = self.get_database("db", connstr=TEST_DB)
         curs = db.cursor()
         curs.execute("select 1")
@@ -151,7 +153,7 @@ class DBScript(skytools.DBScript):
 
 
 @pytest.mark.skipif(not TEST_DB, reason="need database config")
-def test_get_database(capsys):
+def test_get_database(capsys: pytest.CaptureFixture[str]) -> None:
     s = DBScript("testscript", [CONF])
     s.start()
     res = capsys.readouterr()

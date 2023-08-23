@@ -639,7 +639,7 @@ class BaseScript:
 
     last_func_fail: Optional[float] = None
 
-    def run_func_safely(self, func, prefer_looping:bool=False) -> int:
+    def run_func_safely(self, func: Callable[[], Optional[int]], prefer_looping: bool = False) -> int:
         "Run users work function, safely."
         try:
             r = func()
@@ -798,7 +798,7 @@ class DBScript(BaseScript):
             It will be also default job_name, if not specified in config.
         @param args: cmdline args (sys.argv[1:]), but can be overridden
         """
-        self.db_cache: Dict = {}
+        self.db_cache: Dict[str, DBCachedConn] = {}
         self._db_defaults = {}
         self._listen_map = {}  # dbname: channel_list
         super().__init__(service_name, args)
@@ -1007,7 +1007,7 @@ class DBScript(BaseScript):
             curs = db.cursor()
         else:
             db = None
-            curs = cast(Cursor, db_or_curs)
+            curs = db_or_curs
         (ok, rows) = self._exec_cmd(curs, q, args, quiet, prefix)
         if ok:
             if commit and db:
@@ -1029,7 +1029,7 @@ class DBScript(BaseScript):
             curs = db.cursor()
         else:
             db = None
-            curs = cast(Cursor, db_or_curs)
+            curs = db_or_curs
         (ok, rows) = self._exec_cmd_many(curs, sql, baseargs, extra_list, quiet, prefix)
         if ok:
             if commit and db:
