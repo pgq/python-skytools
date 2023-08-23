@@ -4,7 +4,7 @@ description = "Utilities for database scripts"
 readme = "README.rst"
 keywords = ["database"]
 dynamic = ["version"]
-requires-python = ">= 3.6"
+requires-python = ">= 3.7"
 maintainers = [{name = "Marko Kreen", email = "markokr@gmail.com"}]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

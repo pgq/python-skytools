@@ -4,7 +4,7 @@
 from setuptools import Extension, setup
 
 # use only stable abi
-define_macros = [('Py_LIMITED_API', '0x03050000')]
+define_macros = [('Py_LIMITED_API', '0x03070000')]
 py_limited_api = True
 
 # run actual setup
