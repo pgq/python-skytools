@@ -18,7 +18,7 @@ __all__ = (
 # SQL quoting
 #
 
-def quote_literal(s: Any) -> str:
+def quote_literal(value: Any) -> str:
     r"""Quote a literal value for SQL.
 
     If string contains '\\', extended E'' quoting is used,
@@ -28,24 +28,24 @@ def quote_literal(s: Any) -> str:
     Python implementation.
     """
 
-    if s is None:
+    if value is None:
         return "null"
-    s = str(s).replace("'", "''")
+    s = str(value).replace("'", "''")
     s2 = s.replace("\\", "\\\\")
     if len(s) != len(s2):
         return "E'" + s2 + "'"
     return "'" + s2 + "'"
 
 
-def quote_copy(s: Any) -> str:
+def quote_copy(value: Any) -> str:
     """Quoting for copy command.  None is converted to \\N.
 
     Python implementation.
     """
 
-    if s is None:
+    if value is None:
         return "\\N"
-    s = str(s)
+    s = str(value)
     s = s.replace("\\", "\\\\")
     s = s.replace("\t", "\\t")
     s = s.replace("\n", "\\n")
@@ -56,7 +56,7 @@ def quote_copy(s: Any) -> str:
 _bytea_map: Optional[Dict[int, str]] = None
 
 
-def quote_bytea_raw(s: bytes) -> str:
+def quote_bytea_raw(s: Optional[bytes]) -> Optional[str]:
     """Quoting for bytea parser.  Returns None as None.
 
     Python implementation.
@@ -142,7 +142,7 @@ _esc_map = {
 }
 
 
-def _sub_unescape_c(m: Match) -> str:
+def _sub_unescape_c(m: Match[str]) -> str:
     """unescape single escape seq."""
     v = m.group(1)
     if (len(v) == 1) and (v < '0' or v > '7'):
@@ -165,7 +165,7 @@ _esql_re = r"''|\\([0-7]{1,3}|.)"
 _esql_rc = re.compile(_esql_re)
 
 
-def _sub_unescape_sqlext(m: Match) -> str:
+def _sub_unescape_sqlext(m: Match[str]) -> str:
     """Unescape extended-quoted string."""
     if m.group() == "''":
         return "'"

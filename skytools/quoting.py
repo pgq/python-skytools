@@ -33,13 +33,13 @@ __all__ = (
 # SQL quoting
 #
 
-def quote_bytea_literal(s: bytes) -> str:
+def quote_bytea_literal(s: Optional[bytes]) -> str:
     """Quote bytea for regular SQL."""
 
     return quote_literal(quote_bytea_raw(s))
 
 
-def quote_bytea_copy(s: bytes) -> str:
+def quote_bytea_copy(s: Optional[bytes]) -> str:
     """Quote bytea for COPY."""
 
     return quote_copy(quote_bytea_raw(s))
@@ -52,7 +52,7 @@ def quote_statement(sql: str, dict_or_list: Union[Mapping[str, Any], Sequence[An
     """
     if hasattr(dict_or_list, 'items'):
         qdict: Dict[str, str] = {}
-        for k, v in dict_or_list.items():  # type: ignore
+        for k, v in dict_or_list.items():
             qdict[k] = quote_literal(v)
         return sql % qdict
     else:
@@ -118,7 +118,7 @@ _jsmap = {
 }
 
 
-def _json_quote_char(m: Match[str]):
+def _json_quote_char(m: Match[str]) -> str:
     """Quote single char."""
     c = m.group(0)
     try:
@@ -180,10 +180,10 @@ _pgarray_bad_rx = r"[^0-9a-z_.%&=()<>*/+-]"
 _pgarray_bad_rc = re.compile(_pgarray_bad_rx)
 
 
-def _quote_pgarray_elem(s: Any) -> str:
-    if s is None:
+def _quote_pgarray_elem(value: Any) -> str:
+    if value is None:
         return 'NULL'
-    s = str(s)
+    s = str(value)
     if _pgarray_bad_rc.search(s):
         s = s.replace('\\', '\\\\')
         return '"' + s.replace('"', r'\"') + '"'

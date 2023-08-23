@@ -1,6 +1,7 @@
 """Extra tests for quoting module.
 """
 
+from typing import Dict, Callable, Any, List, Type, Tuple, Union, Optional
 from decimal import Decimal
 
 import psycopg2.extras
@@ -14,6 +15,10 @@ from skytools.quoting import (
     quote_fqident, unescape_copy, unquote_fqident,
 )
 
+QuoteTests = List[Tuple[Any, str]]
+QuoteFunc = Callable[[Any], str]
+UnquoteTests = List[Tuple[str, Optional[str]]]
+UnquoteFunc = Callable[[str], Optional[str]]
 
 class fake_cursor:
     """create a DictCursor row"""
@@ -26,32 +31,38 @@ dbrow[0] = '123'
 dbrow[1] = 'value'
 
 
-def try_func(qfunc, data_list):
+def try_quote(func: QuoteFunc, data_list: QuoteTests) -> None:
     for val, exp in data_list:
-        got = qfunc(val)
+        got = func(val)
         assert got == exp
 
 
-def try_catch(qfunc, data_list, exc):
-    for d in data_list:
-        with pytest.raises(exc):
-            qfunc(d)
+def try_unquote(func: UnquoteFunc, data_list: UnquoteTests) -> None:
+    for val, exp in data_list:
+        got = func(val)
+        assert got == exp
 
 
-def test_quote_literal():
+def test_quote_literal() -> None:
     sql_literal = [
-        [None, "null"],
-        ["", "''"],
-        ["a'b", "'a''b'"],
-        [r"a\'b", r"E'a\\''b'"],
-        [1, "'1'"],
-        [True, "'True'"],
-        [Decimal(1), "'1'"],
-        [u'qwe', "'qwe'"]
+        (None, "null"),
+        ("", "''"),
+        ("a'b", "'a''b'"),
+        (r"a\'b", r"E'a\\''b'"),
+        (1, "'1'"),
+        (True, "'True'"),
+        (Decimal(1), "'1'"),
+        (u'qwe', "'qwe'")
     ]
-    try_func(skytools._cquoting.quote_literal, sql_literal)
-    try_func(skytools._pyquoting.quote_literal, sql_literal)
-    try_func(skytools.quote_literal, sql_literal)
+    def quote_literal_c(x: Any) -> str:
+        return skytools._cquoting.quote_literal(x)
+    def quote_literal_py(x: Any) -> str:
+        return skytools._pyquoting.quote_literal(x)
+    def quote_literal_default(x: Any) -> str:
+        return skytools.quote_literal(x)
+    try_quote(quote_literal_default, sql_literal)
+    try_quote(quote_literal_default, sql_literal)
+    try_quote(quote_literal_default, sql_literal)
 
 
 qliterals_common = [
@@ -78,14 +89,20 @@ bad_dol_literals = [
 ]
 
 
-def test_unquote_literal():
+def test_unquote_literal() -> None:
     qliterals_nonstd = qliterals_common + [
         (r"""'a\\b\\c'""", r"""a\b\c"""),
         (r"""e'a\\b\\c'""", r"""a\b\c"""),
     ]
-    try_func(skytools._cquoting.unquote_literal, qliterals_nonstd)
-    try_func(skytools._pyquoting.unquote_literal, qliterals_nonstd)
-    try_func(skytools.unquote_literal, qliterals_nonstd)
+    def unquote_literal_c(x: str) -> Optional[str]:
+        return skytools._cquoting.unquote_literal(x)
+    def unquote_literal_py(x: str) -> Optional[str]:
+        return skytools._pyquoting.unquote_literal(x)
+    def unquote_literal_default(x: str) -> Optional[str]:
+        return skytools.unquote_literal(x)
+    try_unquote(unquote_literal_c, qliterals_nonstd)
+    try_unquote(unquote_literal_py, qliterals_nonstd)
+    try_unquote(unquote_literal_default, qliterals_nonstd)
 
     for v1, v2 in bad_dol_literals:
         with pytest.raises(ValueError):
@@ -96,7 +113,7 @@ def test_unquote_literal():
             skytools.unquote_literal(v1)
 
 
-def test_unquote_literal_std():
+def test_unquote_literal_std() -> None:
     qliterals_std = qliterals_common + [
         (r"''", r""),
         (r"'foo'", r"foo"),
@@ -109,193 +126,196 @@ def test_unquote_literal_std():
         assert skytools.unquote_literal(val, True) == exp
 
 
-def test_quote_copy():
+def test_quote_copy() -> None:
     sql_copy = [
-        [None, "\\N"],
-        ["", ""],
-        ["a'\tb", "a'\\tb"],
-        [r"a\'b", r"a\\'b"],
-        [1, "1"],
-        [True, "True"],
-        [u"qwe", "qwe"],
-        [Decimal(1), "1"],
+        (None, "\\N"),
+        ("", ""),
+        ("a'\tb", "a'\\tb"),
+        (r"a\'b", r"a\\'b"),
+        (1, "1"),
+        (True, "True"),
+        (u"qwe", "qwe"),
+        (Decimal(1), "1"),
     ]
-    try_func(skytools._cquoting.quote_copy, sql_copy)
-    try_func(skytools._pyquoting.quote_copy, sql_copy)
-    try_func(skytools.quote_copy, sql_copy)
+    try_quote(skytools._cquoting.quote_copy, sql_copy)
+    try_quote(skytools._pyquoting.quote_copy, sql_copy)
+    try_quote(skytools.quote_copy, sql_copy)
 
 
-def test_quote_bytea_raw():
-    sql_bytea_raw = [
-        [None, None],
-        [b"", ""],
-        [b"a'\tb", "a'\\011b"],
-        [b"a\\'b", r"a\\'b"],
-        [b"\t\344", r"\011\344"],
+def test_quote_bytea_raw() -> None:
+    sql_bytea_raw: List[Tuple[Optional[bytes], Optional[str]]] = [
+        (None, None),
+        (b"", ""),
+        (b"a'\tb", "a'\\011b"),
+        (b"a\\'b", r"a\\'b"),
+        (b"\t\344", r"\011\344"),
     ]
-    try_func(skytools._cquoting.quote_bytea_raw, sql_bytea_raw)
-    try_func(skytools._pyquoting.quote_bytea_raw, sql_bytea_raw)
-    try_func(skytools.quote_bytea_raw, sql_bytea_raw)
+    for val, exp in sql_bytea_raw:
+        assert skytools._cquoting.quote_bytea_raw(val) == exp
+        assert skytools._pyquoting.quote_bytea_raw(val) == exp
+        assert skytools.quote_bytea_raw(val) == exp
 
 
-def test_quote_bytea_raw_fail():
+def test_quote_bytea_raw_fail() -> None:
     with pytest.raises(TypeError):
-        skytools._pyquoting.quote_bytea_raw(u'qwe')
+        skytools._pyquoting.quote_bytea_raw(u'qwe')  # type: ignore[arg-type]
     #assert_raises(TypeError, skytools._cquoting.quote_bytea_raw, u'qwe')
     #assert_raises(TypeError, skytools.quote_bytea_raw, 'qwe')
 
 
-def test_quote_ident():
+def test_quote_ident() -> None:
     sql_ident = [
-        ['', '""'],
-        ["a'\t\\\"b", '"a\'\t\\""b"'],
-        ['abc_19', 'abc_19'],
-        ['from', '"from"'],
-        ['0foo', '"0foo"'],
-        ['mixCase', '"mixCase"'],
-        [u'utf', 'utf'],
+        ('', '""'),
+        ("a'\t\\\"b", '"a\'\t\\""b"'),
+        ('abc_19', 'abc_19'),
+        ('from', '"from"'),
+        ('0foo', '"0foo"'),
+        ('mixCase', '"mixCase"'),
+        (u'utf', 'utf'),
     ]
-    try_func(skytools.quote_ident, sql_ident)
+    try_quote(skytools.quote_ident, sql_ident)
 
 
-def test_fqident():
+def test_fqident() -> None:
     assert quote_fqident('tbl') == 'public.tbl'
     assert quote_fqident('Baz.Foo.Bar') == '"Baz"."Foo.Bar"'
 
 
-def _sort_urlenc(func):
-    def wrapper(data):
+def _sort_urlenc(func: Callable[[Any], str]) -> Callable[[Any], str]:
+    def wrapper(data: Any) -> str:
         res = func(data)
         return '&'.join(sorted(res.split('&')))
     return wrapper
 
 
-def test_db_urlencode():
+def test_db_urlencode() -> None:
     t_urlenc = [
-        [{}, ""],
-        [{'a': 1}, "a=1"],
-        [{'a': None}, "a"],
-        [{'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'],
-        [{'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'],
-        [{'a': '\000%&'}, "a=%00%25%26"],
-        [dbrow, 'data=value&id=123'],
-        [{'a': Decimal("1")}, "a=1"],
+        ({}, ""),
+        ({'a': 1}, "a=1"),
+        ({'a': None}, "a"),
+        ({'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'),
+        ({'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'),
+        ({'a': '\000%&'}, "a=%00%25%26"),
+        (dbrow, 'data=value&id=123'),
+        ({'a': Decimal("1")}, "a=1"),
     ]
-    try_func(_sort_urlenc(skytools._cquoting.db_urlencode), t_urlenc)
-    try_func(_sort_urlenc(skytools._pyquoting.db_urlencode), t_urlenc)
-    try_func(_sort_urlenc(skytools.db_urlencode), t_urlenc)
+    try_quote(_sort_urlenc(skytools._cquoting.db_urlencode), t_urlenc)
+    try_quote(_sort_urlenc(skytools._pyquoting.db_urlencode), t_urlenc)
+    try_quote(_sort_urlenc(skytools.db_urlencode), t_urlenc)
 
 
-def test_db_urldecode():
+def test_db_urldecode() -> None:
     t_urldec = [
-        ["", {}],
-        ["a=b&c", {'a': 'b', 'c': None}],
-        ["&&b=f&&", {'b': 'f'}],
-        [u"abc=qwe", {'abc': 'qwe'}],
-        ["b=", {'b': ''}],
-        ["b=%00%45", {'b': '\x00E'}],
+        ("", {}),
+        ("a=b&c", {'a': 'b', 'c': None}),
+        ("&&b=f&&", {'b': 'f'}),
+        (u"abc=qwe", {'abc': 'qwe'}),
+        ("b=", {'b': ''}),
+        ("b=%00%45", {'b': '\x00E'}),
     ]
-    try_func(skytools._cquoting.db_urldecode, t_urldec)
-    try_func(skytools._pyquoting.db_urldecode, t_urldec)
-    try_func(skytools.db_urldecode, t_urldec)
+    for val, exp in t_urldec:
+        assert skytools._cquoting.db_urldecode(val) == exp
+        assert skytools._pyquoting.db_urldecode(val) == exp
+        assert skytools.db_urldecode(val) == exp
 
 
-def test_unescape():
-    t_unesc = [
-        ["", ""],
-        ["\\N", "N"],
-        ["abc", "abc"],
-        [u"abc", "abc"],
-        [r"\0\000\001\01\1", "\0\000\001\001\001"],
-        [r"a\001b\tc\r\n", "a\001b\tc\r\n"],
+def test_unescape() -> None:
+    t_unesc: List[Tuple[str, str]] = [
+        ("", ""),
+        ("\\N", "N"),
+        ("abc", "abc"),
+        (r"\0\000\001\01\1", "\0\000\001\001\001"),
+        (r"a\001b\tc\r\n", "a\001b\tc\r\n"),
     ]
-    try_func(skytools._cquoting.unescape, t_unesc)
-    try_func(skytools._pyquoting.unescape, t_unesc)
-    try_func(skytools.unescape, t_unesc)
+    for val, exp in t_unesc:
+        assert skytools._cquoting.unescape(val) == exp
+        assert skytools._pyquoting.unescape(val) == exp
+        assert skytools.unescape(val) == exp
 
 
-def test_quote_bytea_literal():
+def test_quote_bytea_literal() -> None:
     bytea_raw = [
-        [None, "null"],
-        [b"", "''"],
-        [b"a'\tb", "E'a''\\\\011b'"],
-        [b"a\\'b", r"E'a\\\\''b'"],
-        [b"\t\344", r"E'\\011\\344'"],
+        (None, "null"),
+        (b"", "''"),
+        (b"a'\tb", "E'a''\\\\011b'"),
+        (b"a\\'b", r"E'a\\\\''b'"),
+        (b"\t\344", r"E'\\011\\344'"),
     ]
-    try_func(skytools.quote_bytea_literal, bytea_raw)
+    try_quote(skytools.quote_bytea_literal, bytea_raw)
 
 
-def test_quote_bytea_copy():
+def test_quote_bytea_copy() -> None:
     bytea_raw = [
-        [None, "\\N"],
-        [b"", ""],
-        [b"a'\tb", "a'\\\\011b"],
-        [b"a\\'b", r"a\\\\'b"],
-        [b"\t\344", r"\\011\\344"],
+        (None, "\\N"),
+        (b"", ""),
+        (b"a'\tb", "a'\\\\011b"),
+        (b"a\\'b", r"a\\\\'b"),
+        (b"\t\344", r"\\011\\344"),
     ]
-    try_func(skytools.quote_bytea_copy, bytea_raw)
+    try_quote(skytools.quote_bytea_copy, bytea_raw)
 
 
-def test_quote_statement():
+def test_quote_statement() -> None:
     sql = "set a=%s, b=%s, c=%s"
     args = [None, u"qwe'qwe", 6.6]
     assert skytools.quote_statement(sql, args) == "set a=null, b='qwe''qwe', c='6.6'"
 
-    sql = "set a=%(a)s, b=%(b)s, c=%(c)s"
-    args = dict(a=None, b="qwe'qwe", c=6.6)
-    assert skytools.quote_statement(sql, args) == "set a=null, b='qwe''qwe', c='6.6'"
+    sql2 = "set a=%(a)s, b=%(b)s, c=%(c)s"
+    args2 = dict(a=None, b="qwe'qwe", c=6.6)
+    assert skytools.quote_statement(sql2, args2) == "set a=null, b='qwe''qwe', c='6.6'"
 
 
-def test_quote_json():
+def test_quote_json() -> None:
     json_string_vals = [
-        [None, "null"],
-        ['', '""'],
-        [u'xx', '"xx"'],
-        ['qwe"qwe\t', '"qwe\\"qwe\\t"'],
-        ['\x01', '"\\u0001"'],
+        (None, "null"),
+        ('', '""'),
+        (u'xx', '"xx"'),
+        ('qwe"qwe\t', '"qwe\\"qwe\\t"'),
+        ('\x01', '"\\u0001"'),
     ]
-    try_func(skytools.quote_json, json_string_vals)
+    try_quote(skytools.quote_json, json_string_vals)
 
 
-def test_unquote_ident():
+def test_unquote_ident() -> None:
     idents = [
-        ['qwe', 'qwe'],
-        [u'qwe', 'qwe'],
-        ['"qwe"', 'qwe'],
-        ['"q""w\\\\e"', 'q"w\\\\e'],
-        ['Foo', 'foo'],
-        ['"Wei "" rd"', 'Wei " rd'],
+        ('qwe', 'qwe'),
+        ('"qwe"', 'qwe'),
+        ('"q""w\\\\e"', 'q"w\\\\e'),
+        ('Foo', 'foo'),
+        ('"Wei "" rd"', 'Wei " rd'),
     ]
-    try_func(skytools.unquote_ident, idents)
+    for val, exp in idents:
+        assert skytools.unquote_ident(val) == exp
 
 
-def test_unquote_ident_fail():
+
+def test_unquote_ident_fail() -> None:
     with pytest.raises(Exception):
         skytools.unquote_ident('asd"asd')
 
 
-def test_unescape_copy():
+def test_unescape_copy() -> None:
     assert unescape_copy(r'baz\tfo\'o') == "baz\tfo'o"
     assert unescape_copy(r'\N') is None
 
 
-def test_unquote_fqident():
+def test_unquote_fqident() -> None:
     assert unquote_fqident('Foo') == 'foo'
     assert unquote_fqident('"Foo"."Bar "" z"') == 'Foo.Bar " z'
 
 
-def test_json_encode():
+def test_json_encode() -> None:
     assert json_encode({'a': 1}) == '{"a": 1}'
     assert json_encode('a') == '"a"'
     assert json_encode(['a']) == '["a"]'
     assert json_encode(a=1) == '{"a": 1}'
 
 
-def test_json_decode():
+def test_json_decode() -> None:
     assert json_decode('[1]') == [1]
 
 
-def test_make_pgarray():
+def test_make_pgarray() -> None:
     assert make_pgarray([]) == '{}'
     assert make_pgarray(['foo_3', 1, '', None]) == '{foo_3,1,"",NULL}'
 
