@@ -80,7 +80,7 @@ def set_tcp_keepalive(fd: SocketLike, keepalive: bool = True, tcp_keepidle: int 
         fcntl.ioctl(s.fileno(), SIO_KEEPALIVE_VALS, (1, tcp_keepidle * 1000, tcp_keepintvl * 1000))  # type: ignore
 
 
-def set_nonblocking(fd: SocketLike, onoff: Optional[bool] = True):
+def set_nonblocking(fd: SocketLike, onoff: Optional[bool] = True) -> Optional[bool]:
     """Toggle the O_NONBLOCK flag.
 
     If onoff==None then return current setting.
