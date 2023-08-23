@@ -51,6 +51,7 @@ jobs:
           - {os: "windows-latest", osname: "Windows", PY: "3.10", TOXENV: "py310", arch: "x64"}
           - {os: "windows-latest", osname: "Windows", PY: "3.11", TOXENV: "py311", arch: "x64"}
           #- {os: "ubuntu-latest", osname: "Linux", PY: "pypy-3.9", TOXENV: "pypy39", arch: "x64"}
+          #- {os: "ubuntu-latest", osname: "Linux", PY: "pypy-3.10", TOXENV: "pypy310", arch: "x64"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v3
@@ -83,6 +84,8 @@ jobs:
         test:
           - {PY: "3.10", PG: "14", TOXENV: "py310"}
           - {PY: "3.11", PG: "15", TOXENV: "py311"}
+          #- {PY: "pypy3.9", PG: "15", TOXENV: "pypy39"}
+          #- {PY: "pypy3.10", PG: "15", TOXENV: "pypy310"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v3
@@ -155,13 +158,16 @@ jobs:
           - {os: "windows-latest", name: "Windows", arches: "auto"}
     steps:
       - uses: actions/checkout@v3
-      - uses: pypa/cibuildwheel@v2.12.3
+      - uses: pypa/cibuildwheel@v2.15.0
         env:
           CIBW_ARCHS: ${{matrix.sys.arches}}
       - name: "Check"
         shell: bash
         run: |
           ls -l wheelhouse
+      #- name: "Clean"
+      #  shell: bash
+      #  run: rm -f wheelhouse/UNKNOWN*
       - uses: actions/upload-artifact@v3
         with: {name: "dist", path: "wheelhouse"}
 
