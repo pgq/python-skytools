@@ -49,7 +49,7 @@ def sanitize_unicode(u: str) -> str:
     return u
 
 
-def safe_replace(exc):
+def safe_replace(exc: UnicodeError) -> Tuple[str, int]:
     """Replace only one symbol at a time.
 
     Builtin .decode('xxx', 'replace') replaces several symbols
@@ -61,7 +61,7 @@ def safe_replace(exc):
     #if 0:
     #    c1 = exc.object[exc.start]
     #    c2 = chr(ord(c1))
-
+    assert isinstance(exc, UnicodeDecodeError)
     return c2, exc.start + 1
 
 
