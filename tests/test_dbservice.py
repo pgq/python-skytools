@@ -2,7 +2,7 @@
 from skytools.dbservice import transform_fields
 
 
-def test_transform_fields():
+def test_transform_fields() -> None:
     rows = []
     rows.append({'time': '22:00', 'metric': 'count', 'value': 100})
     rows.append({'time': '22:00', 'metric': 'dur', 'value': 7})

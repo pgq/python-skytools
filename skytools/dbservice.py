@@ -1,6 +1,9 @@
 """ Class used to handle multiset receiving and returning PL/Python procedures
 """
 
+import logging
+from typing import List, Optional, Sequence, Any, Dict, Union, Tuple
+
 import skytools
 from skytools import dbdict
 
@@ -18,13 +21,14 @@ __all__ = (
 )
 
 
-def transform_fields(rows, key_fields, name_field, data_field):
+def transform_fields(rows: Sequence[Dict[str, Any]], key_fields: Sequence[str], name_field: str,
+                     data_field: str) -> List[Dict[str, Any]]:
     """Convert multiple-rows per key input array
     to one-row, multiple-column output array.  The input arrays
     must be sorted by the key fields.
     """
-    cur_key = None
-    cur_row = None
+    cur_key: List[str] = []
+    cur_row: Dict[str, Any] = {}
     res = []
     for r in rows:
         k = [r[f] for f in key_fields]
@@ -40,7 +44,7 @@ def transform_fields(rows, key_fields, name_field, data_field):
 
 # render_table
 
-def render_table(rows, fields):
+def render_table(rows: Sequence[Dict[str, Any]], fields: Sequence[str]) -> List[str]:
     """ Render result rows as a table.
         Returns array of lines.
     """
@@ -64,7 +68,7 @@ def render_table(rows, fields):
 
 # data conversion to and from url
 
-def get_record(arg):
+def get_record(arg: Optional[str]) -> dbdict:
     """ Parse data for one urlencoded record.
         Useful for turning incoming serialized data into structure usable for manipulation.
     """
@@ -74,15 +78,17 @@ def get_record(arg):
     # allow array of single record
     if arg[0] in ('{', '['):
         lst = skytools.parse_pgarray(arg)
-        if len(lst) != 1:
-            raise ValueError('get_record() expects exactly 1 row, got %d' % len(lst))
+        if not lst or len(lst) != 1:
+            raise ValueError('get_record() expects exactly 1 row, got %d' % len(lst or []))
         arg = lst[0]
+        if not arg:
+            return dbdict()
 
     # parse record
     return dbdict(skytools.db_urldecode(arg))
 
 
-def get_record_list(array):
+def get_record_list(array: Optional[Union[str, List[Optional[str]]]]) -> List[dbdict]:
     """ Parse array of urlencoded records.
         Useful for turning incoming serialized data into structure usable for manipulation.
     """
@@ -90,11 +96,11 @@ def get_record_list(array):
         return []
 
     if not isinstance(array, list):
-        array = skytools.parse_pgarray(array)
-    return [get_record(el) for el in array]
+        array = skytools.parse_pgarray(array) or []
+    return [get_record(el) for el in array if el is not None]
 
 
-def get_record_lists(tbl, field):
+def get_record_lists(tbl: Sequence[Dict[str, Any]], field: str) -> dbdict:
     """ Create dictionary of lists from given list using field as grouping criteria
         Used for master detail operatons to group detail records according to master id
     """
@@ -105,7 +111,7 @@ def get_record_lists(tbl, field):
     return records
 
 
-def _make_record_convert(row):
+def _make_record_convert(row: Dict[str, Any]) -> str:
     """Converts complex values."""
     d = row.copy()
     for k, v in d.items():
@@ -114,7 +120,7 @@ def _make_record_convert(row):
     return skytools.db_urlencode(d)
 
 
-def make_record(row):
+def make_record(row: Dict[str, Any]) -> str:
     """ Takes record as dict and returns it as urlencoded string.
         Used to send data out of db service layer.or to fake incoming calls
     """
@@ -124,14 +130,14 @@ def make_record(row):
     return skytools.db_urlencode(row)
 
 
-def make_record_array(rowlist):
+def make_record_array(rowlist: Sequence[Dict[str, Any]]):
     """ Takes list of records got from plpy execute and turns it into postgers aray string.
         Used to send data out of db service layer.
     """
     return '{' + ','.join([make_record(row) for row in rowlist]) + '}'
 
 
-def get_result_items(rec_list, name):
+def get_result_items(rec_list: Sequence[Dict[str, Any]], name: str) -> Optional[List[dbdict]]:
     """ Get return values from result
     """
     for r in rec_list:
@@ -140,7 +146,7 @@ def get_result_items(rec_list, name):
     return None
 
 
-def log_result(log, rec_list):
+def log_result(log: logging.Logger, rec_list: Sequence[Dict[str, Any]]) -> None:
     """ Sends dbservice execution logs to logfile
     """
     msglist = get_result_items(rec_list, "_status")
@@ -168,9 +174,17 @@ class DBService:
     ERROR = "error"         # error found but execution continues until check then error is raised
     FATAL = "fatal"         # execution is terminated at once and all found errors returned
 
-    rows_found = 0
+    rows_found: int = 0
 
-    def __init__(self, context, global_dict=None):
+    _context: str
+    _is_test: bool
+    _retval: List[Tuple[str, List[dbdict]]]
+    global_dict: Optional[Dict[str, Any]]
+    sqls: Optional[List[Dict[str, str]]]
+    can_save: bool
+    messages: List[Dict[str, Any]]
+
+    def __init__(self, context: str, global_dict: Optional[Dict[str, Any]] = None) -> None:
         """ This object must be initiated in the beginning of each db service
         """
         rec = skytools.db_urldecode(context)
@@ -188,7 +202,7 @@ class DBService:
 
     # error and message handling
 
-    def tell_user(self, severity, code, message, params=None, **kvargs):
+    def tell_user(self, severity: str, code: str, message: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> None:
         """ Adds another message to the set of messages to be sent back to user
             If error message then can_save is set false
             If fatal message then error or found errors are raised at once
@@ -205,7 +219,7 @@ class DBService:
             self.can_save = False
             self.raise_if_errors()
 
-    def raise_if_errors(self):
+    def raise_if_errors(self) -> None:
         """ To be used in places where before continuing must be chcked if errors have been found
             Raises found errors packing them into error message as urlencoded string
         """
@@ -215,13 +229,13 @@ class DBService:
 
     # run sql meant mostly for select but not limited to
 
-    def create_query(self, sql, params=None, **kvargs):
+    def create_query(self, sql: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> skytools.PLPyQueryBuilder:
         """ Returns initialized querybuilder object for building complex dynamic queries
         """
         params = params or kvargs
         return skytools.PLPyQueryBuilder(sql, params, self.global_dict, self.sqls)
 
-    def run_query(self, sql, params=None, **kvargs):
+    def run_query(self, sql: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> List[dbdict]:
         """ Helper function if everything you need is just paramertisized execute
             Sets rows_found that is coneninet to use when you don't need result just
             want to know how many rows were affected
@@ -234,9 +248,10 @@ class DBService:
             self.rows_found = len(rows)
         else:
             self.rows_found = 0
+            rows = []
         return rows
 
-    def run_query_row(self, sql, params=None, **kvargs):
+    def run_query_row(self, sql: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> Optional[dbdict]:
         """ Helper function if everything you need is just paramertisized execute to
             fetch one row only. If not found none is returned
         """
@@ -246,7 +261,7 @@ class DBService:
             return None
         return rows[0]
 
-    def run_exists(self, sql, params=None, **kvargs):
+    def run_exists(self, sql: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> int:
         """ Helper function to find out that record in given table exists using
             values in dict as criteria. Takes away all the hassle of preparing statements
             and processing returned result giving out just one boolean
@@ -255,7 +270,7 @@ class DBService:
         self.run_query(sql, params)
         return self.rows_found
 
-    def run_lookup(self, sql, params=None, **kvargs):
+    def run_lookup(self, sql: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any):
         """ Helper function to fetch one value Takes away all the hassle of preparing statements
             and processing returned result giving out just one value. Uses plan cache if used inside
             db service
@@ -269,21 +284,21 @@ class DBService:
 
     # resultset handling
 
-    def return_next(self, rows, res_name, severity=None):
+    def return_next(self, rows: List[dbdict], res_name: str, severity: Optional[str] = None) -> List[dbdict]:
         """ Adds given set of rows to resultset
         """
-        self._retval.append([res_name, rows])
+        self._retval.append((res_name, rows))
         if severity is not None and len(rows) == 0:
             self.tell_user(severity, "dbsXXXX", "No matching records found")
         return rows
 
-    def return_next_sql(self, sql, params, res_name, severity=None):
+    def return_next_sql(self, sql: str, params: Optional[Dict[str, Any]], res_name: str, severity: Optional[str] = None) -> List[dbdict]:
         """ Exectes query and adds recors resultset
         """
         rows = self.run_query(sql, params)
         return self.return_next(rows, res_name, severity)
 
-    def retval(self, service_name=None, params=None, **kvargs):
+    def retval(self, service_name: Optional[str] = None, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> List[Tuple[str, str, str]]:
         """ Return collected resultsets and append to the end messages to the users
             Method is called usually as last statement in dbservice to return the results
             Also converts results into desired format
@@ -291,29 +306,29 @@ class DBService:
         params = params or kvargs
         self.raise_if_errors()
         if len(self.messages):
-            self.return_next(self.messages, "_status")
+            self.return_next(self.messages, "_status")  # type: ignore
         if self.sqls is not None and len(self.sqls):
-            self.return_next(self.sqls, "_sql")
-        results = []
+            self.return_next(self.sqls, "_sql") # type: ignore
+        results: List[Tuple[str, str, str]] = []
         for r in self._retval:
             res_name = r[0]
             rows = r[1]
             res_count = str(len(rows))
             if self._is_test and len(rows) > 0:
-                results.append([res_name, res_count, res_name])
+                results.append((res_name, res_count, res_name))
                 n = 1
-                for trow in render_table(rows, rows[0].keys()):
-                    results.append([res_name, n, trow])
+                for trow in render_table(rows, list(rows[0].keys())):
+                    results.append((res_name, str(n), trow))
                     n += 1
             else:
                 res_rows = make_record_array(rows)
-                results.append([res_name, res_count, res_rows])
+                results.append((res_name, res_count, res_rows))
         if service_name:
             sql = "select * from %s( {i_context}, {i_params} );" % skytools.quote_fqident(service_name)
             par = dbdict(i_context=self._context, i_params=make_record(params))
             res = self.run_query(sql, par)
-            for r in res:
-                results.append((r.res_code, r.res_text, r.res_rows))
+            for row in res:
+                results.append((row.res_code, row.res_text, row.res_rows))
         return results
 
     # miscellaneous
@@ -371,6 +386,7 @@ class TableAPI:
         """
         if not self._logging:
             return
+        assert self._ctx
         changes = []
         for key in result.keys():
             if self._op == 'update':
@@ -382,7 +398,8 @@ class TableAPI:
         self._ctx.log(self._table, result[self._id], self._op, "\n".join(changes))
 
     def _version_check(self, original, version):
-        if original is None:
+        assert self._ctx
+        if version is None:
             self._ctx.tell_user(
                 self._ctx.INFO, "dbsXXXX",
                 "Record ({table}.{field}={id}) has been deleted by other user "
@@ -391,7 +408,7 @@ class TableAPI:
                 ver=original.version, _row=self._row
             )
         if version is not None and original.version is not None:
-            if int(version) != int(original.version):
+            if int(version) != int(original.version) and self._ctx:
                 self._ctx.tell_user(
                     self._ctx.INFO, "dbsXXXX",
                     "Record ({table}.{field}={id}) has been changed by other user while you were editing. "
@@ -402,6 +419,7 @@ class TableAPI:
                 )
 
     def _insert(self, data):
+        assert self._ctx
         fields = []
         values = []
         for key in data.keys():
@@ -416,6 +434,7 @@ class TableAPI:
         return result
 
     def _update(self, data, version):
+        assert self._ctx
         sql = "select * from %s where %s" % (self._table, self._where)
         original = self._ctx.run_query_row(sql, data)
         self._version_check(original, version)
@@ -426,11 +445,13 @@ class TableAPI:
             else:
                 pairs.append(key + " = {" + key + "}")
         sql = "update %s set %s where %s returning *;" % (self._table, ", ".join(pairs), self._where)
+        assert self._ctx
         result = self._ctx.run_query_row(sql, data)
         self._log(result, original)
         return result
 
     def _delete(self, data, version):
+        assert self._ctx
         sql = "delete from %s where %s returning *;" % (self._table, self._where)
         result = self._ctx.run_query_row(sql, data)
         self._version_check(result, version)
@@ -440,6 +461,7 @@ class TableAPI:
     def do(self, data):
         """ Do dml according to special field _op that must be given together wit data
         """
+        assert self._ctx
         result = data                               # so it is initialized for skip
         self._op = data.pop(self._ctx.OP)           # determines operation done
         self._row = data.pop(self._ctx.ROW, None)   # internal record id used for error reporting
@@ -458,12 +480,13 @@ class TableAPI:
             result = self._delete(data, version)
         elif self._op == self._ctx.SKIP:
             pass
-        else:
+        elif self._ctx:
             self._ctx.tell_user(self._ctx.ERROR, "dbsXXXX",
                                 "Unahndled _op='{op}' value in TableAPI (table={table}, id={id})",
                                 op=self._op, table=self._table, id=data[self._id])
-        result[self._ctx.OP] = self._op
-        result[self._ctx.ROW] = self._row
+        if self._ctx:
+            result[self._ctx.OP] = self._op
+            result[self._ctx.ROW] = self._row
         return result
 
 
@@ -472,7 +495,7 @@ class TableAPI:
 class ServiceContext(DBService):
     OP = "_op"              # name of the fake field where record modificaton operation is stored
 
-    def __init__(self, context, global_dict=None):
+    def __init__(self, context: str, global_dict: Optional[Dict[str, Any]] = None) -> None:
         """ This object must be initiated in the beginning of each db service
         """
         super().__init__(context, global_dict)
@@ -578,7 +601,7 @@ class ServiceContext(DBService):
 
     # resultset handling
 
-    def retval_dbservice(self, service_name, ctx, **params):
+    def retval_dbservice(self, service_name: str, ctx: str, **params: Any) -> List[Tuple[str, str, str]]:
         """ Runs service with standard interface.
             Convenient to use for calling select services from other services
             For example to return data after doing save
