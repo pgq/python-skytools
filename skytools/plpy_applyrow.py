@@ -1,6 +1,8 @@
 """PLPY helper module for applying row events from pgq.logutriga().
 """
 
+from typing import Sequence, Optional
+
 import skytools
 
 try:
@@ -112,6 +114,9 @@ def applyrow(tblname, ev_type, new_row,
     # Row data seems fine, now apply it
     #
 
+    res: Optional[Sequence[skytools.dbdict]]
+    oldrow: Optional[skytools.dbdict]
+
     if fkey_ref_table:
         tmp = []
         for k, rk in zip(fkey_cols, fkey_ref_cols):
@@ -206,8 +211,9 @@ def ts_conflict_handler(gd, args):
     #ev_extra3 = args[5]
     #ev_extra4 = args[6]
     altpk = None
-    if 'altpk' in conf:
-        altpk = conf['altpk'].split(',')
+    cf_altpk = conf.get('altpk')
+    if cf_altpk:
+        altpk = cf_altpk.split(',')
 
     def ts_canapply(rnew, rold):
         return canapply_tstamp_helper(rnew, rold, timefield)
