@@ -6,7 +6,7 @@ import pytest
 from skytools.timeutil import UTC, datetime_to_timestamp, parse_iso_timestamp
 
 
-def test_parse_iso_timestamp():
+def test_parse_iso_timestamp() -> None:
     res = str(parse_iso_timestamp('2005-06-01 15:00'))
     assert res == '2005-06-01 15:00:00'
 
@@ -30,7 +30,7 @@ def test_parse_iso_timestamp():
         parse_iso_timestamp('2014.10.27')
 
 
-def test_datetime_to_timestamp():
+def test_datetime_to_timestamp() -> None:
     res = datetime_to_timestamp(parse_iso_timestamp("2005-06-01 15:00:59.5 +02"))
     assert res == 1117630859.5
 

@@ -75,7 +75,7 @@ _iso_regex = r"""
 _iso_rc: Optional[Pattern[str]] = None
 
 
-def parse_iso_timestamp(s: str, default_tz: Optional[tzinfo] = None):
+def parse_iso_timestamp(s: str, default_tz: Optional[tzinfo] = None) -> datetime:
     """Parse ISO timestamp to datetime object.
 
     YYYY-MM-DD[ T]HH:MM[:SS[.ss]][-+HH[:MM]]
@@ -126,7 +126,7 @@ TZ_EPOCH = datetime.fromtimestamp(0, UTC)
 UTC_NOTZ_EPOCH = datetime.utcfromtimestamp(0)
 
 
-def datetime_to_timestamp(dt: datetime, local_time=True) -> float:
+def datetime_to_timestamp(dt: datetime, local_time: bool = True) -> float:
     """Get posix timestamp from datetime() object.
 
     if dt is without timezone, then local_time specifies
