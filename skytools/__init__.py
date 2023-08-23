@@ -171,5 +171,5 @@ __all__ = tuple(_symbols)
 _symbols['__version__'] = 'skytools.installer_config:package_version'
 
 # lazy-import exported vars
-_apipkg.initpkg(__name__, _symbols, {'apipkg': _apipkg})
+_apipkg.initpkg(__name__, _symbols, {'apipkg': _apipkg})  # type: ignore
 
