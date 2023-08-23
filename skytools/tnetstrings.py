@@ -12,11 +12,11 @@ _inttypes = (int,)
 _decode_utf8 = codecs.getdecoder('utf8')
 
 
-def _dumps(dst, val):
+def _dumps(dst: List[bytes], val: Any) -> int:
     if isinstance(val, _struct_types):
         tlenpos = len(dst)
         tlen = 0
-        dst.append(None)
+        dst.append(b'')
         if isinstance(val, dict):
             for k in val:
                 tlen += _dumps(dst, k)
@@ -52,7 +52,7 @@ def _dumps(dst, val):
     return len(tval)
 
 
-def _loads(buf):
+def _loads(buf: memoryview) -> Any:
     pos = 0
     maxlen = min(len(buf), 9)
     while buf[pos:pos + 1] != b':':
