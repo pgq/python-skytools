@@ -4,10 +4,13 @@
 # pylint:disable=arguments-renamed
 
 import re
-from typing import List
+from typing import List, Optional, Type, Tuple, TypeVar, Any
+from logging import Logger
 
 import skytools
 from skytools import quote_fqident, quote_ident
+
+from skytools.basetypes import Cursor, DictRow
 
 __all__ = (
     'TableStruct', 'SeqStruct',
@@ -31,15 +34,20 @@ T_ALL = (T_TABLE | T_CONSTRAINT | T_INDEX | T_SEQUENCE
          | T_TRIGGER | T_RULE | T_GRANT | T_OWNER | T_DEFAULT)
 
 
+T = TypeVar("T", bound="TElem")
+
 #
 # Utility functions
 #
 
-def find_new_name(curs, name):
+def find_new_name(curs: Optional[Cursor], name: str) -> str:
     """Create new object name for case the old exists.
 
     Needed when creating a new table besides old one.
     """
+    if curs is None:
+        raise ValueError('Cannot new name without db cursor')
+
     # cut off previous numbers
     m = re.search('_[0-9]+$', name)
     if m:
@@ -57,7 +65,7 @@ def find_new_name(curs, name):
     raise Exception('find_new_name failed')
 
 
-def rx_replace(rx, sql, new_part):
+def rx_replace(rx: str, sql: str, new_part: str) -> str:
     """Find a regex match and replace that part with new_part."""
     m = re.search(rx, sql, re.I)
     if not m:
@@ -75,15 +83,21 @@ class TElem:
     """Keeps info about one metadata object."""
     SQL = ""
     type = 0
-    def get_create_sql(self, curs, new_name=None):
-        """Return SQL statement for creating or None if not supported."""
-        return None
-    def get_drop_sql(self, curs):
-        """Return SQL statement for dropping or None of not supported."""
-        return None
+
+    name: str
+
+    def __init__(self, name: str, row: DictRow) -> None:
+        raise NotImplementedError
+
+    def get_create_sql(self, curs: Optional[Cursor], new_name: Optional[str] = None) -> str:
+        """Return SQL statement for creating or empty string if not supported."""
+        return ''
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
+        """Return SQL statement for dropping or empty string if not supported."""
+        return ''
 
     @classmethod
-    def get_load_sql(cls, pgver):
+    def get_load_sql(cls, pgver: int) -> str:
         """Return SQL statement for finding objects."""
         return cls.SQL
 
@@ -99,7 +113,14 @@ class TConstraint(TElem):
             c.conname = (SELECT r.relname FROM pg_class r WHERE r.oid = i.indexrelid)
           WHERE c.conrelid = %(oid)s AND c.contype != 'f'
     """
-    def __init__(self, table_name, row):
+
+    table_name: str
+    name: str
+    defn: str
+    contype: str
+    is_clustered: bool
+
+    def __init__(self, table_name: str, row: DictRow) -> None:
         """Init constraint."""
         self.table_name = table_name
         self.name = row['name']
@@ -111,7 +132,7 @@ class TConstraint(TElem):
         if self.contype == 'p':
             self.type += T_PKEY
 
-    def get_create_sql(self, curs, new_table_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_table_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         # no ONLY here as table with childs (only case that matters)
         # cannot have contraints that childs do not have
@@ -130,7 +151,7 @@ class TConstraint(TElem):
             sql += ' ALTER TABLE ONLY %s\n  CLUSTER ON %s;' % (qtbl, qname)
         return sql
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         """Generate removal sql."""
         fmt = "ALTER TABLE ONLY %s\n  DROP CONSTRAINT %s;"
         sql = fmt % (quote_fqident(self.table_name), quote_ident(self.name))
@@ -154,14 +175,20 @@ class TIndex(TElem):
                 and objid = c.oid
                 and deptype = 'i')
     """
-    def __init__(self, table_name, row):
+    table_name: str
+    name: str
+    defn: str
+    is_clustered: bool
+    local_name: str
+
+    def __init__(self, table_name: str, row: DictRow) -> None:
         self.name = row['name']
         self.defn = row['defn'].replace(' USING ', '\n  USING ', 1) + ';'
         self.is_clustered = row['is_clustered']
         self.table_name = table_name
         self.local_name = row['local_name']
 
-    def get_create_sql(self, curs, new_table_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_table_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         if new_table_name:
             # fixme: seems broken
@@ -179,7 +206,7 @@ class TIndex(TElem):
                 quote_fqident(tname), quote_ident(iname))
         return sql
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         return 'DROP INDEX %s;' % quote_fqident(self.name)
 
 
@@ -190,13 +217,19 @@ class TRule(TElem):
               FROM pg_rewrite rw
              WHERE rw.ev_class = %(oid)s AND rw.rulename <> '_RETURN'::name
     """
-    def __init__(self, table_name, row, new_name=None):
+
+    table_name: str
+    name: str
+    defn: str
+    enabled: str
+
+    def __init__(self, table_name: str, row: DictRow, new_name: Optional[str] = None) -> None:
         self.table_name = table_name
         self.name = row['rulename']
         self.defn = row['def']
         self.enabled = row.get('ev_enabled', 'O')
 
-    def get_create_sql(self, curs, new_table_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_table_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         if not new_table_name:
             sql = self.defn
@@ -224,7 +257,7 @@ class TRule(TElem):
             sql += ('\nALTER TABLE %s %s RULE %s;' % (table, action, self.name))
         return sql
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         return 'DROP RULE %s ON %s' % (quote_ident(self.name), quote_fqident(self.table_name))
 
 
@@ -232,13 +265,17 @@ class TTrigger(TElem):
     """Info about trigger."""
     type = T_TRIGGER
 
-    def __init__(self, table_name, row):
+    table_name: str
+    name: str
+    defn: str
+
+    def __init__(self, table_name: str, row: DictRow) -> None:
         self.table_name = table_name
         self.name = row['name']
         self.defn = row['def'] + ';'
         self.defn = self.defn.replace('FOR EACH', '\n  FOR EACH', 1)
 
-    def get_create_sql(self, curs, new_table_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_table_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         if not new_table_name:
             return self.defn
@@ -248,11 +285,11 @@ class TTrigger(TElem):
         pnew = "ON %s " % new_table_name
         return rx_replace(rx, self.defn, pnew)
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         return 'DROP TRIGGER %s ON %s' % (quote_ident(self.name), quote_fqident(self.table_name))
 
     @classmethod
-    def get_load_sql(cls, pg_vers):
+    def get_load_sql(cls, pg_vers: int) -> str:
         """Return SQL statement for finding objects."""
 
         sql = "SELECT tgname as name, pg_get_triggerdef(oid) as def "\
@@ -275,14 +312,18 @@ class TParent(TElem):
           JOIN pg_namespace n ON c.relnamespace = n.oid
          WHERE i.inhrelid = %(oid)s
     """
-    def __init__(self, table_name, row):
+
+    name: str
+    parent_name: str
+
+    def __init__(self, table_name: str, row: DictRow) -> None:
         self.name = table_name
         self.parent_name = row['name']
 
-    def get_create_sql(self, curs, new_table_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_table_name: Optional[str] = None) -> str:
         return 'ALTER TABLE ONLY %s\n  INHERIT %s' % (quote_fqident(self.name), quote_fqident(self.parent_name))
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         return 'ALTER TABLE ONLY %s\n  NO INHERIT %s' % (quote_fqident(self.name), quote_fqident(self.parent_name))
 
 
@@ -293,12 +334,17 @@ class TOwner(TElem):
         SELECT pg_get_userbyid(relowner) as owner FROM pg_class
          WHERE oid = %(oid)s
     """
-    def __init__(self, table_name, row, new_name=None):
+
+    table_name: str
+    name: str
+    owner: str
+
+    def __init__(self, table_name: str, row: DictRow, new_name: Optional[str] = None) -> None:
         self.table_name = table_name
         self.name = 'Owner'
         self.owner = row['owner']
 
-    def get_create_sql(self, curs, new_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         if not new_name:
             new_name = self.table_name
@@ -328,9 +374,12 @@ class TGrant(TElem):
         'R': 'RULE',
     }
 
-    def acl_to_grants(self, acl):
+    name: str
+    acl_list: List[Tuple[Optional[str], str, Optional[str]]]
+
+    def acl_to_grants(self, acl: str) -> Tuple[str, str]:
         if acl == "arwdRxt":   # ALL for tables
-            return "ALL"
+            return "ALL", ""
         i = 0
         lst1 = []
         lst2 = []
@@ -344,23 +393,24 @@ class TGrant(TElem):
                 i += 1
         return ", ".join(lst1), ", ".join(lst2)
 
-    def parse_relacl(self, relacl):
+    def parse_relacl(self, relacl: Optional[str]) -> List[Tuple[Optional[str], str, Optional[str]]]:
         """Parse ACL to tuple of (user, acl, who)"""
         if relacl is None:
             return []
         tup_list = []
-        for sacl in skytools.parse_pgarray(relacl):
-            acl = skytools.parse_acl(sacl)
-            if not acl:
-                continue
-            tup_list.append(acl)
+        parsed_list = skytools.parse_pgarray(relacl) or []
+        for sacl in parsed_list:
+            if sacl:
+                acl = skytools.parse_acl(sacl)
+                if acl:
+                    tup_list.append(acl)
         return tup_list
 
-    def __init__(self, table_name, row, new_name=None):
+    def __init__(self, table_name: str, row: DictRow, new_name: Optional[str] = None) -> None:
         self.name = table_name
         self.acl_list = self.parse_relacl(row['relacl'])
 
-    def get_create_sql(self, curs, new_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         if not new_name:
             new_name = self.name
@@ -379,7 +429,7 @@ class TGrant(TElem):
                 sql_list.append(sql)
         return "\n".join(sql_list)
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         sql_list = []
         for user, ___acl, ___who in self.acl_list:
             sql = "REVOKE ALL FROM %s ON %s;" % (
@@ -403,19 +453,23 @@ class TColumnDefault(TElem):
            and a.attnum > 0
          order by a.attnum;
     """
-    def __init__(self, table_name, row):
+    table_name: str
+    name: str
+    expr: str
+
+    def __init__(self, table_name: str, row: DictRow) -> None:
         self.table_name = table_name
         self.name = row['name']
         self.expr = row['expr']
 
-    def get_create_sql(self, curs, new_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         tbl = new_name or self.table_name
         sql = "ALTER TABLE ONLY %s ALTER COLUMN %s\n  SET DEFAULT %s;" % (
             quote_fqident(tbl), quote_ident(self.name), self.expr)
         return sql
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         return "ALTER TABLE %s ALTER COLUMN %s\n  DROP DEFAULT;" % (
             quote_fqident(self.table_name), quote_ident(self.name))
 
@@ -437,8 +491,12 @@ class TColumn(TElem):
            and a.attnum > 0
          order by a.attnum;
     """
-    seqname = None
-    def __init__(self, table_name, row):
+
+    name: str
+    column_def: str
+    seqname: Optional[str]
+
+    def __init__(self, table_name: str, row: DictRow) -> None:
         self.name = row['name']
 
         fname = row['qname'].ljust(row['maxcol'] + 3)
@@ -446,7 +504,7 @@ class TColumn(TElem):
         if row['attnotnull']:
             self.column_def += ' not null'
 
-        self.sequence = None
+        self.seqname = None
         if row['seqname']:
             self.seqname = skytools.unquote_fqident(row['seqname'])
 
@@ -461,19 +519,26 @@ class TGPDistKey(TElem):
           and a.attnum = any(p.attrnums)
         order by a.attnum;
         """
-    def __init__(self, table_name, row):
+    name: str
+
+    def __init__(self, table_name: str, row: DictRow) -> None:
         self.name = row['name']
 
 
 class TTable(TElem):
     """Info about table only (columns)."""
     type = T_TABLE
-    def __init__(self, table_name, col_list, dist_key_list=None):
+
+    name: str
+    col_list: List[TColumn]
+    dist_key_list: Optional[List[TGPDistKey]]
+
+    def __init__(self, table_name: str, col_list: List[TColumn], dist_key_list: Optional[List[TGPDistKey]] = None) -> None:
         self.name = table_name
         self.col_list = col_list
         self.dist_key_list = dist_key_list
 
-    def get_create_sql(self, curs, new_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
         if not new_name:
             new_name = self.name
@@ -493,7 +558,7 @@ class TTable(TElem):
         sql += ";"
         return sql
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         return "DROP TABLE %s;" % quote_fqident(self.name)
 
 
@@ -518,15 +583,19 @@ class TSeq(TElem):
         FROM %(fqname)s
     """
 
+    name: str
+    defn: str
+    owner: str
+
     @classmethod
-    def get_load_sql(cls, pg_vers):
+    def get_load_sql(cls, pg_vers: int) -> str:
         """Return SQL statement for finding objects."""
 
         if pg_vers < 100000:
             return cls.SQL_PG9
         return cls.SQL_PG10
 
-    def __init__(self, seq_name, row):
+    def __init__(self, seq_name: str, row: DictRow) -> None:
         self.name = seq_name
         defn = ''
         self.owner = row['owner']
@@ -551,7 +620,7 @@ class TSeq(TElem):
             defn += ' OWNED BY %s' % self.owner
         self.defn = defn
 
-    def get_create_sql(self, curs, new_seq_name=None):
+    def get_create_sql(self, curs: Optional[Cursor], new_seq_name: Optional[str] = None) -> str:
         """Generate creation SQL."""
 
         # we are in table def, forget full def
@@ -566,7 +635,7 @@ class TSeq(TElem):
         sql = 'CREATE SEQUENCE %s %s;' % (quote_fqident(name), self.defn)
         return sql
 
-    def get_drop_sql(self, curs):
+    def get_drop_sql(self, curs: Optional[Cursor]) -> str:
         if self.owner:
             return ''
         return 'DROP SEQUENCE %s;' % quote_fqident(self.name)
@@ -583,13 +652,13 @@ class BaseStruct:
     group of elements.
     """
     object_list: List[TElem] = []
-    def __init__(self, curs, name):
+    def __init__(self, curs: Optional[Cursor], name: str) -> None:
         """Initializes class by loading info about table_name from database."""
 
         self.name = name
         self.fqname = quote_fqident(name)
 
-    def _load_elem(self, curs, name, args, eclass):
+    def _load_elem(self, curs: Cursor, name: str, args: Any, eclass: Type[T]) -> List[T]:
         """Fetch element(s) from db."""
         elem_list = []
         #print "Loading %s, name=%s, args=%s" % (repr(eclass), repr(name), repr(args))
@@ -599,7 +668,7 @@ class BaseStruct:
             elem_list.append(eclass(name, row))
         return elem_list
 
-    def create(self, curs, objs, new_table_name=None, log=None):
+    def create(self, curs: Cursor, objs: int, new_table_name: Optional[str] = None, log: Optional[Logger] = None) -> None:
         """Issues CREATE statements for requested set of objects.
 
         If new_table_name is giver, creates table under that name
@@ -617,7 +686,7 @@ class BaseStruct:
                     log.debug(sql)
                 curs.execute(sql)
 
-    def drop(self, curs, objs, log=None):
+    def drop(self, curs: Cursor, objs: int, log: Optional[Logger] = None) -> None:
         """Issues DROP statements for requested set of objects."""
         # make sure the creating & dropping happen in reverse order
         olist = self.object_list[:]
@@ -632,7 +701,7 @@ class BaseStruct:
                     log.debug(sql)
                 curs.execute(sql)
 
-    def get_create_sql(self, objs):
+    def get_create_sql(self, objs: int) -> str:
         res = []
         for o in self.object_list:
             if o.type & objs:
@@ -648,7 +717,13 @@ class TableStruct(BaseStruct):
     Allow to issue CREATE/DROP statements about any
     group of elements.
     """
-    def __init__(self, curs, table_name):
+    table_name: str
+    col_list: List[TColumn]
+    dist_key_list: Optional[List[TGPDistKey]]
+    object_list: List[TElem]
+    seq_list: List[TSeq]
+
+    def __init__(self, curs: Cursor, table_name: str) -> None:
         """Initializes class by loading info about table_name from database."""
 
         super().__init__(curs, table_name)
@@ -695,7 +770,7 @@ class TableStruct(BaseStruct):
         for eclass in to_load:
             self.object_list += self._load_elem(curs, self.name, args, eclass)
 
-    def get_column_list(self):
+    def get_column_list(self) -> List[str]:
         """Returns list of column names the table has."""
 
         res = []
@@ -710,7 +785,7 @@ class SeqStruct(BaseStruct):
     Allow to issue CREATE/DROP statements about any
     group of elements.
     """
-    def __init__(self, curs, seq_name):
+    def __init__(self, curs: Cursor, seq_name: str) -> None:
         """Initializes class by loading info about table_name from database."""
 
         super().__init__(curs, seq_name)
@@ -726,7 +801,7 @@ class SeqStruct(BaseStruct):
         self.object_list = self._load_elem(curs, seq_name, args, TSeq)
 
 
-def manual_check():
+def manual_check() -> None:
     from skytools import connect_database
     db = connect_database("dbname=fooz")
     curs = db.cursor()
