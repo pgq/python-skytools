@@ -17,7 +17,8 @@ import skytools
 
 __all__ = (
     'Config', 'NoOptionError', 'ConfigError',
-    'ConfigParser', 'ExtendedConfigParser', 'ExtendedCompatConfigParser'
+    'ConfigParser', 'ExtendedConfigParser', 'ExtendedCompatConfigParser',
+    'InterpolationError', 'NoOptionError', 'NoSectionError',
 )
 
 
@@ -153,7 +154,7 @@ class Config:
 
         return self.cf.getfloat(self.main_section, key)
 
-    def getlist(self, key: str, default: Optional[Sequence[str]] = None) -> Sequence[str]:
+    def getlist(self, key: str, default: Optional[List[str]] = None) -> List[str]:
         """Reads comma-separated list from key."""
 
         if not self.cf.has_option(self.main_section, key):
@@ -169,7 +170,7 @@ class Config:
             res.append(v.strip())
         return res
 
-    def getdict(self, key: str, default: Optional[Mapping[str, str]] = None) -> Mapping[str, str]:
+    def getdict(self, key: str, default: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """Reads key-value dict from parameter.
 
         Key and value are separated with ':'.  If missing,

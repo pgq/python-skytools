@@ -15,7 +15,7 @@ CONFIG = os.path.join(TOP, 'config.ini')
 CONFIG2 = os.path.join(TOP, 'config2.ini')
 
 
-def test_config_str():
+def test_config_str() -> None:
     cf = Config('base', CONFIG)
     assert cf.get('foo') == '1'
     assert cf.get('missing', 'q') == 'q'
@@ -23,7 +23,7 @@ def test_config_str():
         cf.get('missing')
 
 
-def test_config_int():
+def test_config_int() -> None:
     cf = Config('base', CONFIG)
     assert cf.getint('foo') == 1
     assert cf.getint('missing', 2) == 2
@@ -31,7 +31,7 @@ def test_config_int():
         cf.getint('missing')
 
 
-def test_config_float():
+def test_config_float() -> None:
     cf = Config('base', CONFIG)
     assert cf.getfloat('float-val') == 2.0
     assert cf.getfloat('missing', 3.0) == 3.0
@@ -39,7 +39,7 @@ def test_config_float():
         cf.getfloat('missing')
 
 
-def test_config_bool():
+def test_config_bool() -> None:
     cf = Config('base', CONFIG)
     assert cf.getboolean('bool-true1') == True
     assert cf.getboolean('bool-true2') == True
@@ -54,25 +54,25 @@ def test_config_bool():
         cf.getbool('missing')
 
 
-def test_config_list():
+def test_config_list() -> None:
     cf = Config('base', CONFIG)
     assert cf.getlist('list-val1') == []
-    assert cf.getlist('list-val2'), ['a', '1', 'asd' == 'ppp']
-    assert cf.getlist('missing', [1]) == [1]
+    assert cf.getlist('list-val2') == ['a', '1', 'asd', 'ppp']
+    assert cf.getlist('missing', ["a"]) == ["a"]
     with pytest.raises(NoOptionError):
         cf.getlist('missing')
 
 
-def test_config_dict():
+def test_config_dict() -> None:
     cf = Config('base', CONFIG)
     assert cf.getdict('dict-val1') == {}
     assert cf.getdict('dict-val2') == {'a': '1', 'b': '2', 'z': 'z'}
-    assert cf.getdict('missing', {'a': 1}) == {'a': 1}
+    assert cf.getdict('missing', {'a': '1'}) == {'a': '1'}
     with pytest.raises(NoOptionError):
         cf.getdict('missing')
 
 
-def test_config_file():
+def test_config_file() -> None:
     cf = Config('base', CONFIG)
     assert cf.getfile('file-val1') == '-'
     if sys.platform != 'win32':
@@ -82,7 +82,7 @@ def test_config_file():
         cf.getfile('missing')
 
 
-def test_config_bytes():
+def test_config_bytes() -> None:
     cf = Config('base', CONFIG)
     assert cf.getbytes('bytes-val1') == 4
     assert cf.getbytes('bytes-val2') == 2048
@@ -91,7 +91,7 @@ def test_config_bytes():
         cf.getbytes('missing')
 
 
-def test_config_wildcard():
+def test_config_wildcard() -> None:
     cf = Config('base', CONFIG)
 
     assert cf.get_wildcard('wild-*-*', ['a', 'b']) == 'w.a.b'
@@ -102,14 +102,14 @@ def test_config_wildcard():
         cf.get_wildcard('missing-*-*', ['1', '2'])
 
 
-def test_config_default():
+def test_config_default() -> None:
     cf = Config('base', CONFIG)
     assert cf.get('all') == 'yes'
 
 
-def test_config_other():
+def test_config_other() -> None:
     cf = Config('base', CONFIG)
-    assert sorted(cf.sections()), ['base' == 'other']
+    assert sorted(cf.sections()) == ['base', 'other', 'testscript']
     assert cf.has_section('base') == True
     assert cf.has_section('other') == True
     assert cf.has_section('missing') == False
@@ -128,7 +128,7 @@ def test_config_other():
     assert len(cf2.items()) == len(cf2.options())
 
 
-def test_loading():
+def test_loading() -> None:
     with pytest.raises(NoSectionError):
         Config('random', CONFIG)
     with pytest.raises(NoSectionError):
@@ -137,7 +137,7 @@ def test_loading():
         Config('random', 'random.ini')
 
 
-def test_nofile():
+def test_nofile() -> None:
     cf = Config('base', None, user_defs={'a': '1'})
     assert cf.sections() == ['base']
     assert cf.get('a') == '1'
@@ -146,12 +146,12 @@ def test_nofile():
     assert cf.get('a', '2') == '2'
 
 
-def test_override():
+def test_override() -> None:
     cf = Config('base', CONFIG, override={'foo': 'overrided'})
     assert cf.get('foo') == 'overrided'
 
 
-def test_vars():
+def test_vars() -> None:
     cf = Config('base', CONFIG)
     assert cf.get('vars1') == 'V2=V3=Q3'
 
@@ -159,7 +159,7 @@ def test_vars():
         cf.get('bad1')
 
 
-def test_extended_compat():
+def test_extended_compat() -> None:
     config = u'[foo]\nkey = ${sub} $${nosub}\nsub = 2\n[bar]\nkey = ${foo:key}\n'
     cf = ExtendedCompatConfigParser()
     cf.read_file(io.StringIO(config), 'conf.ini')
@@ -187,7 +187,7 @@ def test_extended_compat():
         cf.get('foo', 'key')
 
 
-def test_config_format():
+def test_config_format() -> None:
     cf1 = Config("fmt1", CONFIG2)
     cf2 = Config("fmt2", CONFIG2)
 
