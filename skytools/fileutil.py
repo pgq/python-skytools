@@ -11,7 +11,7 @@ from typing import Optional, Union
 __all__ = ['write_atomic', 'signal_pidfile']
 
 
-def write_atomic_unix(fn: str, data: Union[bytes, str], bakext: Optional[str] = None, mode: str = 'b'):
+def write_atomic_unix(fn: str, data: Union[bytes, str], bakext: Optional[str] = None, mode: str = 'b') -> None:
     """Write file with rename."""
 
     if mode not in ['', 'b', 't']:
@@ -121,7 +121,7 @@ def win32_detect_pid(pid: int) -> bool:
     return code.value == STILL_ACTIVE
 
 
-def win32_write_atomic(fn: str, data: Union[bytes, str], bakext: Optional[str] = None, mode: str = 'b'):
+def win32_write_atomic(fn: str, data: Union[bytes, str], bakext: Optional[str] = None, mode: str = 'b') -> None:
     """Write file with rename for win32."""
 
     if mode not in ['', 'b', 't']:
