@@ -10,6 +10,7 @@ see https://pypi.python.org/pypi/apipkg
 
 import os
 import sys
+from typing import List
 from types import ModuleType
 
 __version__ = "1.5"
@@ -43,6 +44,7 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     """ initialize given package from the export definitions. """
     attr = attr or {}
     oldmod = sys.modules.get(pkgname)
+    assert oldmod
     d = {}
     f = getattr(oldmod, '__file__', None)
     if f:
@@ -166,7 +168,7 @@ class ApiModule(ModuleType):
     def __dict__(self):
         # force all the content of the module
         # to be loaded when __dict__ is read
-        dictdescr = ModuleType.__dict__['__dict__']
+        dictdescr = ModuleType.__dict__['__dict__']  # type: ignore
         dict = dictdescr.__get__(self)
         if dict is not None:
             hasattr(self, 'some')
@@ -179,7 +181,7 @@ class ApiModule(ModuleType):
 
 
 def AliasModule(modname, modpath, attrname=None):
-    mod = []
+    mod: List[ModuleType] = []
 
     def getmod():
         if not mod:
