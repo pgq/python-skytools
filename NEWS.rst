@@ -2,6 +2,28 @@
 NEWS
 ====
 
+Skytools 3.9 (2023-08-23)
+-------------------------
+
+Feature removal:
+
+* Drop support for Python 3.6 and earlier.
+
+Fixes:
+
+* dbstruct: fix PUBLIC grant handling.
+
+Cleanups:
+
+* Apply mypy 'strict' typing to most modules and tests.
+* Use ``pyproject.toml`` for project setup.
+
+Warning: next release will drop some ancient and rarely used code:
+
+* skytools.plpy_applyrow
+* skytools.dbservice
+* skytools.skylog.LogDBHandler
+
 Skytools 3.8.2 (2023-05-19)
 ---------------------------
 

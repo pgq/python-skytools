@@ -9,7 +9,7 @@ sql_locations = [
 
 # PEP 440 version: [N!]N(.N)*[{a|b|rc}N][.postN][.devN]
 
-package_version = "3.8.2"
+package_version = "3.9"
 
 skylog = 0
 
