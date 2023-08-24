@@ -7,7 +7,8 @@ import typing
 import types
 
 from typing import (
-    IO, Any, Iterable, Mapping, Optional, Sequence, Tuple, Type, Union,
+    IO, Any, Mapping, Optional, Sequence, Tuple, Type, Union,
+    KeysView, ValuesView, ItemsView, Iterator,
 )
 
 try:
@@ -31,14 +32,14 @@ class DictRow(Protocol):
 
     Both Psycopg2 DictRow and PL/Python rows support this.
     """
-    def keys(self) -> Iterable[str]: raise NotImplementedError
-    def values(self) -> Iterable[Any]: raise NotImplementedError
-    def items(self) -> Iterable[Tuple[str, Any]]: raise NotImplementedError
+    def keys(self) -> KeysView[str]: raise NotImplementedError
+    def values(self) -> ValuesView[Any]: raise NotImplementedError
+    def items(self) -> ItemsView[str, Any]: raise NotImplementedError
     def get(self, key: str, default: Any = None) -> Any: raise NotImplementedError
     def __getitem__(self, key: Union[str, int]) -> Any: raise NotImplementedError
-    def __iter__(self) -> Iterable[str]: raise NotImplementedError
+    def __iter__(self) -> Iterator[str]: raise NotImplementedError
     def __len__(self) -> int: raise NotImplementedError
-    def __contains__(self, key: str) -> bool: raise NotImplementedError
+    def __contains__(self, key: object) -> bool: raise NotImplementedError
 
 
 class Cursor(Protocol):
