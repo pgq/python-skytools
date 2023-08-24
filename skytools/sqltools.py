@@ -106,15 +106,15 @@ def get_table_columns(curs: Cursor, tbl: str) -> List[str]:
 # exist checks
 #
 
-def exists_schema(curs: Cursor, schema: str) -> int:
+def exists_schema(curs: Cursor, schema: str) -> bool:
     """Does schema exists?"""
     q = "select count(1) from pg_namespace where nspname = %s"
     curs.execute(q, [schema])
     res = curs.fetchone()
-    return cast(int, res[0])
+    return bool(res[0])
 
 
-def exists_table(curs: Cursor, table_name: str) -> int:
+def exists_table(curs: Cursor, table_name: str) -> bool:
     """Does table exists?"""
     schema, name = fq_name_parts(table_name)
     q = """select count(1) from pg_namespace n, pg_class c
@@ -122,10 +122,10 @@ def exists_table(curs: Cursor, table_name: str) -> int:
              and n.nspname = %s and c.relname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return cast(int, res[0])
+    return bool(res[0])
 
 
-def exists_sequence(curs: Cursor, seq_name: str) -> int:
+def exists_sequence(curs: Cursor, seq_name: str) -> bool:
     """Does sequence exists?"""
     schema, name = fq_name_parts(seq_name)
     q = """select count(1) from pg_namespace n, pg_class c
@@ -133,10 +133,10 @@ def exists_sequence(curs: Cursor, seq_name: str) -> int:
              and n.nspname = %s and c.relname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return cast(int, res[0])
+    return bool(res[0])
 
 
-def exists_view(curs: Cursor, view_name: str) -> int:
+def exists_view(curs: Cursor, view_name: str) -> bool:
     """Does view exists?"""
     schema, name = fq_name_parts(view_name)
     q = """select count(1) from pg_namespace n, pg_class c
@@ -144,10 +144,10 @@ def exists_view(curs: Cursor, view_name: str) -> int:
              and n.nspname = %s and c.relname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return cast(int, res[0])
+    return bool(res[0])
 
 
-def exists_type(curs: Cursor, type_name: str) -> int:
+def exists_type(curs: Cursor, type_name: str) -> bool:
     """Does type exists?"""
     schema, name = fq_name_parts(type_name)
     q = """select count(1) from pg_namespace n, pg_type t
@@ -155,10 +155,10 @@ def exists_type(curs: Cursor, type_name: str) -> int:
              and n.nspname = %s and t.typname = %s"""
     curs.execute(q, [schema, name])
     res = curs.fetchone()
-    return cast(int, res[0])
+    return bool(res[0])
 
 
-def exists_function(curs: Cursor, function_name: str, nargs: int) -> int:
+def exists_function(curs: Cursor, function_name: str, nargs: int) -> bool:
     """Does function exists?"""
     # this does not check arg types, so may match several functions
     schema, name = fq_name_parts(function_name)
@@ -173,19 +173,19 @@ def exists_function(curs: Cursor, function_name: str, nargs: int) -> int:
         name = "pg_catalog." + function_name
         return exists_function(curs, name, nargs)
 
-    return cast(int, res[0])
+    return bool(res[0])
 
 
-def exists_language(curs: Cursor, lang_name: str) -> int:
+def exists_language(curs: Cursor, lang_name: str) -> bool:
     """Does PL exists?"""
     q = """select count(1) from pg_language
            where lanname = %s"""
     curs.execute(q, [lang_name])
     res = curs.fetchone()
-    return cast(int, res[0])
+    return bool(res[0])
 
 
-def exists_temp_table(curs: Cursor, tbl: str) -> int:
+def exists_temp_table(curs: Cursor, tbl: str) -> bool:
     """Does temp table exists?"""
     # correct way, works only on 8.2
     q = "select 1 from pg_class where relname = %s and relnamespace = pg_my_temp_schema()"
