@@ -73,8 +73,13 @@ class Connection(Protocol):
     def isolation_level(self) -> int: raise NotImplementedError
     def set_isolation_level(self, level: int) -> None: raise NotImplementedError
     @property
+    def encoding(self) -> str: raise NotImplementedError
+    def set_client_encoding(self, encoding: str) -> None: raise NotImplementedError
+    @property
     def server_version(self) -> int: raise NotImplementedError
-
+    def __enter__(self) -> "Connection": raise NotImplementedError
+    def __exit__(self, typ: Optional[Type[BaseException]], exc: Optional[BaseException], tb: Optional[types.TracebackType]) -> None:
+        raise NotImplementedError
 
 class Runnable(Protocol):
     def run(self) -> None: raise NotImplementedError
