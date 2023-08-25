@@ -22,26 +22,25 @@ jobs:
         with: {name: "dist", path: "dist"}
 
   cibuildwheel:
-    name: "Wheels: ${{matrix.sys.name}}"
+    name: "Wheels: ${{matrix.sys.name}} [${{matrix.sys.archs}}]"
     runs-on: ${{matrix.sys.os}}
     strategy:
       matrix:
         sys:
-          - {os: "ubuntu-latest", name: "Linux"}
-          - {os: "macos-latest", name: "MacOS"}
-          - {os: "windows-latest", name: "Windows"}
+          - {os: "ubuntu-latest", name: "Linux", archs: "auto", qemu: false}
+          - {os: "ubuntu-latest", name: "Linux", archs: "aarch64", qemu: true}
+          - {os: "macos-latest", name: "MacOS", archs: "x86_64 arm64 universal2", qemu: false}
+          - {os: "windows-latest", name: "Windows", archs: "auto", qemu: false}
     steps:
       - uses: actions/checkout@v3
       - name: "Set up QEMU"
-        if: runner.os == 'Linux'
+        if: ${{matrix.sys.qemu}}
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
       - uses: pypa/cibuildwheel@v2.15
         env:
-          CIBW_ARCHS_MACOS: "x86_64 arm64 universal2"
-          CIBW_ARCHS_WINDOWS: "auto"
-          CIBW_ARCHS_LINUX: "auto aarch64"
+          CIBW_ARCHS: "${{matrix.sys.archs}}"
           # cp38: cp37-macos does not support universal2/arm64
           CIBW_BUILD: "cp38-* pp*-manylinux_x86_64"
           CIBW_SKIP: "pp37-*"
