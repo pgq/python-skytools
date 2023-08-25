@@ -12,6 +12,9 @@ clean:
 	rm -rf build *.egg-info */__pycache__ tests/*.pyc
 	rm -rf .pybuild MANIFEST
 
+sdist:
+	python3 setup.py sdist
+
 lint:
 	tox -e lint
 
@@ -39,4 +42,7 @@ unrelease:
 shownote:
 	gawk -v VER="$(VERSION)" -f etc/note.awk $(NEWS) \
 	| pandoc -f rst -t gfm --wrap=none
+
+showuses:
+	grep uses: .github/workflows/*.yml
 
