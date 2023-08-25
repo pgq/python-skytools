@@ -1,7 +1,13 @@
 #
 # https://docs.github.com/en/actions/reference
 # https://github.com/actions
+# https://cibuildwheel.readthedocs.io/en/stable/options/
 #
+# uses: https://github.com/actions/checkout @v3
+# uses: https://github.com/actions/setup-python @v4
+# uses: https://github.com/actions/download-artifact @v3
+# uses: https://github.com/actions/upload-artifact @v3
+# uses: https://github.com/pypa/cibuildwheel @v2.15
 
 name: CI
 
@@ -11,8 +17,8 @@ on:
 
 jobs:
 
-  pylint:
-    name: "PyLint"
+  check:
+    name: "Check"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,13 +33,12 @@ jobs:
         with:
           python-version: ${{matrix.test.PY}}
 
-      - name: "Install tox"
-        run: python -m pip -q install tox
+      - run: python3 -m pip install -r etc/requirements.build.txt --disable-pip-version-check
 
       - name: "Test"
         env:
            TOXENV: ${{matrix.test.TOXENV}}
-        run: python -m tox -r
+        run: python3 -m tox -r
 
   no_database:
     name: "${{matrix.test.osname}} + Python ${{matrix.test.PY}} ${{matrix.test.arch}}"
@@ -46,12 +51,18 @@ jobs:
           - {os: "ubuntu-latest", osname: "Linux", PY: "3.9", TOXENV: "py39", arch: "x64"}
           - {os: "ubuntu-latest", osname: "Linux", PY: "3.10", TOXENV: "py310", arch: "x64"}
           - {os: "ubuntu-latest", osname: "Linux", PY: "3.11", TOXENV: "py311", arch: "x64"}
+          - {os: "ubuntu-latest", osname: "Linux", PY: "3.12", TOXENV: "py312", arch: "x64"}
           - {os: "macos-latest", osname: "MacOS", PY: "3.10", TOXENV: "py310", arch: "x64"}
           - {os: "macos-latest", osname: "MacOS", PY: "3.11", TOXENV: "py311", arch: "x64"}
-          - {os: "windows-latest", osname: "Windows", PY: "3.10", TOXENV: "py310", arch: "x64"}
+          #- {os: "macos-latest", osname: "MacOS", PY: "3.12", TOXENV: "py312", arch: "x64"}
+          - {os: "windows-latest", osname: "Windows", PY: "3.7", TOXENV: "py37", arch: "x86"}
+          - {os: "windows-latest", osname: "Windows", PY: "3.8", TOXENV: "py38", arch: "x64"}
+          - {os: "windows-latest", osname: "Windows", PY: "3.10", TOXENV: "py310", arch: "x86"}
           - {os: "windows-latest", osname: "Windows", PY: "3.11", TOXENV: "py311", arch: "x64"}
-          #- {os: "ubuntu-latest", osname: "Linux", PY: "pypy-3.9", TOXENV: "pypy39", arch: "x64"}
-          #- {os: "ubuntu-latest", osname: "Linux", PY: "pypy-3.10", TOXENV: "pypy310", arch: "x64"}
+          #- {os: "windows-latest", osname: "Windows", PY: "3.12", TOXENV: "py312", arch: "x64"}
+          - {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.8", TOXENV: "pypy38", arch: "x64"}
+          - {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.9", TOXENV: "pypy39", arch: "x64"}
+          - {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.10", TOXENV: "pypy310", arch: "x64"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v3
@@ -61,10 +72,9 @@ jobs:
         with:
           python-version: ${{matrix.test.PY}}
           architecture: ${{matrix.test.arch}}
+          allow-prereleases: true
 
-
-      - name: "Install tox"
-        run: python -m pip -q install tox
+      - run: python3 -m pip install -r etc/requirements.build.txt --disable-pip-version-check
 
       - name: "Build"
         run: python setup.py build
@@ -153,21 +163,28 @@ jobs:
     strategy:
       matrix:
         sys:
-          - {os: "ubuntu-latest", name: "Linux", arches: "auto"}
-          - {os: "macos-latest", name: "MacOS", arches: "x86_64 arm64 universal2"}
-          - {os: "windows-latest", name: "Windows", arches: "auto"}
+          - {os: "ubuntu-latest", name: "Linux"}
+          - {os: "macos-latest", name: "MacOS"}
+          - {os: "windows-latest", name: "Windows"}
     steps:
       - uses: actions/checkout@v3
-      - uses: pypa/cibuildwheel@v2.15.0
+      - name: "Set up QEMU"
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+      - uses: pypa/cibuildwheel@v2.15
         env:
-          CIBW_ARCHS: ${{matrix.sys.arches}}
+          CIBW_ARCHS_MACOS: "x86_64 arm64 universal2"
+          CIBW_ARCHS_WINDOWS: "auto"
+          CIBW_ARCHS_LINUX: "auto aarch64"
+          # cp38: cp37-macos does not support universal2/arm64
+          CIBW_BUILD: "cp38-* pp*-manylinux_x86_64"
+          CIBW_SKIP: "pp37-*"
       - name: "Check"
         shell: bash
         run: |
           ls -l wheelhouse
-      #- name: "Clean"
-      #  shell: bash
-      #  run: rm -f wheelhouse/UNKNOWN*
       - uses: actions/upload-artifact@v3
         with: {name: "dist", path: "wheelhouse"}
 
