@@ -4,12 +4,16 @@
 from typing import Dict, Callable, Any, List, Type, Tuple, Union, Optional
 from decimal import Decimal
 
-import psycopg2.extras
+try:
+    import psycopg2.extras
+    _have_psycopg2 = True
+except ImportError:
+    _have_psycopg2 = False
+
 import pytest
 
 import skytools._cquoting
 import skytools._pyquoting
-import skytools.psycopgwrapper
 from skytools.quoting import (
     json_decode, json_encode, make_pgarray,
     quote_fqident, unescape_copy, unquote_fqident,
@@ -26,9 +30,10 @@ class fake_cursor:
     description = ['x', 'x']
 
 
-dbrow = psycopg2.extras.DictRow(fake_cursor())
-dbrow[0] = '123'
-dbrow[1] = 'value'
+if _have_psycopg2:
+    dbrow = psycopg2.extras.DictRow(fake_cursor())
+    dbrow[0] = '123'
+    dbrow[1] = 'value'
 
 
 def try_quote(func: QuoteFunc, data_list: QuoteTests) -> None:
@@ -196,9 +201,10 @@ def test_db_urlencode() -> None:
         ({'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'),
         ({'qwe': 1, u'zz': u"qwe"}, 'qwe=1&zz=qwe'),
         ({'a': '\000%&'}, "a=%00%25%26"),
-        (dbrow, 'data=value&id=123'),
         ({'a': Decimal("1")}, "a=1"),
     ]
+    if _have_psycopg2:
+        t_urlenc.append((dbrow, 'data=value&id=123'))
     try_quote(_sort_urlenc(skytools._cquoting.db_urlencode), t_urlenc)
     try_quote(_sort_urlenc(skytools._pyquoting.db_urlencode), t_urlenc)
     try_quote(_sort_urlenc(skytools.db_urlencode), t_urlenc)
