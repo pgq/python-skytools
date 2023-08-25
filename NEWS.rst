@@ -2,6 +2,22 @@
 NEWS
 ====
 
+Skytools 3.9.1 (2023-08-25)
+---------------------------
+
+Fixes:
+
+* sqltools: mark ``exists_*`` functions as returning bool
+* basetypes: sync DictRow with Mapping
+* basetypes: describe additional psycopg2 api
+
+Cleanups:
+
+* build: create ``abi3`` wheels
+* ci: drop unmaintained ``create-release``, ``upload-release-asset`` actions
+* ci: build aarch64 wheel
+* ci: test on pypy
+
 Skytools 3.9 (2023-08-23)
 -------------------------
 
