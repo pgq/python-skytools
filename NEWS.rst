@@ -2,6 +2,15 @@
 NEWS
 ====
 
+Skytools 3.9.2 (2023-08-27)
+---------------------------
+
+Cleanups:
+
+* basetypes: add 'statusmessage' property
+* ci: cleanups
+* ci: split qemu to separate runner
+
 Skytools 3.9.1 (2023-08-25)
 ---------------------------
 
