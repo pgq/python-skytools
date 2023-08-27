@@ -45,6 +45,8 @@ class DictRow(Protocol):
 class Cursor(Protocol):
     @property
     def rowcount(self) -> int: raise NotImplementedError
+    @property
+    def statusmessage(self) -> Optional[str]: raise NotImplementedError
     def execute(self, sql: str, params: Optional[ExecuteParams] = None) -> None: raise NotImplementedError
     def fetchall(self) -> Sequence[DictRow]: raise NotImplementedError
     def fetchone(self) -> DictRow: raise NotImplementedError
