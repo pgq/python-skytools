@@ -59,13 +59,18 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with: {python-version: "3.11"}
-      - uses: actions/download-artifact@v3
-        with: {name: "dist", path: "dist"}
+
       - run: python3 -m pip install -r etc/requirements.build.txt --disable-pip-version-check
+
+      - name: "Get files"
+        uses: actions/download-artifact@v3
+        with: {name: "dist", path: "dist"}
+
       - name: "Install pandoc"
         run: |
           sudo -nH apt-get -u -y install pandoc
           pandoc --version
+
       - name: "Prepare"
         run: |
           PACKAGE=$(python3 setup.py --name)
