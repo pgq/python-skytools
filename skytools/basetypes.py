@@ -95,7 +95,7 @@ FileDescriptor = int
 FileDescriptorLike = Union[int, HasFileno]
 
 try:
-    from typing_extensions import Buffer
+    from typing_extensions import Buffer  # type: ignore
 except ImportError:
     if typing.TYPE_CHECKING:
         from _typeshed import Buffer    # type: ignore
