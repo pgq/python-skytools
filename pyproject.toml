@@ -126,6 +126,10 @@ disallow_incomplete_defs = false
 module = ["plpy"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["skytools.basetypes"]
+warn_unused_ignores = false
+
 [tool.ruff]
 line-length = 120
 select = ["E", "F", "Q", "W", "UP", "YTT", "ANN"]
