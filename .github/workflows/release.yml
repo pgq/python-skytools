@@ -13,7 +13,7 @@ jobs:
     name: "Build source package"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with: {python-version: "3.11"}
       - run: python3 -m pip install -r etc/requirements.build.txt --disable-pip-version-check
@@ -32,13 +32,13 @@ jobs:
           - {os: "macos-latest", name: "MacOS", archs: "x86_64 arm64 universal2", qemu: false}
           - {os: "windows-latest", name: "Windows", archs: "auto", qemu: false}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set up QEMU"
         if: ${{matrix.sys.qemu}}
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
-      - uses: pypa/cibuildwheel@v2.15
+      - uses: pypa/cibuildwheel@v2.16
         env:
           CIBW_ARCHS: "${{matrix.sys.archs}}"
           # cp38: cp37-macos does not support universal2/arm64
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sdist, cibuildwheel]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with: {python-version: "3.11"}
 

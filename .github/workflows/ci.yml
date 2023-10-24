@@ -3,11 +3,11 @@
 # https://github.com/actions
 # https://cibuildwheel.readthedocs.io/en/stable/options/
 #
-# uses: https://github.com/actions/checkout @v3
+# uses: https://github.com/actions/checkout @v4
 # uses: https://github.com/actions/setup-python @v4
 # uses: https://github.com/actions/download-artifact @v3
 # uses: https://github.com/actions/upload-artifact @v3
-# uses: https://github.com/pypa/cibuildwheel @v2.15
+# uses: https://github.com/pypa/cibuildwheel @v2.16
 
 name: CI
 
@@ -26,7 +26,7 @@ jobs:
           - {PY: "3.10", TOXENV: "lint"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Setup Python ${{matrix.test.PY}}"
         uses: actions/setup-python@v4
@@ -65,7 +65,7 @@ jobs:
           - {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.10", TOXENV: "pypy310", arch: "x64"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Setup Python ${{matrix.test.PY}}"
         uses: actions/setup-python@v4
@@ -99,7 +99,7 @@ jobs:
           #- {PY: "pypy3.10", PG: "15", TOXENV: "pypy310"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Setup Python ${{matrix.test.PY}}"
         uses: actions/setup-python@v4
@@ -167,13 +167,13 @@ jobs:
           - {os: "macos-latest", name: "MacOS", archs: "x86_64 arm64 universal2", qemu: false}
           - {os: "windows-latest", name: "Windows", archs: "auto", qemu: false}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set up QEMU"
         if: ${{matrix.sys.qemu}}
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
-      - uses: pypa/cibuildwheel@v2.15
+      - uses: pypa/cibuildwheel@v2.16
         env:
           CIBW_ARCHS: "${{matrix.sys.archs}}"
           # cp38: cp37-macos does not support universal2/arm64
