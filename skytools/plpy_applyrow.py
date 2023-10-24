@@ -1,7 +1,7 @@
 """PLPY helper module for applying row events from pgq.logutriga().
 """
 
-from typing import Sequence, Optional
+from typing import Optional, Sequence
 
 import skytools
 
@@ -11,7 +11,7 @@ except ImportError:
     pass
 
 
-## TODO: automatic fkey detection
+# TODO: automatic fkey detection
 # find FK columns
 FK_SQL = """
 SELECT (SELECT array_agg( (SELECT attname::text FROM pg_attribute

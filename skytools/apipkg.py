@@ -10,8 +10,8 @@ see https://pypi.python.org/pypi/apipkg
 
 import os
 import sys
-from typing import List
 from types import ModuleType
+from typing import List
 
 __version__ = "1.5"
 

@@ -4,12 +4,11 @@
 # pylint:disable=arguments-renamed
 
 import re
-from typing import List, Optional, Type, Tuple, TypeVar, Any
 from logging import Logger
+from typing import Any, List, Optional, Tuple, Type, TypeVar
 
 import skytools
 from skytools import quote_fqident, quote_ident
-
 from skytools.basetypes import Cursor, DictRow
 
 __all__ = (
@@ -39,6 +38,7 @@ T = TypeVar("T", bound="TElem")
 #
 # Utility functions
 #
+
 
 def find_new_name(curs: Optional[Cursor], name: str) -> str:
     """Create new object name for case the old exists.
@@ -533,7 +533,8 @@ class TTable(TElem):
     col_list: List[TColumn]
     dist_key_list: Optional[List[TGPDistKey]]
 
-    def __init__(self, table_name: str, col_list: List[TColumn], dist_key_list: Optional[List[TGPDistKey]] = None) -> None:
+    def __init__(self, table_name: str, col_list: List[TColumn],
+                 dist_key_list: Optional[List[TGPDistKey]] = None) -> None:
         self.name = table_name
         self.col_list = col_list
         self.dist_key_list = dist_key_list
@@ -668,7 +669,8 @@ class BaseStruct:
             elem_list.append(eclass(name, row))
         return elem_list
 
-    def create(self, curs: Cursor, objs: int, new_table_name: Optional[str] = None, log: Optional[Logger] = None) -> None:
+    def create(self, curs: Cursor, objs: int,
+               new_table_name: Optional[str] = None, log: Optional[Logger] = None) -> None:
         """Issues CREATE statements for requested set of objects.
 
         If new_table_name is giver, creates table under that name

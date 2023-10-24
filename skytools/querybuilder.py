@@ -12,7 +12,7 @@ See L{plpy_exec} for examples.
 import json
 import re
 from functools import lru_cache
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Union, Tuple, cast
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 import skytools
 
@@ -141,7 +141,8 @@ class QueryBuilderCore:
         tmp = [str(part) for part in self._sql_parts]
         return "".join(tmp)
 
-    def _add_expr(self, pfx: str, expr: str, params: Optional[Mapping[str, Any]], sql_type: str, required: bool) -> None:
+    def _add_expr(self, pfx: str, expr: str,
+                  params: Optional[Mapping[str, Any]], sql_type: str, required: bool) -> None:
         parts: List[Union[str, QArg]] = []
         types: List[str] = []
         values: List[Any] = []

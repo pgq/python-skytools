@@ -7,8 +7,7 @@ import os
 import socket
 import time
 from logging import LoggerAdapter
-
-from typing import Any, Optional, Union, Dict
+from typing import Any, Dict, Optional, Union
 
 import skytools
 import skytools.tnetstrings

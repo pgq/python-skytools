@@ -12,12 +12,12 @@ import select
 import signal
 import sys
 import time
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union, Callable, Type, cast
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union, cast
 
 import skytools
 import skytools.skylog
 
-from .basetypes import Connection, Runnable, Cursor, DictRow, ExecuteParams
+from .basetypes import Connection, Cursor, DictRow, ExecuteParams, Runnable
 
 try:
     import skytools.installer_config
@@ -761,7 +761,7 @@ class BaseScript:
 
 
 ##
-##  DBScript
+# DBScript
 ##
 
 #: how old connections need to be closed
@@ -819,8 +819,8 @@ class DBScript(BaseScript):
         return connstr
 
     def get_database(self, dbname: str, autocommit: int = 0, isolation_level: int = -1,
-            cache: Optional[str] = None, connstr: Optional[str] = None,
-            profile: Optional[str] = None) -> Connection:
+                     cache: Optional[str] = None, connstr: Optional[str] = None,
+                     profile: Optional[str] = None) -> Connection:
         """Load cached database connection.
 
         User must not store it permanently somewhere,
@@ -948,7 +948,8 @@ class DBScript(BaseScript):
             self.log.info('wait canceled')
         return None
 
-    def _exec_cmd(self, curs: Cursor, sql: str, args: ExecuteParams, quiet: bool = False, prefix: Optional[str] = None) -> Tuple[bool, Sequence[DictRow]]:
+    def _exec_cmd(self, curs: Cursor, sql: str, args: ExecuteParams, quiet: bool = False,
+                  prefix: Optional[str] = None) -> Tuple[bool, Sequence[DictRow]]:
         """Internal tool: Run SQL on cursor."""
         if self.options.verbose:
             self.log.debug("exec_cmd: %s", skytools.quote_statement(sql, args))
@@ -984,7 +985,8 @@ class DBScript(BaseScript):
                 ok = False
         return (ok, rows)
 
-    def _exec_cmd_many(self, curs: Cursor, sql: str, baseargs: List[Any], extra_list: Sequence[Any], quiet:bool=False, prefix:Optional[str]=None) -> Tuple[bool, Sequence[DictRow]]:
+    def _exec_cmd_many(self, curs: Cursor, sql: str, baseargs: List[Any], extra_list: Sequence[Any],
+                       quiet: bool = False, prefix: Optional[str] = None) -> Tuple[bool, Sequence[DictRow]]:
         """Internal tool: Run SQL on cursor multiple times."""
         ok = True
         rows: List[DictRow] = []
@@ -996,7 +998,7 @@ class DBScript(BaseScript):
         return (ok, rows)
 
     def exec_cmd(self, db_or_curs: Union[Connection, Cursor], q: str, args: ExecuteParams,
-            commit: bool = True, quiet: bool = False, prefix: Optional[str] = None) -> Sequence[DictRow]:
+                 commit: bool = True, quiet: bool = False, prefix: Optional[str] = None) -> Sequence[DictRow]:
         """Run SQL on db with code/value error handling."""
 
         db: Optional[Connection]
@@ -1022,7 +1024,7 @@ class DBScript(BaseScript):
             sys.exit(1)
 
     def exec_cmd_many(self, db_or_curs: Union[Connection, Cursor], sql: str, baseargs: List[Any], extra_list: Sequence[Any],
-            commit: bool = True, quiet: bool = False, prefix: Optional[str] = None) -> Sequence[DictRow]:
+                      commit: bool = True, quiet: bool = False, prefix: Optional[str] = None) -> Sequence[DictRow]:
         """Run SQL on db multiple times."""
         if hasattr(db_or_curs, 'cursor'):
             db = cast(Connection, db_or_curs)
@@ -1043,7 +1045,8 @@ class DBScript(BaseScript):
             # error is already logged
             sys.exit(1)
 
-    def execute_with_retry(self, dbname: str, stmt: str, args: List[Any], exceptions: Optional[Sequence[Type[Exception]]] = None) -> Tuple[int, Cursor]:
+    def execute_with_retry(self, dbname: str, stmt: str,
+                           args: List[Any], exceptions: Optional[Sequence[Type[Exception]]] = None) -> Tuple[int, Cursor]:
         """ Execute SQL and retry if it fails.
         Return number of retries and current valid cursor, or raise an exception.
         """
@@ -1133,7 +1136,8 @@ class DBCachedConn:
     setup_func: Optional[SetupFunc]
     listen_channel_list: Sequence[str]
 
-    def __init__(self, name: str, loc: str, max_age:int=DEF_CONN_AGE, verbose:bool=False, setup_func: Optional[SetupFunc] = None, channels: Sequence[str] = ()) -> None:
+    def __init__(self, name: str, loc: str, max_age: int = DEF_CONN_AGE, verbose: bool = False,
+                 setup_func: Optional[SetupFunc] = None, channels: Sequence[str] = ()) -> None:
         self.name = name
         self.loc = loc
         self.conn = None
@@ -1149,7 +1153,7 @@ class DBCachedConn:
             return None
         return self.conn.cursor().fileno()
 
-    def get_connection(self, isolation_level:int=-1, listen_channel_list: Sequence[str]=()) -> Connection:
+    def get_connection(self, isolation_level: int = -1, listen_channel_list: Sequence[str] = ()) -> Connection:
 
         # default isolation_level is READ COMMITTED
         if isolation_level < 0:

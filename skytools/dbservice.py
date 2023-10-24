@@ -2,7 +2,7 @@
 """
 
 import logging
-from typing import List, Optional, Sequence, Any, Dict, Union, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import skytools
 from skytools import dbdict
@@ -202,7 +202,8 @@ class DBService:
 
     # error and message handling
 
-    def tell_user(self, severity: str, code: str, message: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> None:
+    def tell_user(self, severity: str, code: str, message: str,
+                  params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> None:
         """ Adds another message to the set of messages to be sent back to user
             If error message then can_save is set false
             If fatal message then error or found errors are raised at once
@@ -229,7 +230,8 @@ class DBService:
 
     # run sql meant mostly for select but not limited to
 
-    def create_query(self, sql: str, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> skytools.PLPyQueryBuilder:
+    def create_query(self, sql: str, params: Optional[Dict[str, Any]]
+                     = None, **kvargs: Any) -> skytools.PLPyQueryBuilder:
         """ Returns initialized querybuilder object for building complex dynamic queries
         """
         params = params or kvargs
@@ -292,13 +294,15 @@ class DBService:
             self.tell_user(severity, "dbsXXXX", "No matching records found")
         return rows
 
-    def return_next_sql(self, sql: str, params: Optional[Dict[str, Any]], res_name: str, severity: Optional[str] = None) -> List[dbdict]:
+    def return_next_sql(self, sql: str, params: Optional[Dict[str, Any]],
+                        res_name: str, severity: Optional[str] = None) -> List[dbdict]:
         """ Exectes query and adds recors resultset
         """
         rows = self.run_query(sql, params)
         return self.return_next(rows, res_name, severity)
 
-    def retval(self, service_name: Optional[str] = None, params: Optional[Dict[str, Any]] = None, **kvargs: Any) -> List[Tuple[str, str, str]]:
+    def retval(self, service_name: Optional[str] = None, params: Optional[Dict[str, Any]]
+               = None, **kvargs: Any) -> List[Tuple[str, str, str]]:
         """ Return collected resultsets and append to the end messages to the users
             Method is called usually as last statement in dbservice to return the results
             Also converts results into desired format
@@ -308,7 +312,7 @@ class DBService:
         if len(self.messages):
             self.return_next(self.messages, "_status")  # type: ignore
         if self.sqls is not None and len(self.sqls):
-            self.return_next(self.sqls, "_sql") # type: ignore
+            self.return_next(self.sqls, "_sql")  # type: ignore
         results: List[Tuple[str, str, str]] = []
         for r in self._retval:
             res_name = r[0]

@@ -4,7 +4,7 @@
 import io
 import logging
 import os
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union, cast, Callable
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 import skytools
 
@@ -450,8 +450,8 @@ def full_copy(tablename: str, src_curs: Cursor, dst_curs: Cursor,
     dst = build_statement(dst_tablename, dst_column_list)
     if condition:
         src = "(SELECT %s FROM ONLY %s WHERE %s)" % (build_qfields(column_list),
-                                                skytools.quote_fqident(tablename),
-                                                condition)
+                                                     skytools.quote_fqident(tablename),
+                                                     condition)
     else:
         src = build_statement(tablename, column_list)
 

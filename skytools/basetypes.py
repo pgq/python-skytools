@@ -3,12 +3,11 @@
 
 import abc
 import io
-import typing
 import types
-
+import typing
 from typing import (
-    IO, Any, Mapping, Optional, Sequence, Tuple, Type, Union,
-    KeysView, ValuesView, ItemsView, Iterator,
+    IO, Any, ItemsView, Iterator, KeysView, Mapping,
+    Optional, Sequence, Tuple, Type, Union, ValuesView,
 )
 
 try:
@@ -51,7 +50,8 @@ class Cursor(Protocol):
     def fetchall(self) -> Sequence[DictRow]: raise NotImplementedError
     def fetchone(self) -> DictRow: raise NotImplementedError
     def __enter__(self) -> "Cursor": raise NotImplementedError
-    def __exit__(self, typ: Optional[Type[BaseException]], exc: Optional[BaseException], tb: Optional[types.TracebackType]) -> None:
+    def __exit__(self, typ: Optional[Type[BaseException]], exc: Optional[BaseException],
+                 tb: Optional[types.TracebackType]) -> None:
         raise NotImplementedError
     def copy_expert(
         self, sql: str,
@@ -61,7 +61,8 @@ class Cursor(Protocol):
         raise NotImplementedError
     def fileno(self) -> int: raise NotImplementedError
     @property
-    def description(self) -> Sequence[Tuple[str, int, int, int, Optional[int], Optional[int], None]]: raise NotImplementedError
+    def description(self) -> Sequence[Tuple[str, int, int, int, Optional[int],
+                                            Optional[int], None]]: raise NotImplementedError
     @property
     def connection(self) -> "Connection": raise NotImplementedError
 
@@ -80,8 +81,10 @@ class Connection(Protocol):
     @property
     def server_version(self) -> int: raise NotImplementedError
     def __enter__(self) -> "Connection": raise NotImplementedError
-    def __exit__(self, typ: Optional[Type[BaseException]], exc: Optional[BaseException], tb: Optional[types.TracebackType]) -> None:
+    def __exit__(self, typ: Optional[Type[BaseException]], exc: Optional[BaseException],
+                 tb: Optional[types.TracebackType]) -> None:
         raise NotImplementedError
+
 
 class Runnable(Protocol):
     def run(self) -> None: raise NotImplementedError
@@ -98,7 +101,7 @@ try:
     from typing_extensions import Buffer  # type: ignore
 except ImportError:
     if typing.TYPE_CHECKING:
-        from _typeshed import Buffer    # type: ignore
+        from _typeshed import Buffer  # type: ignore
     else:
         try:
             from collections.abc import Buffer  # type: ignore

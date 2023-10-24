@@ -11,7 +11,7 @@ from configparser import (
     ExtendedInterpolation, Interpolation, InterpolationDepthError,
     InterpolationError, NoOptionError, NoSectionError, RawConfigParser,
 )
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, MutableMapping, Set
+from typing import Dict, List, Mapping, MutableMapping, Optional, Sequence, Set, Tuple
 
 import skytools
 
@@ -280,6 +280,7 @@ ParserState = MutableMapping[str, ParserSection]
 #ParserState = ConfigParser
 ParserLoop = Set[Tuple[str, str]]
 
+
 class ExtendedInterpolationCompat(Interpolation):
     _EXT_VAR_RX = r'\$\$|\$\{[^(){}]+\}'
     _OLD_VAR_RX = r'%%|%\([^(){}]+\)s'
@@ -297,7 +298,8 @@ class ExtendedInterpolationCompat(Interpolation):
             raise ValueError("invalid interpolation syntax in %r" % value)
         return value
 
-    def _interpolate_ext(self, dst: List[str], parser: ParserState, section: str, option: str, rawval: str, defaults: ParserSection, loop_detect: ParserLoop) -> None:
+    def _interpolate_ext(self, dst: List[str], parser: ParserState, section: str, option: str,
+                         rawval: str, defaults: ParserSection, loop_detect: ParserLoop) -> None:
         if not rawval:
             return
 

@@ -3,7 +3,7 @@
 
 import inspect
 import sys
-from typing import Sequence, Optional, Any, Mapping, Callable
+from typing import Any, Callable, Mapping, Optional, Sequence
 
 import skytools
 
@@ -53,8 +53,8 @@ class AdminScript(skytools.DBScript):
 
         # check if correct number of arguments
         (
-                args, varargs, ___varkw, ___defaults,
-                ___kwonlyargs, __kwonlydefaults, ___annotations,
+            args, varargs, ___varkw, ___defaults,
+            ___kwonlyargs, __kwonlydefaults, ___annotations,
         ) = inspect.getfullargspec(fn)
         n_args = len(args) - 1  # drop 'self'
         if varargs is None and n_args != len(cmdargs):
@@ -82,7 +82,8 @@ class AdminScript(skytools.DBScript):
             res = [r[keycol] for r in rows]
         return res
 
-    def display_table(self, db: Connection, desc: str, sql: str, args: ExecuteParams = (), fields: Sequence[str] = (), fieldfmt: Optional[Mapping[str, Callable[[Any], str]]]=None) -> int:
+    def display_table(self, db: Connection, desc: str, sql: str, args: ExecuteParams = (),
+                      fields: Sequence[str] = (), fieldfmt: Optional[Mapping[str, Callable[[Any], str]]] = None) -> int:
         """Display multirow query as a table."""
 
         self.log.debug("display_table: %s", skytools.quote_statement(sql, args))

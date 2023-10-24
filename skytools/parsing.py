@@ -2,7 +2,7 @@
 """
 
 import re
-from typing import Iterator, List, Optional, Sequence, Tuple, Dict, Union
+from typing import Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
 import skytools
 
@@ -142,7 +142,7 @@ class _logtriga_parser:
         return skytools.dbdict(zip(fields2, values2))
 
     def parse_sql(self, op: str, sql: str, pklist: Optional[Sequence[str]] = None, splitkeys: bool = False
-    ) -> Union[skytools.dbdict, Tuple[skytools.dbdict, skytools.dbdict]]:
+                  ) -> Union[skytools.dbdict, Tuple[skytools.dbdict, skytools.dbdict]]:
         """Main entry point."""
         if pklist is None:
             self.pklist = []
@@ -255,7 +255,7 @@ _std_sql_fq_rc = _ext_sql_fq_rc = None
 def sql_tokenizer(
         sql: str, standard_quoting: bool = False, ignore_whitespace: bool = False,
         fqident: bool = False, show_location: bool = False
-        ) -> Iterator[Union[Tuple[str, str], Tuple[str, str, int]]]:
+) -> Iterator[Union[Tuple[str, str], Tuple[str, str, int]]]:
     r"""Parser SQL to tokens.
 
     Iterator, returns (toktype, tokstr) tuples.
