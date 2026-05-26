@@ -112,6 +112,7 @@ class TConstraint(TElem):
             c.conrelid = i.indrelid AND
             c.conname = (SELECT r.relname FROM pg_class r WHERE r.oid = i.indexrelid)
           WHERE c.conrelid = %(oid)s AND c.contype != 'f'
+          ORDER BY CASE c.contype WHEN 'p' THEN 1 ELSE 0 END
     """
 
     table_name: str
