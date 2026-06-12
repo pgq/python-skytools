@@ -46,3 +46,12 @@ shownote:
 showuses:
 	grep uses: .github/workflows/*.yml
 
+test-setup:
+	@set -e; \
+	for py in py310 py312 py314; do \
+	  for st in 77 78 79 80 81 82; do \
+	    env="$${py}-setuptools$${st}"; \
+	    echo "##### $${env} #####"; \
+	    tox -e $${py}-setuptools$${st}; \
+	  done; \
+	done
