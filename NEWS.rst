@@ -2,6 +2,12 @@
 NEWS
 ====
 
+Skytools 3.10.0 (2026-06-xx)
+----------------------------
+
+* Support free-threading in Python 3.14
+* Requires Python 3.10+ and setuptools 77+
+
 Skytools 3.9.2 (2023-08-27)
 ---------------------------
 
