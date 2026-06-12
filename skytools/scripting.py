@@ -323,7 +323,7 @@ class BaseScript:
             args = getattr(options, "args", [])
             return options, args
         opt_parser = self.init_optparse()
-        options2, args2 = opt_parser.parse_args(args)
+        options2, args2 = opt_parser.parse_args(list(args))
         return options2, args2
 
     def print_version(self) -> None:
