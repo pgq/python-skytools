@@ -3,17 +3,11 @@
 # https://github.com/actions
 # https://cibuildwheel.readthedocs.io/en/stable/options/
 #
-# uses: https://github.com/actions/checkout @v4
-# uses: https://github.com/actions/setup-python @v4
-# uses: https://github.com/actions/download-artifact @v3
-# uses: https://github.com/actions/upload-artifact @v3
-# uses: https://github.com/pypa/cibuildwheel @v2.16
 
 name: CI
 
 on:
   pull_request: {}
-  push: {}
 
 jobs:
 
@@ -23,17 +17,16 @@ jobs:
     strategy:
       matrix:
         test:
-          - {PY: "3.10", TOXENV: "lint"}
+          - {PY: "3.14", TOXENV: "lint"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: "Setup Python ${{matrix.test.PY}}"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{matrix.test.PY}}
-
-      - run: python3 -m pip install -r etc/requirements.build.txt --disable-pip-version-check
+          pip-install: -r etc/requirements.build.txt
 
       - name: "Test"
         env:
@@ -46,35 +39,24 @@ jobs:
     strategy:
       matrix:
         test:
-          - {os: "ubuntu-latest", osname: "Linux", PY: "3.7", TOXENV: "py37", arch: "x64"}
-          - {os: "ubuntu-latest", osname: "Linux", PY: "3.8", TOXENV: "py38", arch: "x64"}
-          - {os: "ubuntu-latest", osname: "Linux", PY: "3.9", TOXENV: "py39", arch: "x64"}
           - {os: "ubuntu-latest", osname: "Linux", PY: "3.10", TOXENV: "py310", arch: "x64"}
-          - {os: "ubuntu-latest", osname: "Linux", PY: "3.11", TOXENV: "py311", arch: "x64"}
-          - {os: "ubuntu-latest", osname: "Linux", PY: "3.12", TOXENV: "py312", arch: "x64"}
-          - {os: "macos-latest", osname: "MacOS", PY: "3.10", TOXENV: "py310", arch: "x64"}
-          - {os: "macos-latest", osname: "MacOS", PY: "3.11", TOXENV: "py311", arch: "x64"}
-          #- {os: "macos-latest", osname: "MacOS", PY: "3.12", TOXENV: "py312", arch: "x64"}
-          - {os: "windows-latest", osname: "Windows", PY: "3.7", TOXENV: "py37", arch: "x86"}
-          - {os: "windows-latest", osname: "Windows", PY: "3.8", TOXENV: "py38", arch: "x64"}
-          - {os: "windows-latest", osname: "Windows", PY: "3.10", TOXENV: "py310", arch: "x86"}
-          - {os: "windows-latest", osname: "Windows", PY: "3.11", TOXENV: "py311", arch: "x64"}
-          #- {os: "windows-latest", osname: "Windows", PY: "3.12", TOXENV: "py312", arch: "x64"}
-          - {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.8", TOXENV: "pypy38", arch: "x64"}
-          - {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.9", TOXENV: "pypy39", arch: "x64"}
-          - {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.10", TOXENV: "pypy310", arch: "x64"}
+          - {os: "ubuntu-latest", osname: "Linux", PY: "3.13", TOXENV: "py313", arch: "x64"}
+          - {os: "ubuntu-latest", osname: "Linux", PY: "3.14", TOXENV: "py314", arch: "x64"}
+          - {os: "macos-latest", osname: "MacOS", PY: "3.12", TOXENV: "py312", arch: "x64"}
+          - {os: "macos-latest", osname: "MacOS", PY: "3.14", TOXENV: "py314", arch: "arm64"}
+          - {os: "windows-latest", osname: "Windows", PY: "3.13", TOXENV: "py313", arch: "x64"}
+          - {os: "windows-latest", osname: "Windows", PY: "3.14", TOXENV: "py314", arch: "x64"}
+          #- {os: "ubuntu-latest", osname: "Linux", PY: "pypy3.11", TOXENV: "pypy311", arch: "x64"}
     steps:
-      - name: "Checkout"
-        uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: "Setup Python ${{matrix.test.PY}}"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{matrix.test.PY}}
           architecture: ${{matrix.test.arch}}
           allow-prereleases: true
-
-      - run: python3 -m pip install -r etc/requirements.build.txt --disable-pip-version-check
+          pip-install: -r etc/requirements.build.txt
 
       - name: "Build"
         run: python setup.py build
@@ -90,23 +72,18 @@ jobs:
     strategy:
       matrix:
         test:
-          - {PY: "3.7", PG: "11", TOXENV: "py37"}
-          - {PY: "3.8", PG: "12", TOXENV: "py38"}
-          - {PY: "3.9", PG: "13", TOXENV: "py39"}
-          - {PY: "3.10", PG: "14", TOXENV: "py310"}
-          - {PY: "3.11", PG: "15", TOXENV: "py311"}
+          - {PY: "3.10", PG: "16", TOXENV: "py310"}
+          - {PY: "3.14", PG: "18", TOXENV: "py314"}
           #- {PY: "pypy3.9", PG: "15", TOXENV: "pypy39"}
           #- {PY: "pypy3.10", PG: "15", TOXENV: "pypy310"}
     steps:
-      - name: "Checkout"
-        uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: "Setup Python ${{matrix.test.PY}}"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{matrix.test.PY}}
-
-      - run: python3 -m pip install -r etc/requirements.build.txt --disable-pip-version-check
+          pip-install: -r etc/requirements.build.txt
 
       - name: "InstallDB"
         run: |
@@ -162,27 +139,20 @@ jobs:
     strategy:
       matrix:
         sys:
-          - {os: "ubuntu-latest", name: "Linux", archs: "auto", qemu: false}
-          - {os: "ubuntu-latest", name: "Linux", archs: "aarch64", qemu: true}
-          - {os: "macos-latest", name: "MacOS", archs: "x86_64 arm64 universal2", qemu: false}
-          - {os: "windows-latest", name: "Windows", archs: "auto", qemu: false}
+          - {os: "ubuntu-latest", name: "Linux", archs: "auto"}
+          - {os: "ubuntu-24.04-arm", name: "Linux", archs: "aarch64"}
+          - {os: "macos-15-intel", name: "MacOS", archs: "x86_64 universal2"}
+          - {os: "macos-latest", name: "MacOS", archs: "auto"}
+          - {os: "windows-latest", name: "Windows", archs: "auto"}
     steps:
-      - uses: actions/checkout@v4
-      - name: "Set up QEMU"
-        if: ${{matrix.sys.qemu}}
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
-      - uses: pypa/cibuildwheel@v2.16
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
         env:
           CIBW_ARCHS: "${{matrix.sys.archs}}"
-          # cp38: cp37-macos does not support universal2/arm64
-          CIBW_BUILD: "cp38-* pp*-manylinux_x86_64"
-          CIBW_SKIP: "pp37-*"
       - name: "Check"
         shell: bash
         run: |
           ls -l wheelhouse
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with: {name: "dist", path: "wheelhouse"}
 
