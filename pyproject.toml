@@ -4,13 +4,14 @@ description = "Utilities for database scripts"
 readme = "README.rst"
 keywords = ["database"]
 dynamic = ["version"]
-requires-python = ">= 3.7"
+requires-python = ">= 3.10"
 maintainers = [{name = "Marko Kreen", email = "markokr@gmail.com"}]
+license = "ISC"
+license-files = ["COPYRIGHT"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: ISC License (ISCL)",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX",
@@ -31,7 +32,9 @@ repository = "https://github.com/pgq/python-skytools"
 changelog = "https://github.com/pgq/python-skytools/blob/master/NEWS.rst"
 
 [build-system]
-requires = ["setuptools", "wheel"]
+# v71 - bdist_wheel is now builtin
+# v77 - 'license' format change
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -41,6 +44,9 @@ zip-safe = false
 
 [tool.setuptools.dynamic.version]
 attr = "skytools.installer_config.package_version"
+
+[tool.cibuildwheel]
+#skip = "pp*"  # disable PyPy
 
 #
 # testing
@@ -128,6 +134,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["skytools.basetypes"]
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = ["pkg_resources"]
 warn_unused_ignores = false
 
 [tool.ruff]
@@ -249,7 +259,7 @@ py-version = "3.10"
 
 # When enabled, pylint would attempt to guess common misconfiguration and emit
 # user-friendly hints instead of false-positive error messages.
-suggestion-mode = true
+#suggestion-mode = true
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
@@ -540,6 +550,8 @@ disable = [
     "try-except-raise", "deprecated-module", "no-else-break", "no-else-continue",
     # junk
     "trailing-newlines", "consider-using-f-string",
+    "too-many-positional-arguments",
+    "catching-non-exception",
     # expected
     "cyclic-import",
     # issues

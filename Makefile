@@ -1,6 +1,7 @@
 
-VERSION = $(shell python3 setup.py --version)
-RXVERSION = $(shell python3 setup.py --version | sed 's/\./[.]/g')
+#VERSION = $(shell python3 setup.py --version)
+VERSION = $(shell sed -n -e '/^package_version/s/.* = "\(.*\)"/\1/p' skytools/installer_config.py)
+RXVERSION = $(shell echo "$(VERSION)" | sed 's/\./[.]/g')
 TAG = v$(VERSION)
 NEWS = NEWS.rst
 
@@ -46,3 +47,12 @@ shownote:
 showuses:
 	grep uses: .github/workflows/*.yml
 
+test-setup:
+	@set -e; \
+	for py in py310 py312 py314; do \
+	  for st in 77 78 79 80 81 82; do \
+	    env="$${py}-setuptools$${st}"; \
+	    echo "##### $${env} #####"; \
+	    tox -e $${py}-setuptools$${st}; \
+	  done; \
+	done
