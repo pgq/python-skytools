@@ -1,6 +1,7 @@
 
-VERSION = $(shell python3 setup.py --version)
-RXVERSION = $(shell python3 setup.py --version | sed 's/\./[.]/g')
+#VERSION = $(shell python3 setup.py --version)
+VERSION = $(shell sed -n -e '/^package_version/s/.* = "\(.*\)"/\1/p' skytools/installer_config.py)
+RXVERSION = $(shell echo "$(VERSION)" | sed 's/\./[.]/g')
 TAG = v$(VERSION)
 NEWS = NEWS.rst
 
