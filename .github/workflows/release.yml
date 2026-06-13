@@ -103,7 +103,7 @@ jobs:
           if test "${PRERELEASE}" = "true"; then ghf="${ghf} --prerelease"; fi
           gh release create "v${VERSION}" "dist/${TGZ}" --title="${title}" ${ghf}
 
- publish-pypi:
+  publish-pypi:
     if: ${{ !contains(github.ref_name, '.dev') }}
     name: "Publish to PyPi"
     runs-on: ubuntu-latest
