@@ -1,5 +1,6 @@
 """TNetStrings.
 """
+# mypy: disable-error-code="comparison-overlap"
 
 import codecs
 from typing import Any, List

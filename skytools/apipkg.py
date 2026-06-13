@@ -31,7 +31,7 @@ def _py_abspath(path):
 def distribution_version(name):
     """try to get the version of the named distribution,
     returs None on failure"""
-    from pkg_resources import DistributionNotFound, get_distribution
+    from pkg_resources import DistributionNotFound, get_distribution # type: ignore
     try:
         dist = get_distribution(name)
     except DistributionNotFound:
@@ -96,7 +96,7 @@ class ApiModule(ModuleType):
 
     def __docset(self, value):
         self.__doc = value
-    __doc__ = property(__docget, __docset)  # type: ignore
+    __doc__ = property(__docget, __docset)
 
     def __init__(self, name, importspec, implprefix=None, attr=None):
         super().__init__(name)
@@ -165,7 +165,7 @@ class ApiModule(ModuleType):
     __getattr__ = __makeattr
 
     @property
-    def __dict__(self):
+    def __dict__(self):  # type: ignore
         # force all the content of the module
         # to be loaded when __dict__ is read
         dictdescr = ModuleType.__dict__['__dict__']  # type: ignore
