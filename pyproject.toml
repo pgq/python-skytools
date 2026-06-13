@@ -46,7 +46,7 @@ zip-safe = false
 attr = "skytools.installer_config.package_version"
 
 [tool.cibuildwheel]
-skip = "pp*"  # disable PyPy
+#skip = "pp*"  # disable PyPy
 
 #
 # testing
