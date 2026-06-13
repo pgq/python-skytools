@@ -68,6 +68,7 @@ jobs:
 
       - name: "Prepare"
         run: |
+          ls -l dist
           PACKAGE=$(python3 setup.py --name)
           VERSION=$(python3 setup.py --version)
           TGZ="${PACKAGE}-${VERSION}.tar.gz"
@@ -82,7 +83,7 @@ jobs:
           esac
 
           test "${{github.ref}}" = "refs/tags/v${VERSION}" || { echo "ERR: tag mismatch"; exit 1; }
-          test -f "dist/${TGZ}" || { echo "ERR: sdist failed"; exit 1; }
+          test -f "dist/${TGZ}" || { echo "ERR: sdist failed [dist/${TGZ}]"; ls -l dist; exit 1; }
           echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "TGZ=${TGZ}" >> $GITHUB_ENV
